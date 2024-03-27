@@ -1,0 +1,262 @@
+@import url('../fonts/poppins/poppins.css');
+
+/*
+ * BODY
+ */
+body {
+    font-family: 'Poppins', sans-serif!important;
+    color: #333;
+    font-size: 14px;
+}
+
+/*
+ * BACKGROUND
+ */
+ .background-startup {
+    /*background: rgb(19, 59, 167);*/
+    background: linear-gradient(180deg, rgba(19, 59, 167, 1) 0%, rgba(15, 142, 231, 1) 100%);
+}
+.body--light .background-layout {
+    background: #eceff1 !important;
+}
+.body--dark .background-layout {
+    background: #000000 !important;
+}
+.body--light .background-drawer {
+    background: #e8eaf6 !important;
+}
+.body--dark .background-drawer {
+    background: #212121 !important;
+}
+.body--light .background-drawer .drawer-child {
+    background: #eceff1 !important;
+}
+.body--dark .background-drawer .drawer-child {
+    background: #000000 !important;
+}
+
+
+/*
+ * HEADER & FOOTER
+ */
+.header-main {
+    background: linear-gradient(180deg, rgba(19, 59, 167, 1) 0%, rgba(15, 142, 231, 1) 100%);
+    border-bottom-left-radius: 16px !important;
+    border-bottom-right-radius: 16px !important;
+    padding: 0px;
+}
+.body--light .header-main {
+    box-shadow: 0 2px 4px -1px rgb(0 0 0 / 20%), 0 4px 5px rgb(0 0 0 / 14%), 0 1px 10px rgb(0 0 0 / 12%) !important;
+}
+.body--dark .header-main {
+    box-shadow: 0 2px 4px -1px rgb(255 255 255 / 20%), 0 4px 5px rgb(255 255 255 / 14%), 0 1px 10px rgb(255 255 255 / 12%) !important;
+}
+.footer-main {
+    background: linear-gradient(180deg, rgba(19, 59, 167, 1) 0%, rgba(15, 142, 231, 1) 100%);
+    border-top-left-radius: 16px !important;
+    border-top-right-radius: 16px !important;
+}
+
+/*
+ * TOOLBAR
+ */
+.toolbar-select {
+    overflow: hidden;
+    /*width: 156px !important;*/
+}
+.toolbar-select .q-field__native {
+    color: orange;
+}
+
+/*
+ * LED GREEN
+ */
+ .led-green {
+    margin: 0 auto;
+    background-color: #ABFF00;
+    border-radius: 50%;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #00FF00 0 2px 12px;
+    -webkit-animation: blink-green 1.5s infinite;
+    -moz-animation: blink-green 1.5s infinite;
+    -ms-animation: blink-green 1.5s infinite;
+    -o-animation: blink-green 1.5s infinite;
+    animation: blink-green 1.5s infinite;
+}
+@-webkit-keyframes blink-green {
+    from { background-color: #0F0; }
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    to { background-color: #0F0; }
+}
+@-moz-keyframes blink-green {
+    from { background-color: #0F0; }
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    to { background-color: #0F0; }
+}
+@-ms-keyframes blink-green {
+    from { background-color: #0F0; }
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    to { background-color: #0F0; }
+}
+@-o-keyframes blink-green {
+    from { background-color: #0F0; }
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    to { background-color: #0F0; }
+}
+@keyframes blink-green {
+    from { background-color: #0F0; }
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #89FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    to { background-color: #0F0; }
+}
+
+
+/*
+ * ALIGN ITEMS
+ */
+.center-items {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.right-items {
+    display: flex;
+    align-items: right;
+    justify-content: center;
+}
+.left-items {
+    display: flex;
+    align-items: left;
+    justify-content: center;
+}
+
+
+/*
+ * ELLIPSIS
+ */
+.ellipsis-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.ellipsis-text.lines1 {
+    -webkit-line-clamp: 1;
+}
+.ellipsis-text.lines2 {
+    -webkit-line-clamp: 2;
+}
+.ellipsis-text.lines3 {
+    -webkit-line-clamp: 3;
+}
+
+
+/*
+ * TABLE STICKY HEADER
+ */
+.table-sticky-header {
+    max-height: 80vh;
+}
+.body--light .table-sticky-header td:first-child {
+    background-color: #eee !important;
+}
+.body--dark .table-sticky-header td:first-child {
+    background-color: #111 !important;
+}
+.table-sticky-header tr th {
+    position: sticky;
+    z-index: 2;
+    /*background: #fff;*/
+}
+.body--light .table-sticky-header tr th {
+    background-color: #eee !important;
+}
+.body--dark .table-sticky-header tr th {
+    background-color: #111 !important;
+}
+
+.table-sticky-header thead tr:last-child th {
+    top: 48px;
+    z-index: 3;
+}
+.table-sticky-header thead tr:first-child th {
+    top: 0;
+    z-index: 2;
+    font-weight: bold;
+    border-bottom: solid 0.5px;
+    /*background: linear-gradient(180deg, rgba(19, 59, 167, 1) 0%, rgba(15, 142, 231, 1) 100%);*/
+    /*background: cyan;*/
+    /*color: white;*/
+}
+.table-sticky-header tr:first-child th:first-child {
+    z-index: 3;
+    padding: 4px 2px 4px 2px !important;
+}
+.table-sticky-header td:first-child {
+    z-index: 1;
+    padding: 4px 2px 4px 2px !important;
+}
+.table-sticky-header td:first-child, .table-sticky-header th:first-child {
+    position: sticky;
+    left: 0;
+}
+
+.table-sticky-header.no-column td:first-child {
+    z-index: 1;
+    padding: 0px 8px 0px 8px !important;
+    width: 0px;
+    font-weight: bolder;
+
+    /*
+    word-wrap: break-word;
+    max-width: 100px;
+    overflow-wrap: break-word;
+    */
+}
+
+.table-sticky-header .table-child td, .table-sticky-header .table-child th{
+    font-size: 11px !important;
+}
+
+/*
+ * TABLE DEFAULT
+ */
+.body--light .table-default tr th {
+    background-color: #eee !important;
+    font-weight: bold;
+    border-bottom: solid 0.5px;
+}
+.body--dark .table-default tr th {
+    background-color: #111 !important;
+    font-weight: bold;
+    border-bottom: solid 0.5px;
+}
+
+
+/*
+ * LOGIN FORM
+ */
+ .login-form {
+    margin-top: 15vh !important;
+    padding: 15px;
+    box-shadow: 0 0 4px #ddd;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+.body--light .login-form {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+.body--dark .login-form {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(255, 255, 255, 0.5);
+}
+
+
+/*
+ * BUTTON
+ */
+ .body--light .button-default {
+    color: #333 !important;
+}
+.body--dark .button-default {
+    color: #fff !important;
+}

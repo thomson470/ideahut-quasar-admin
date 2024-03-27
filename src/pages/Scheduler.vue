@@ -1,0 +1,717 @@
+<template>
+    <div class="q-mt-none q-pa-sm q-mb-lg">
+        <q-card class="q-pa-none q-mb-xl" bordered>
+            <q-card-section class="row q-pa-none">
+                <div class="col-md-3 col-xs-12 text-center flex flex-center" style="border-right: solid 0.5px;">
+                    <q-btn
+                        v-if="null !== running"
+                        round
+                        glossy
+                        class="q-mb-sm q-mt-sm"
+                        :icon="running ? 'stop_circle' : 'play_circle'"
+                        :color="running ? 'negative' : 'positive'"
+                        size="5vh"
+                        :loading="loading.start_stop"
+                        @click="on_start_stop_click"
+                    > 
+                        <q-tooltip>{{ $t(running ? 'label.stop' : 'label.start') }}</q-tooltip>
+                    </q-btn>
+                </div>
+                <div class="col-md-9 col-xs-12">
+                    <div class="text-right">
+                        <q-btn
+                            round
+                            glossy
+                            dense
+                            size="sm"
+                            icon="refresh"
+                            class="q-ma-xs"
+                            :loading="loading.metadata"
+                            @click="get_metadata"
+                        > 
+                            <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
+                        </q-btn>
+                    </div>
+                    <q-table
+                        v-if="metadata?.length"
+                        class="table-sticky-header no-column q-ma-xs"
+                        style="max-height: 28vh;"
+                        :rows="metadata"
+                        :separator="'horizontal'"
+                        :rows-per-page-options="[0]"
+                        hide-bottom
+                        hide-header
+                        dense
+                        flat
+                        bordered
+                    />
+                </div>
+            </q-card-section>
+        </q-card>
+        <q-card 
+            v-for="(group, id) in groups" 
+            :key="id" 
+            class="q-pa-none q-mb-lg" 
+            bordered
+        >
+            <q-item>
+                <q-item-section>
+                    <q-item-label class="text-h5">{{ group.name }}</q-item-label>
+                    <q-item-label class="text-italic" caption>
+                        {{ $t("label.zone_offset_seconds") }}: {{ group.zoneOffsetSeconds }}
+                    </q-item-label>
+                    <q-item-label class="ellipsis-text lines2" caption>
+                        {{ group.description }}
+                    </q-item-label>
+                </q-item-section>
+            </q-item>
+            <q-card-section v-if="expand[id]" class="q-pa-xs">
+                <q-table
+                    class="table-sticky-header"
+                    :rows="group.triggers"
+                    :visible-columns="visibles"
+                    :columns="columns"
+                    row-key="triggerId"
+                    :loading="loading[id]"
+                    :pagination="pagination[id]"
+                    :filter="filter[id]"
+                    binary-state-sort
+                    separator="cell"
+                    selection="single"
+                    
+                >
+                    <template v-slot:top-right>
+                        <q-input 
+                            borderless 
+                            dense
+                            v-model="filter[group.groupId]" 
+                            :placeholder="$t('label.search')"
+                        >
+                            <template v-slot:append>
+                                <q-icon name="search" />
+                            </template>
+                        </q-input>
+                        <q-btn
+                            round
+                            glossy
+                            dense
+                            size="sm"
+                            icon="refresh"
+                            class="q-ml-lg"
+                            :loading="loading.group[id]"
+                            @click="get_triggers(id)"
+                        > 
+                            <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
+                        </q-btn>
+                    </template>
+                    <template v-slot:body-selection="scope">
+                        <div class="text-right">
+                            <q-btn
+                                v-if="scope.row?.status?.state && 'PAUSED' === scope.row.status.state"
+                                glossy
+                                round
+                                dense
+                                size="sm"
+                                class="q-ma-none q-ml-xs q-mr-sm"
+                                color="green-9"
+                                icon="play_arrow"
+                                :loading="loading.pause_resume[scope.row.triggerId]"
+                                @click="on_resume_click(scope)"
+                            >
+                                <q-tooltip>{{ $t("label.resume") }}</q-tooltip>
+                            </q-btn>
+                            <q-btn
+                                v-if="scope.row?.status?.state && 'PAUSED' !== scope.row.status.state"
+                                glossy
+                                round
+                                dense
+                                size="sm"
+                                class="q-ma-none q-ml-xs q-mr-sm"
+                                color="orange-9"
+                                icon="pause"
+                                :loading="loading.pause_resume[scope.row.triggerId]"
+                                @click="on_pause_click(scope)"
+                            >
+                                <q-tooltip>{{ $t("label.pause") }}</q-tooltip>
+                            </q-btn>
+                            <q-btn
+                                v-if="scope.row?.status && true !== scope.row.status.scheduled"
+                                glossy
+                                round
+                                dense
+                                size="sm"
+                                class="q-ma-none q-ml-xs q-mr-sm"
+                                color="indigo-9"
+                                icon="add"
+                                :loading="loading.schedule_unschedule[scope.row.triggerId]"
+                                @click="on_schedule_click(scope)"
+                            >
+                                <q-tooltip>{{ $t("label.schedule") }}</q-tooltip>
+                            </q-btn>
+                            <q-btn
+                                v-if="scope.row?.status && true === scope.row.status.scheduled"
+                                glossy
+                                round
+                                dense
+                                size="sm"
+                                class="q-ma-none q-ml-xs q-mr-sm"
+                                color="pink-9"
+                                icon="remove"
+                                :loading="loading.schedule_unschedule[scope.row.triggerId]"
+                                @click="on_unschedule_click(scope)"
+                            >
+                                <q-tooltip>{{ $t("label.unschedule") }}</q-tooltip>
+                            </q-btn>
+                            <q-btn
+                                v-if="scope.row?.status && true === scope.row.status.scheduled"
+                                glossy
+                                round
+                                dense
+                                size="sm"
+                                class="q-ma-none q-ml-xs q-mr-sm"
+                                color="blue-grey-9"
+                                icon="directions_run"
+                                :loading="loading.trigger[scope.row.triggerId]"
+                                @click="on_trigger_click(scope)"
+                            >
+                                <q-tooltip>{{ $t("label.trigger") }}</q-tooltip>
+                            </q-btn>
+                            <q-btn
+                                glossy
+                                round
+                                dense
+                                size="sm"
+                                class="q-ma-none q-ml-xs q-mr-sm"
+                                color="deep-purple"
+                                icon="visibility"
+                                @click="on_view_click(scope)"
+                            >
+                                <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+                            </q-btn>
+                        </div>
+                    </template>
+                </q-table>
+            </q-card-section>
+            <q-badge 
+                color="transparent"
+                floating
+                transparent
+            >
+                <q-btn
+                    round
+                    glossy
+                    dense
+                    size="sm"
+                    class="q-ma-sm"
+                    :icon="expand[id] ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                    @click="expand[id] = !expand[id]"
+                />  
+            </q-badge>
+        </q-card>
+    </div>
+
+    <q-dialog
+        v-model="dialog.view.show"
+        persistent
+        transition-show="slide-down"
+        transition-hide="none"
+    >
+        <View
+            :parameters="dialog.view.parameters"
+        />
+    </q-dialog>
+
+</template>
+  
+<script>
+import { ref, defineAsyncComponent } from "vue";
+import { util } from "src/scripts/util";
+import { uix } from "src/scripts/uix";
+import { api } from "src/scripts/api";
+  
+export default {
+    components: {
+        View: defineAsyncComponent(() => import("src/pages/TableView")),
+    },
+    setup() {
+        return {
+            util,
+            handler: ref(null),
+            running: ref(null),
+            metadata: ref([]),
+            groups: ref({}),
+
+            columns: ref([]),
+            visibles: ref([]),
+
+            filter: ref({}),
+            expand: ref({}),
+            pagination: ref({}),
+
+            loading: ref({
+                start_stop: false,
+                metadata: false,
+                group: {},
+                pause_resume: {},
+                schedule_unschedule: {},
+                trigger: {},
+            }),
+
+            dialog: ref({
+                view: {
+                    show: false,
+                    parameters: null,
+                },
+            }),
+        };
+    },
+  
+    created() {
+        let self = this;
+        self.visibles = [
+            "name",
+            "cronExpression",
+            "type.classname",
+            "isRunOnStartup",
+            "status.state",
+            "status.priority",
+            "zoneOffsetSeconds",
+            "status.startTime",
+            "status.previousFireTime",
+            "status.nextFireTime",
+        ];
+        self.columns = [
+            {
+                name: "triggerId",
+                label: self.$t('label.id'),
+                field: "triggerId",
+                align: "left",
+                sortable: true,
+            },
+            {
+                name: "name",
+                label: self.$t('label.name'),
+                field: "name",
+                align: "left",
+                sortable: true,
+            },
+            {
+                name: "cronExpression",
+                label: self.$t('label.cron'),
+                field: "cronExpression",
+                align: "left",
+                sortable: true,
+            },
+            {
+                name: "type.classname",
+                label: self.$t('label.class'),
+                field: "type",
+                align: "left",
+                sortable: true,
+                format: function(val) { 
+                    if(val) { 
+                        return val.classname;
+                    } else { 
+                        return val.name;
+                    }; 
+                },
+            },
+            {
+                name: "isRunOnStartup",
+                label: self.$t('label.run_on_startup'),
+                field: "isRunOnStartup",
+                align: "center",
+                sortable: true,
+                format: function(val) { 
+                    if("Y" === val) { 
+                        return self.$t("label.yes");
+                    } else if("N" === val) { 
+                        return self.$t("label.no");
+                    } else { 
+                        return "";
+                    }; 
+                },
+            },
+            {
+                name: "isSaveResult",
+                label: self.$t('label.save'),
+                field: "isSaveResult",
+                align: "center",
+                sortable: true,
+                format: function(val) { 
+                    if("Y" === val) { 
+                        return self.$t("label.yes");
+                    } else if("N" === val) { 
+                        return self.$t("label.no");
+                    } else { 
+                        return "";
+                    }; 
+                },
+            },
+            {
+                name: "status.state",
+                label: self.$t('label.state'),
+                field: "status",
+                align: "center",
+                sortable: true,
+                format: function(val) { 
+                    return val ? val.state : "";   
+                },
+            },
+            {
+                name: "status.priority",
+                label: self.$t('label.priority'),
+                field: "status",
+                align: "center",
+                sortable: true,
+                format: function(val) { 
+                    return val && util.isNumber(val.priority) ? val.priority : "";  
+                },
+            },
+            {
+                name: "zoneOffsetSeconds",
+                label: self.$t('label.zone_offset_seconds'),
+                field: "zoneOffsetSeconds",
+                align: "left",
+                sortable: true,
+            },
+            {
+                name: "status.startTime",
+                label: self.$t('label.start_time'),
+                field: "status",
+                align: "center",
+                format: function(val) { 
+                    return val && util.isNumber(val.startTime) ? util.format.date(val.startTime, {format: "yyyy-MM-dd HH:mm:ss"}) : "";  
+                },
+            },
+            {
+                name: "status.previousFireTime",
+                label: self.$t('label.previous_fire_time'),
+                field: "status",
+                align: "center",
+                format: function(val) { 
+                    return val && util.isNumber(val.previousFireTime) ? util.format.date(val.previousFireTime, {format: "yyyy-MM-dd HH:mm:ss"}) : "";  
+                },
+            },
+            {
+                name: "status.nextFireTime",
+                label: self.$t('label.next_fire_time'),
+                field: "status",
+                align: "center",
+                format: function(val) { 
+                    return val && util.isNumber(val.nextFireTime) ? util.format.date(val.nextFireTime, {format: "yyyy-MM-dd HH:mm:ss"}) : "";  
+                },
+            },
+            {
+                name: "type",
+                label: self.$t('label.type'),
+                field: "type",
+                align: "left"
+            },
+            {
+                name: "status",
+                label: self.$t('label.status'),
+                field: "status",
+                align: "left"
+            },
+        ];
+        self.do_init();
+    },
+
+    methods: {
+        /*
+         * INIT
+         */
+        do_init() {
+            let self = this;
+            let handler = self.$route.query.handler;
+            if (handler === self.handler) {
+                return;
+            }
+            self.handler = handler;
+            self.get_metadata();
+            self.get_groups();
+        },
+
+        /*
+         * METADATA
+         */
+        get_metadata() {
+            let self = this;
+            self.loading.metadata = true;
+            api.call({
+                path: "/scheduler/metadata",
+                params: {
+                    handler: self.handler,
+                },
+                onFinish() {
+                    self.loading.metadata = false;
+                },
+                onSuccess(data, info) {
+                    self.running = info.running;
+                    self.metadata = [];
+                    if (util.isObject(data)) {
+                        Object.keys(data).forEach((key) => {
+                            self.metadata.push({
+                                label: key.substring(0, 1).toUpperCase() + key.substring(1),
+                                value: "runningSince" === key ? util.format.date(data[key], {format: "yyyy-MM-dd HH:mm:ss"}) : data[key],
+                            });
+                        });
+                    }
+                    if (util.isArray(info.packages)) {
+                        self.metadata.push({
+                            label: "JobPackages",
+                            value: JSON.stringify(info.packages),
+                        });   
+                    }
+                },
+            });
+        },
+
+        /*
+         * RETRIEVE GROUP
+         */
+        retrieve_group(group, tmp_expand, tmp_filter) {
+            let self = this;
+            self.groups[group.groupId] = group;
+            self.loading.group[group.groupId] = false;
+            self.filter[group.groupId] = tmp_filter[group.groupId] ? tmp_filter[group.groupId] : null;
+            self.expand[group.groupId] = true === tmp_expand[group.groupId] ? true : false;
+            self.pagination[group.groupId] = {
+                page: 1,
+                rowsPerPage: 20,
+                sortBy: 'name',
+                descending: false,
+            };
+        },
+
+        /*
+         * GROUPS
+         */
+        get_groups() {
+            let self = this;
+            api.call({
+                path: "/scheduler/groups",
+                params: {
+                    handler: self.handler,
+                },
+                onSuccess(groups) {
+                    if (util.isArray(groups)) {
+                        let tmp_expand = JSON.parse(JSON.stringify(self.expand));
+                        let tmp_filter = JSON.parse(JSON.stringify(self.filter));
+                        self.groups = {};
+                        self.expand = {};
+                        self.filter = {};
+                        for (const group of groups) {
+                            self.retrieve_group(group, tmp_expand, tmp_filter);
+                            self.get_triggers(group.groupId);
+                        }
+                    }
+                },
+            });
+        },
+
+        /*
+         * TRIGGERS
+         */
+         get_triggers(groupId) {
+            let self = this;
+            if (util.isString(groupId)) {
+                self.loading.group[groupId] = true;
+            }
+            api.call({
+                path: "/scheduler/triggers",
+                params: {
+                    handler: self.handler,
+                    groupId: util.isString(groupId) ? groupId : null,
+                },
+                onFinish() {
+                    if (util.isString(groupId)) {
+                        self.loading.group[groupId] = false;
+                    }
+                },
+                onSuccess(data) {
+                    if (util.isArray(data)) {
+                        let tmp_expand = JSON.parse(JSON.stringify(self.expand));
+                        let tmp_filter = JSON.parse(JSON.stringify(self.filter));
+                        if (util.isString(groupId)) {
+                            self.retrieve_group(data[0], tmp_expand, tmp_filter);
+                        } else {
+                            self.groups = {};
+                            self.expand = {};
+                            for (const group of data) {
+                                self.retrieve_group(group, tmp_expand, tmp_filter);
+                            }
+                        }
+                    }
+                },
+            });
+         },
+
+        /*
+         * START / STOP CLICK
+         */
+        on_start_stop_click() {
+            let self = this;
+            uix.confirm(function() {
+                self.loading.start_stop = true;
+                api.call({
+                    path: "/scheduler/" + (self.running ? "stop" : "start"),
+                    method: "post",
+                    params: {
+                        handler: self.handler,
+                    },
+                    onFinish() {
+                        self.loading.start_stop = false;
+                    },
+                    onSuccess() {
+                        self.get_metadata();
+                        self.get_groups();
+                    },
+                });
+            }, self.$t("label." + (self.running ? "stop": "start")) + " ?", false);
+        },
+
+        /*
+         * PAUSE CLICK
+         */
+        on_pause_click(scope) {
+            let self = this;
+            let row = scope.row;
+            uix.confirm(function() {
+                self.loading.pause_resume[row.triggerId] = true;
+                api.call({
+                    path: "/scheduler/pause",
+                    method: "post",
+                    params: {
+                        handler: self.handler,
+                        triggerId: row.triggerId,
+                    },
+                    onFinish() {
+                        self.loading.pause_resume[row.triggerId] = false;
+                    },
+                    onSuccess() {
+                        self.get_triggers(row.group.groupId);
+                    },
+                });        
+            }, self.$t("label.pause") + " <b>" + row.name + "</b> ?", false);
+        },
+
+        /*
+         * RESUME CLICK
+         */
+        on_resume_click(scope) {
+            let self = this;
+            let row = scope.row;
+            uix.confirm(function() {
+                self.loading.pause_resume[row.triggerId] = true;
+                api.call({
+                    path: "/scheduler/resume",
+                    method: "post",
+                    params: {
+                        handler: self.handler,
+                        triggerId: row.triggerId,
+                    },
+                    onFinish() {
+                        self.loading.pause_resume[row.triggerId] = false;
+                    },
+                    onSuccess() {
+                        self.get_triggers(row.group.groupId);
+                    },
+                });        
+            }, self.$t("label.resume") + " <b>" + row.name + "</b> ?", false);
+        },
+
+        /*
+         * SCHEDULE CLICK
+         */
+        on_schedule_click(scope) {
+            let self = this;
+            let row = scope.row;
+            uix.confirm(function() {
+                self.loading.schedule_unschedule[row.triggerId] = true;
+                api.call({
+                    path: "/scheduler/add",
+                    method: "post",
+                    params: {
+                        handler: self.handler,
+                        triggerId: row.triggerId,
+                    },
+                    onFinish() {
+                        self.loading.schedule_unschedule[row.triggerId] = false;
+                    },
+                    onSuccess() {
+                        self.get_triggers(row.group.groupId);
+                    },
+                });    
+            }, self.$t("label.schedule") + " <b>" + row.name + "</b> ?", false);
+        },
+        
+        /*
+         * UNSCHEDULE CLICK
+         */
+        on_unschedule_click(scope) {
+            let self = this;
+            let row = scope.row;
+            uix.confirm(function() {
+                self.loading.schedule_unschedule[row.triggerId] = true;
+                api.call({
+                    path: "/scheduler/delete",
+                    method: "post",
+                    params: {
+                        handler: self.handler,
+                        triggerId: row.triggerId,
+                    },
+                    onFinish() {
+                        self.loading.schedule_unschedule[row.triggerId] = false;
+                    },
+                    onSuccess() {
+                        self.get_triggers(row.group.groupId);
+                    },
+                }); 
+            }, self.$t("label.unschedule") + " <b>" + row.name + "</b> ?", false);
+        },
+        
+        /*
+         * TRIGGER CLICK
+         */
+        on_trigger_click(scope) {
+            let self = this;
+            let row = scope.row;
+            uix.confirm(function() {
+                self.loading.trigger[row.triggerId] = true;
+                api.call({
+                    path: "/scheduler/trigger",
+                    method: "post",
+                    params: {
+                        handler: self.handler,
+                        triggerId: row.triggerId,
+                    },
+                    onFinish() {
+                        self.loading.trigger[row.triggerId] = false;
+                    },
+                    onSuccess() {
+                        self.get_triggers(row.group.groupId);
+                    },
+                }); 
+            }, self.$t("label.trigger") + " <b>" + row.name + "</b> ?", false);
+        },
+
+        /*
+         * VIEW CLICK
+         */
+        on_view_click(scope) {
+            let self = this;
+            self.dialog.view = {
+                show: true,
+                parameters: {
+                    scope: scope,
+                    columns: self.columns,
+                },
+            };
+        },
+    },
+  
+};
+</script>
+  
