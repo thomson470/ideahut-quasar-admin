@@ -226,10 +226,6 @@ export default {
                                 value: app.id,
                             },
                             {
-                                label: self.$t("label.application_name"),
-                                value: app.applicationName,
-                            },
-                            {
                                 label: self.$t("label.display_name"),
                                 value: app.displayName,
                             },
@@ -254,6 +250,10 @@ export default {
                     if (util.isObject(data.version)) {
                         let version = data.version;
                         self.version = [
+                            {
+                                label: "Reactive",
+                                value: version.reactive,
+                            },
                             {
                                 label: "Java",
                                 value: version.java,

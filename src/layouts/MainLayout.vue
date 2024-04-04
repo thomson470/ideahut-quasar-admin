@@ -198,6 +198,7 @@ export default {
         api.call({
             path: "/menus",
             onSuccess(menus) {
+                menus = util.isArray(menus) ? menus : [];
                 self.menus = [
                     {
                         id: "home",

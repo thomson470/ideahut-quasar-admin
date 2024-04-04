@@ -20,7 +20,7 @@
             </q-item>
         </q-card-section>
         <q-card-section
-            style="max-height: 80vh;"
+            style="max-height: 75vh;"
             class="q-pa-xs q-mt-xs scroll"
         >
             <q-input

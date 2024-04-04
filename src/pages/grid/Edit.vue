@@ -21,7 +21,7 @@
             </q-item>
         </q-card-section>
         <q-card-section
-            style="max-height: 70vh;"
+            style="max-height: 65vh;"
             class="q-pa-xs q-mt-none scroll"
         >
             <div
@@ -296,7 +296,7 @@
         v-model="dialog.table.show"
         transition-show="slide-down"
         transition-hide="none"
-        maximized
+        full-height
         full-width
     >
         <Table2

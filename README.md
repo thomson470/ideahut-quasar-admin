@@ -9,6 +9,14 @@ yarn
 npm install
 ```
 
+
+## Prepare
+```bash
+npm run lint --fix
+icongenie generate -m spa -i icon-512x512.png
+```
+
+
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 ```bash
 quasar dev
