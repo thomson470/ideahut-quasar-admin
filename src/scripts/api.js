@@ -66,7 +66,7 @@ const processError = function (objerr, onError, notify) {
     }
 };
 
-const build = function (options) {
+const build = async function (options) {
     let opts = util.isObject(options) ? options : {};
     opts.method = util.isString(opts.method) ? opts.method.trim().toUpperCase() : "GET";
     opts.baseURL = API_URL;
@@ -86,7 +86,7 @@ const build = function (options) {
     if (util.isFunction(opts.onStart)) {
         opts.onStart(opts);
     }
-    let res = axios(opts);
+    let res = await axios(opts);
     return res;
 };
 
@@ -145,9 +145,10 @@ const call = function(options){
         let errmsg = util.isString(errobj.text) ? errobj.text : "";
         let errmtd = util.isString(copts.method) ? copts.method.trim().toUpperCase() : "";
         if (errmsg.startsWith("Unexpected EOF in prolog") && "POST" === errmtd) {
+            options.retry = true;
             request(options);
         } else {
-            processError(error, options.onError, options.notify);
+            processError(error, options.onError, true !== options.retry);
         }
     };
     request(copts);

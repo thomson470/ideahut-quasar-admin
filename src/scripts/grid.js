@@ -411,55 +411,57 @@ const grid = {
                     table.loading = false;
                 },
                 onSuccess(data) {
-                    table.rows = grid.get.array(data.data);
-                    grid.inject.pkAndGridId(definition.id, table.rows, definition._grid_id_);
-                    grid.update.page(table.pagination, data, table.rows.length);
-                    table.pagination.sortBy = sortBy;
-                    table.pagination.descending = descending;
-                    /*
-                    // LAZY LOAD
-                    if (util.isObject(self.grid.lazy)) {
-                    let lazy = JSON.parse(JSON.stringify(self.grid.lazy));
-                    for (const element of self.rows) {
-                        Object.keys(lazy).forEach((key) => {
-                        if (!util.isArray(lazy[key].members)) {
-                            lazy[key].members = [];
-                        }
-                        let value = util.getFieldValue(
-                            key + "." + lazy[key].id,
-                            element
-                        );
-                        if (util.isDefined(value)) {
-                            lazy[key].members.push(value);
-                        }
-                        });
-                    }
-                    Object.keys(lazy).forEach((key) => {
-                        lazy[key].members = [...new Set(lazy[key].members)];
-                        if (lazy[key].members.length) {
-                        api.call({
-                            path: "/crud/map",
-                            method: "post",
-                            data: {
-                            name: lazy[key].entity,
-                            ids: lazy[key].members,
-                            },
-                            onSuccess(map) {
-                            for (const element of self.rows) {
-                                let value = util.getFieldValue(
+                    if (util.isObject(data)) {
+                        table.rows = grid.get.array(data.data);
+                        grid.inject.pkAndGridId(definition.id, table.rows, definition._grid_id_);
+                        grid.update.page(table.pagination, data, table.rows.length);
+                        table.pagination.sortBy = sortBy;
+                        table.pagination.descending = descending;
+                        /*
+                        // LAZY LOAD
+                        if (util.isObject(self.grid.lazy)) {
+                        let lazy = JSON.parse(JSON.stringify(self.grid.lazy));
+                        for (const element of self.rows) {
+                            Object.keys(lazy).forEach((key) => {
+                            if (!util.isArray(lazy[key].members)) {
+                                lazy[key].members = [];
+                            }
+                            let value = util.getFieldValue(
                                 key + "." + lazy[key].id,
                                 element
-                                );
-                                if (util.isDefined(value) && util.isDefined(map[value])) {
-                                element[key] = map[value];
-                                }
+                            );
+                            if (util.isDefined(value)) {
+                                lazy[key].members.push(value);
                             }
-                            },
+                            });
+                        }
+                        Object.keys(lazy).forEach((key) => {
+                            lazy[key].members = [...new Set(lazy[key].members)];
+                            if (lazy[key].members.length) {
+                            api.call({
+                                path: "/crud/map",
+                                method: "post",
+                                data: {
+                                name: lazy[key].entity,
+                                ids: lazy[key].members,
+                                },
+                                onSuccess(map) {
+                                for (const element of self.rows) {
+                                    let value = util.getFieldValue(
+                                    key + "." + lazy[key].id,
+                                    element
+                                    );
+                                    if (util.isDefined(value) && util.isDefined(map[value])) {
+                                    element[key] = map[value];
+                                    }
+                                }
+                                },
+                            });
+                            }
                         });
                         }
-                    });
+                        */
                     }
-                    */
                 },
             });
         },
