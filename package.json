@@ -1,8 +1,8 @@
 {
-  "name": "ideahut-quasar-template",
+  "name": "ideahut-quasar-admin",
   "version": "0.0.1",
-  "description": "Ideahut Quasar Template",
-  "productName": "Ideahut Quasar Template",
+  "description": "Ideahut Quasar Admin",
+  "productName": "Ideahut",
   "author": "Thomson Napitupulu <thomson470@gmail.com>",
   "private": true,
   "scripts": {
