@@ -1,4 +1,4 @@
-# Ideahut Quasar Admin <img height="32" src="https://cdn.quasar.dev/logo-v2/svg/logo-vertical-dark.svg" alt="Spring"> <img height="32" src="./images/logo.png" alt="Ideahut">
+# Ideahut Quasar Admin <img height="32" src="https://cdn.quasar.dev/logo-v2/svg/logo.svg" alt="Quasar"> <img height="32" src="![./images/logo.png](https://raw.githubusercontent.com/ideahut-apps-team/ideahut-springboot-docs/main/docs/images/logo.png)" alt="Ideahut">
 
 - UI Admin untuk library [Ideahut Spring Boot](https://github.com/ideahut-apps-team/ideahut-springboot-docs/)
 - Mendukung Versi 2x dan 3x
