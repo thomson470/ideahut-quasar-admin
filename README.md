@@ -19,7 +19,7 @@ quasar dev
 ```bash
 quasar build
 ```
-- *) Aplikasi yang sudah di-_build_ (folder: dist), bisa digunakan sebagai static resource di backend.
+- Aplikasi yang sudah di-_build_ (folder: dist), bisa digunakan sebagai static resource di backend.
 
 ### Environment (file: .env)
 ```md
@@ -41,57 +41,6 @@ DEVELOPMENT=true
 * [Springboot 2x MVC](https://github.com/thomson470/ideahut-springboot-2x-template-mvc)
 * [Springboot 2x Reactive](https://github.com/thomson470/ideahut-springboot-2x-template-flux)
 
-
-### Customize the configuration
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js).
-
-
-# Ideahut Quasar Admin
-
-Ideahut Quasar Admin
-
-## Install the dependencies
-```bash
-yarn
-# or
-npm install
-```
-
-
-## Prepare
-```bash
-npm run lint --fix
-icongenie generate -m spa -i icon-512x512.png
-```
-
-
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
-```bash
-quasar dev
-```
-
-
-### Lint the files
-```bash
-yarn lint
-# or
-npm run lint
-```
-
-
-### Format the files
-```bash
-yarn format
-# or
-npm run format
-```
-
-
-
-### Build the app for production
-```bash
-quasar build
-```
 
 ### Customize the configuration
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js).
