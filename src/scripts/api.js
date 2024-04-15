@@ -73,7 +73,9 @@ const build = async function (options) {
     opts.url = util.isString(opts.url) ? opts.url : options.path;
     let auth = storage.auth();
     let headers = util.isObject(opts.headers) ? opts.headers : {};
-    headers["Authorization"] = auth.token;
+    if (util.isString(auth.token)) {
+        headers["Authorization"] = auth.token;
+    }
     if (!util.isDefined(headers["Accept"])) {
         headers["Accept"] = "application/json";
     }
@@ -123,37 +125,6 @@ const request = function (options) {
     });
 };
 
-const call = function(options){
-    let copts = JSON.parse(JSON.stringify(options));
-    copts.onFinish = function() {
-        if (util.isFunction(options.onFinish)) {
-            options.onFinish();
-        }
-    },
-    copts.onSuccess = function(data, info) {
-        if (util.isFunction(options.onSuccess)) {
-            options.onSuccess(data, info);
-        }
-    };
-    copts.onError = function(error) {
-        /*
-            Ada kasus pada saat request POST pertama kali, server membaca body yang dikirim ada string kosong, setelahnya normal.
-            Terjadi di SPA yang sudah di-buil menjadi js & html, sedangkan untuk quasar dev aman-aman saja.
-            Jadi akan dicek di setiap request POST jika error 'Unexpected EOF in prolog', maka request diulang.
-         */
-        let errobj = util.isArray(error) ? error[error.length - 1] : error;
-        let errmsg = util.isString(errobj.text) ? errobj.text : "";
-        let errmtd = util.isString(copts.method) ? copts.method.trim().toUpperCase() : "";
-        if (errmsg.startsWith("Unexpected EOF in prolog") && "POST" === errmtd) {
-            options.retry = true;
-            request(options);
-        } else {
-            processError(error, options.onError, true !== options.retry);
-        }
-    };
-    request(copts);
-};
-
 const api = {
     multimedia: function (link) {
         link = link || "";
@@ -168,7 +139,7 @@ const api = {
         return link;
     },
     call: function (options) {
-        call(options);
+        request(options);
     },
     send: function(options) {
         // tidak ada pengecekan format respon
