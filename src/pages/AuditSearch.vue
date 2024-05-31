@@ -32,7 +32,7 @@
                 @submit="on_filter_click"
                 @reset="on_reset_click"
             >
-            <!-- WORDS -->
+                <!-- WORDS -->
                 <div v-if="'words' === filter.type">
                     <div
                         v-if="'BETWEEN' === filter.condition"

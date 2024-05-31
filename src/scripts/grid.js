@@ -59,6 +59,13 @@ const grid = {
                     } else {
                         delete element.nullValue;
                     }
+                    let rowToValue = element.rowToValue;
+                    if (util.isString(rowToValue) && rowToValue.startsWith("function")) {
+                        rowToValue = eval("(" + rowToValue + ")");
+                        element.rowToValue = rowToValue;
+                    } else {
+                        delete element.rowToValue;
+                    }
                 }
             }
         },
@@ -245,6 +252,7 @@ const grid = {
             field.format = obj.format;
             field.toValue = obj.toValue;
             field.nullValue = obj.nullValue;
+            field.rowToValue = obj.rowToValue;
             return field;
         },
     },
@@ -552,9 +560,32 @@ const grid = {
                     value[relation.target] = relation.value;
                 }
             }
+            // Ubah key yang mengandung dot menjadi object
+            let newValue = {};
+            Object.keys(value).forEach((key) => {
+                let tval = value[key];
+                let split = key.split(".");
+                let tmpValue = newValue;
+                for (let i = 0; i < split.length; i++) {
+                    tmpValue = (tmpValue[split[i]] = (i == split.length - 1 ? tval : (util.isObject(tmpValue[split[i]]) ? tmpValue[split[i]] : {})))
+                }
+                /*
+                if (split.length === 1) {
+                    newValue[split[0]] = tval;
+                } else {
+                    if (!util.isObject(newValue[split[0]])) {
+                        newValue[split[0]] = {};
+                    }
+                    let tmpValue = newValue[split[0]];
+                    for (let i = 1; i < split.length; i++) {
+                        tmpValue = (tmpValue[split[i]] = (i == split.length - 1 ? tval : (util.isObject(tmpValue[split[i]]) ? tmpValue[split[i]] : {})))
+                    }
+                }
+                */
+            });
             let definition = input.definition;
             let body = grid.copy(definition.crud);
-            body.value = value;
+            body.value = newValue;
             let replica = input.replica;
             if (util.isNumber(replica) && replica > -1) {
                 body.replica = replica;

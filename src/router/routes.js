@@ -52,6 +52,10 @@ const routes = [
                 component: () => import("pages/Scheduler.vue"),
             },
             {
+                path: "/request",
+                component: () => import("pages/Request.vue"),
+            },
+            {
                 path: '/:catchAll(.*)*',
                 component: () => import('pages/ErrorNotFound.vue')
             }

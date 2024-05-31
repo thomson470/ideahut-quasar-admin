@@ -1,6 +1,5 @@
 import moment from "moment";
 
-const APP_NAME = process.env.APP_NAME;
 const PUBLIC_PATH = process.env.PUBLIC_PATH;
 const DEVELOPMENT = /true/i.test(process.env.DEVELOPMENT);
 const DATE = {
@@ -62,14 +61,7 @@ const NUMBER_THRESHOLD = [
 ];
 
 const util = {
-    /*
-     * APP NAME
-     */
-    appName: function() {
-        return APP_NAME;
-    },
-
-    /*
+   /*
      * PUBLIC PATH
      */
     publicPath: function() {

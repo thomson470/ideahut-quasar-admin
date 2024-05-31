@@ -202,7 +202,7 @@
                     glossy
                     dense
                     size="sm"
-                    class="q-ma-sm"
+                    class="q-ma-sm button-default"
                     :icon="expand[id] ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
                     @click="expand[id] = !expand[id]"
                 />  

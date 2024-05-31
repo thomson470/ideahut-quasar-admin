@@ -32,26 +32,54 @@
         </div>
         <div class="col-md-12 col-xs-12 q-pa-xs q-mb-sm">
             <q-table
-                :title="$t('label.bean')"
                 class="table-sticky-header"
+                :title="$t('label.bean')"
                 :rows="bean.rows"
                 :columns="bean.columns"
-                row-key="beanName"
-                :loading="loading"
-                :pagination="bean.pagination"
-                :filter="bean.filter"
+                :loading="bean.loading"
+                :selection="'single'"
+                :dense="$q.screen.lt.md"
+                :no-data-label="$t('error.data_not_available')"
+                rows-per-page-label=" "
+                :rows-per-page-options="[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]"
                 binary-state-sort
-                separator="cell"
-                selection="single"
+                :separator="'cell'"
+                v-model:pagination="bean.pagination"
+                @request="get_beans"
                 bordered
-                dense
             >
                 <template v-slot:top-right>
-                    <q-input borderless dense debounce="300" v-model="bean.filter" :placeholder="$t('label.search')">
-                    <template v-slot:append>
-                        <q-icon name="search" />
-                    </template>
-                    </q-input>
+                    <q-btn
+                        glossy
+                        round
+                        dense
+                        class="q-ma-none q-ml-md"
+                        color="deep-orange"
+                        icon="search"
+                        @click="bean.dialog = true"
+                    >
+                        <q-badge v-if="Object.keys(bean.filters).length" class="led-green" floating></q-badge>
+                        <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                        glossy
+                        round
+                        dense
+                        class="q-ma-none q-ml-md"
+                        color="indigo"
+                        icon="refresh"
+                        :loading="bean.loading"
+                        @click="on_bean_refresh_click"
+                    >
+                        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+                    </q-btn>
+                </template>
+
+                <template v-slot:no-data="{ message }">
+                    <div class="full-width row flex-center text-accent q-gutter-sm">
+                        <q-icon size="2em" name="block" />
+                        <span class="text-subtitle2">{{ message }}</span>
+                    </div>
                 </template>
 
                 <template v-slot:body-selection="scope">
@@ -72,7 +100,6 @@
                             :style="'width: 400px;'"
                         >
                             <q-card>
-                                
                                 <q-card-section
                                     style="max-height: 600px;"
                                     class="q-pa-xs q-mt-none scroll"
@@ -135,6 +162,105 @@
             </q-table>
         </div>
     </div>
+    <q-dialog 
+        v-model="bean.dialog"
+        transition-show="scale"
+        transition-hide="fade"
+        persistent
+    >
+        <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
+            <q-card-section class="q-pa-none header-main">
+                <q-item class="q-pr-none">
+                    <q-item-section>
+                        <q-item-label class="text-h6 text-white">{{ $t("label.search") }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                        <q-btn
+                            class="text-caption text-white q-pl-xs q-pr-xs q-mr-xs"
+                            flat
+                            round
+                            glossy
+                            icon="close"
+                            v-close-popup
+                        >
+                            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+                        </q-btn>
+                    </q-item-section>
+                </q-item>
+            </q-card-section>
+            <q-card-section
+                style="max-height: 70vh;"
+                class="q-pa-xs q-mt-xs scroll"
+            >   
+                <q-form
+                    @submit="on_bean_filter_click"
+                    @reset="on_bean_reset_click"
+                >
+                    <q-input
+                        v-model="bean.filters.beanName"
+                        type="text"
+                        :label="$t('label.bean_name')"
+                        filled
+                        class="q-mb-xs"
+                    />
+                </q-form>
+                <q-form
+                    @submit="on_bean_filter_click"
+                    @reset="on_bean_reset_click"
+                >
+                    <q-input
+                        v-model="bean.filters.className"
+                        type="text"
+                        :label="$t('label.class_name')"
+                        filled
+                        class="q-mb-xs"
+                    />
+                </q-form>
+                <q-select
+                    v-model="bean.filters.isProxy"
+                    :label="$t('label.proxy')"
+                    :options="option.boolean"
+                    filled
+                    class="q-mb-xs"
+                />
+                <q-select
+                    v-model="bean.filters.isReloadable"
+                    :label="$t('label.reloadable')"
+                    :options="option.boolean"
+                    filled
+                    class="q-mb-xs"
+                />
+                <q-select
+                    v-model="bean.filters.isReconfigure"
+                    :label="$t('label.reconfigure')"
+                    :options="option.boolean"
+                    filled
+                    class="q-mb-xs"
+                />
+            </q-card-section>
+            <q-separator />
+            <q-card-actions class="row">
+                <div class="col-6 q-pr-xs text-left">
+                    <q-btn
+                        :label="$t('label.reset')"
+                        color="orange"
+                        no-caps
+                        glossy
+                        @click="on_bean_reset_click"
+                    />
+                </div>
+                <div class="col-6 q-pl-xs text-right">
+                    <q-btn
+                        :label="$t('label.filter')"
+                        color="purple"
+                        no-caps
+                        glossy
+                        @click="on_bean_filter_click"
+                    />
+                </div>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
 </template>
   
 <script>
@@ -148,20 +274,23 @@ export default {
     setup() {
         return {
             util,
-            loading: ref(false),
             application: ref([]),
             version: ref([]),
             bean: ref({
-                filter: null,
-                columns: [],
                 rows: [],
-                popup: null,
+                filters: {},
+                columns: [],
+                loading: false,
                 pagination: {
                     page: 1,
-                    rowsPerPage: 10,
+                    rowsPerPage: 20,
                     sortBy: 'beanName',
-                    descending: false,
+                    descending: false
                 },
+                dialog: false,
+            }),
+            option: ref({
+                boolean: ['', 'true', 'false'],
             }),
         };
     },
@@ -205,18 +334,18 @@ export default {
                 sortable: true,
             },
         ];
-        this.get_info();
+        self.get_info();
+        self.get_beans();
     },
     methods: {
        
+        /*
+         * GET INFO
+         */
         get_info() {
             let self = this;
-            self.loading = true;
             api.call({
                 path: "/info",
-                onFinish() {
-                    self.loading = false;
-                },
                 onSuccess(data) {
                     if (util.isObject(data.application)) {
                         let app = data.application;
@@ -282,6 +411,107 @@ export default {
                     }
                 },
             });
+        },
+
+        /*
+         * GET BEANS
+         */
+        get_beans(props) {
+            let self = this;
+            let { page, rowsPerPage, sortBy, descending } = self.bean_pagination(props);
+            let params = {
+                index: page,
+                size: rowsPerPage,
+                order: (descending ? "-" : "") + sortBy,
+            };
+            Object.keys(self.bean.filters).forEach((key) => {
+                params[key] = self.bean.filters[key];
+            });
+            self.bean.loading = true;
+            api.call({
+                path: "/beans",
+                params: params,
+                onFinish() {
+                    self.bean.loading = false;
+                },
+                onSuccess(data) {
+                    if (util.isObject(data)) {
+                        self.bean.rows = util.isArray(data.data) ? data.data : [];
+                        let pagination = self.bean.pagination;
+                        pagination.page = data.index;
+                        pagination.rowsPerPage = data.size;
+                        if (util.isNumber(data.records)) {
+                            pagination.rowsNumber = data.records;
+                        } else {
+                            let rowsNumber = data.index * data.size;
+                            if (self.bean.rows.length !== data.size) {
+                                pagination.rowsNumber = rowsNumber;
+                            } else {
+                                pagination.rowsNumber = rowsNumber + 1;
+                            }
+                        }
+                    }
+                }
+            });
+        },
+        bean_pagination(props) {
+            let self = this;
+            let pagination = props?.pagination ? props.pagination : self.bean.pagination;
+            if (pagination) {
+                self.bean.pagination = pagination;
+                return pagination;
+            }
+            return self.bean.pagination;
+        },
+
+        /*
+         * BEAN REFRESH CLICK
+         */
+        on_bean_refresh_click() {
+            let self = this;
+            if (!self.bean.rows?.length) {
+                if (self.bean.pagination.page > 1) {
+                    self.bean.pagination.page = 1;
+                }
+            }
+            self.get_beans({
+                pagination: self.bean.pagination,
+            });
+        },
+
+        /*
+         * BEAN FILTER CLICK
+         */
+        on_bean_filter_click() {
+            let self = this;
+            let filters = self.bean.filters;
+            if (!(util.isString(filters.beanName) && '' !== filters.beanName)) {
+                delete filters.beanName;
+            }
+            if (!(util.isString(filters.className) && '' !== filters.className)) {
+                delete filters.className;
+            }
+            if (!(util.isString(filters.isProxy) && '' !== filters.isProxy)) {
+                delete filters.isProxy;
+            }
+            if (!(util.isString(filters.isReloadable) && '' !== filters.isReloadable)) {
+                delete filters.isReloadable;
+            }
+            if (!(util.isString(filters.isReconfigure) && '' !== filters.isReconfigure)) {
+                delete filters.isReconfigure;
+            }
+            self.get_beans({
+                pagination: self.bean.pagination,
+            });
+            self.bean.dialog= false;
+        },
+
+        /*
+         * BEAN RESET CLICK
+         */
+        on_bean_reset_click() {
+            let self = this;
+            self.bean.filters = {};
         },
     
     },

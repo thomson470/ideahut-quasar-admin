@@ -13,15 +13,19 @@
                         rounded
                         ripple
                         stack
-                        style="width: 100%"
+                        style="width: 100%;"
                         @click="on_reload_click(bean)"
                         :loading="bean.loading"
                     >
                         <q-icon name="memory" :size="$q.screen.lt.md ? '6em' : '10em'" center></q-icon>
-                        <div :class="$q.screen.lt.md ? 'text-h6' : 'text-h5'">{{ bean.title }}</div>
+                        <span :class="$q.screen.lt.md ? 'text-h6' : 'text-h5'" style="overflow-wrap: anywhere;">
+                            {{ bean.title }}
+                        </span>
                         <template v-slot:loading>
                             <q-spinner-hourglass class="on-left" />
-                            <div :class="$q.screen.lt.md ? 'text-h6' : 'text-h5'">{{ bean.title }}</div>
+                            <div :class="$q.screen.lt.md ? 'text-h6' : 'text-h5'">
+                                {{ bean.title }}
+                            </div>
                         </template>
                     </q-btn>
                 </div>

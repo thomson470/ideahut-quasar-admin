@@ -1,5 +1,6 @@
 <template>
     <div
+        v-if="!is_index"
         class="text-center q-ma-sm flex flex-center"
         style="height: 80vh"
     >
@@ -13,10 +14,20 @@
 </template>
   
 <script>
-import { defineComponent } from "vue";
+import { ref, defineComponent } from "vue";
+import { util } from "src/scripts/util";
 
 export default defineComponent({
     name: "ErrorNotFound",
+    setup() {
+        return {
+            is_index: ref(true),
+        };
+    },
+    created() {
+        let self = this;
+        self.is_index = window.location.pathname === util.publicPath() + "/index.html";
+    },
 });
 </script>
   

@@ -50,7 +50,6 @@
                     option-label="label"
                     emit-value
                     map-options
-                    options-cover
                     filled
                 />
                 <q-select
@@ -63,7 +62,6 @@
                     option-label="label"
                     emit-value
                     map-options
-                    options-cover
                     filled
                 />
                 <q-input
@@ -177,6 +175,7 @@
                     :readonly="!field.editable"
                     v-model="field.text"
                     filled
+                    autogrow
                 >
                     <template v-if="field.editable" v-slot:append>
                         <q-fab
@@ -257,7 +256,7 @@
         </q-card-section>
         <q-separator />
         <q-card-actions class="row">
-            <div class="col-6 q-pr-xs text-left">
+            <div class="col-4 q-pr-xs text-left">
                 <q-btn
                     :label="$t('label.cancel')"
                     color="negative"
@@ -267,7 +266,18 @@
                     v-close-popup
                 />
             </div>
-            <div class="col-6 q-pl-xs text-right">
+            <div class="col-4 q-pr-xs text-center">
+                <q-btn
+                    v-if="is_edit && false !== template.copy"
+                    :label="$t('label.copy')"
+                    color="purple"
+                    no-caps
+                    glossy
+                    :disable="saving"
+                    @click="on_clone_click"
+                />
+            </div>
+            <div class="col-4 q-pl-xs text-right">
                 <q-btn
                     :label="$t('label.save')"
                     color="secondary"
@@ -388,22 +398,32 @@ export default {
         if (fields.length) {
             if (util.isObject(params.row)) {
                 // edit
-                self.is_edit = true;
                 self.index = params.index;
                 self.id = fxGrid.id.fromPk(self.template.id, params.row._pk_);
+                self.is_edit = util.isDefined(self.id);
                 for (const element of fields) {
                     let field = fxGrid.clone.field(element);
                     field.value = util.getFieldValue(field.name, params.row);
+                    if (!util.isDefined(field.value) && util.isFunction(field.rowToValue)) {
+                        field.value = field.rowToValue(params.row);
+                    }
                     if ("datetime" === field.type && "epoch" === field.converter) {
                         field.value = util.format.date(field.value, {
                             format: field.pattern || null,
                         });
                     } else if ("pick" === field.type) {
-                        if (util.isDefined(field.value)) {
+                        if (util.isDefined(field.value) && field.value !== null) {
                             field.text = util.isFunction(field.format)
                                 ? field.format(field.value, params.row)
                                 : field.value + "";
+                        } else {
+                            field.text = util.isFunction(field.format)
+                                ? field.format(null, params.row)
+                                : "";
                         }
+                    }
+                    if (!self.is_edit) {
+                        field.editable = field.insertable;
                     }
                     self.fields.push(field);
                 }
@@ -412,7 +432,7 @@ export default {
                 for (const element of fields) {
                     if (element.insertable) {
                         let field = fxGrid.clone.field(element);
-                        field.editable = true;
+                        field.editable = field.insertable;
                         self.fields.push(field);
                     }
                 }
@@ -565,6 +585,25 @@ export default {
         on_close_dialog_table(result) {
             let self = this;
             self.dialog.table = { show: false, parameters: null };
+        },
+
+        /*
+         * CLONE CLICK
+         */
+        on_clone_click() {
+            let self = this;
+            let row = self.row ? fxGrid.copy(self.row) : null;
+            if (row?._pk_) {
+                delete row._pk_;
+                let id = self.template.id;
+                if ("STANDARD" === id.type) {
+                    delete row[id.fields[0]];
+                }
+            }
+            self.$emit("close", {
+                row: row,
+                is_edit: self.is_edit,
+            });
         },
 
         /*

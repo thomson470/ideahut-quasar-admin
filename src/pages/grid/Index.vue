@@ -21,7 +21,7 @@
     >
         <template v-slot:top>
             <q-btn
-                v-if="util.isObject(template.table) && 'multiple' === template.table.selection && fxGrid.permission.delete(template)"
+                v-if="util.isObject(template.table) && 'multiple' === template.table.selection && fxGrid.permission.delete(permission)"
                 glossy
                 round
                 dense
@@ -35,7 +35,7 @@
                 <q-tooltip>{{ $t("label.delete") }}</q-tooltip>
             </q-btn>
             <q-btn
-                v-if="fxGrid.permission.add(template)"
+                v-if="fxGrid.permission.add(permission)"
                 glossy
                 round
                 dense
@@ -54,7 +54,6 @@
                 borderless
                 class="text-h6"
                 dense
-                options-cover
                 @update:model-value="do_load_data"
             >
                 <template v-slot:prepend>
@@ -109,7 +108,7 @@
 
         <template v-slot:header-selection="scope">
             <div
-                v-if="util.isObject(template.table) && 'multiple' === template.table.selection && fxGrid.permission.deletes(template)"
+                v-if="util.isObject(template.table) && 'multiple' === template.table.selection && fxGrid.permission.deletes(permission)"
                 class="text-left"
             >
                 <q-checkbox
@@ -123,14 +122,14 @@
 
         <template v-slot:body-selection="scope">
             <q-checkbox
-                v-if="util.isObject(template.table) && 'multiple' === template.table.selection && fxGrid.permission.deletes(template)"
+                v-if="util.isObject(template.table) && 'multiple' === template.table.selection && fxGrid.permission.deletes(permission)"
                 dense
                 color="primary"
                 class="q-ma-none q-ml-sm q-mr-sm"
                 v-model="scope.selected"
             />
             <q-btn
-                v-else-if="util.isObject(template.table) && fxGrid.permission.delete(template)"
+                v-else-if="util.isObject(template.table) && fxGrid.permission.delete(permission)"
                 glossy
                 round
                 dense
@@ -143,7 +142,7 @@
                 <q-tooltip>{{ $t("label.delete") }}</q-tooltip>
             </q-btn>
             <q-btn
-                v-if="fxGrid.permission.edit(template)"
+                v-if="fxGrid.permission.edit(permission)"
                 glossy
                 round
                 dense
@@ -156,7 +155,7 @@
                 <q-tooltip>{{ $t("label.edit") }}</q-tooltip>
             </q-btn>
             <q-btn
-                v-if="fxGrid.permission.view(template)"
+                v-if="fxGrid.permission.view(permission)"
                 glossy
                 round
                 dense
@@ -298,6 +297,7 @@ export default {
 
             is_template_loading: ref(false),
             template: ref({}),
+            permission: ref({}),
             parent: ref(null),
             name: ref(null),
             replica: ref(null),
@@ -411,9 +411,10 @@ export default {
                                 window.__grid__[id] = template;
                                 self.template = window.__grid__[id];
                                 self.replica = fxGrid.get.firstArray(self.template.replicas);
+                                self.permission = self.get_permission();
                                 self.do_load_data();
                             } catch (e) {
-                                util.log("<<get-grid::" + id + ">>", e);
+                                util.log("<<get-grid-1::" + id + ">>", e);
                             }
                             self.is_template_loading = false;
                         },
@@ -426,8 +427,26 @@ export default {
             } else {
                 self.template = window.__grid__[id];
                 self.replica = fxGrid.get.firstArray(self.template.replicas);
-                self.do_load_data();
+                self.permission = self.get_permission();
+                try {
+                    self.do_load_data();
+                } catch (e) {
+                    util.log("<<get-grid-2::" + id + ">>", e);
+                }
             }
+        },
+
+        /*
+         * GET PERMISSION
+         */
+        get_permission() {
+            let self = this;
+            let template = self.template;
+            let table = fxGrid.get.object(template.table);
+            let permission = { actions: fxGrid.copy(template.actions) };
+            let excludes = table?.action?.exclude ? table.action.exclude : [];
+            permission.actions = template.actions.filter(x => !excludes.includes(x));
+            return permission;
         },
 
         /*
@@ -600,7 +619,22 @@ export default {
             let row = result.row;
             if (row) {
                 if (result.is_edit) {
-                    self.table.rows[result.index] = row;
+                    if (util.isDefined(row._pk_)) {
+                        self.table.rows[result.index] = row;
+                    } else {
+                        self.dialog.edit = { show: false, parameters: null };
+                        setTimeout(function() {
+                            self.dialog.edit = {
+                                show: true,
+                                parameters: {
+                                    template: self.template,
+                                    replica: self.replica,
+                                    row: row,
+                                },
+                            };
+                        }, 100);
+                        return;
+                    }
                 } else {
                     self.do_request({
                         pagination: self.table.pagination,

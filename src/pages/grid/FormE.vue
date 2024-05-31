@@ -51,7 +51,6 @@
                         option-label="label"
                         emit-value
                         map-options
-                        options-cover
                         filled
                     />
                     <q-select
@@ -64,7 +63,6 @@
                         option-label="label"
                         emit-value
                         map-options
-                        options-cover
                         filled
                     />
                     <q-input

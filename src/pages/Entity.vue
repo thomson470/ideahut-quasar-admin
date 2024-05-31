@@ -56,14 +56,13 @@
                 :columns="columns.entity"
                 :loading="entity.loading"
                 :selection="'single'"
-                v-model:pagination="entity.pagination"
                 :dense="$q.screen.lt.md"
                 :no-data-label="$t('error.data_not_available')"
                 rows-per-page-label=" "
-                :selected-rows-label="(selected) => {}"
                 :rows-per-page-options="[10, 20, 30, 40, 50]"
                 binary-state-sort
                 :separator="'cell'"
+                v-model:pagination="entity.pagination"
                 @request="get_entities"
                 bordered
             >
@@ -72,8 +71,20 @@
                         glossy
                         round
                         dense
-                        size="sm"
                         class="q-ma-none q-ml-md"
+                        color="deep-orange"
+                        icon="search"
+                        @click="entity.search = true"
+                    >
+                        <q-badge v-if="Object.keys(entity.filters).length" class="led-green" floating></q-badge>
+                        <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                        glossy
+                        round
+                        dense
+                        class="q-ma-none q-ml-md"
+                        color="indigo"
                         icon="refresh"
                         :loading="entity.loading"
                         @click="on_entity_refresh_click"
@@ -312,13 +323,130 @@
     </div>
 
     <!--
-        DIALOG REPLICA
+        DIALOG SEARCH
     -->
-    <q-dialog v-model="dialog.replica.show" persistent>
-        <q-card :style="($q.screen.lt.md ? 'width: 99vw; max-width: 100vw;' : 'width: 50vw; max-width: 51vw;')">
+    <q-dialog 
+        v-model="entity.search"
+        transition-show="scale"
+        transition-hide="fade"
+        persistent
+    >
+        <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
             <q-card-section class="q-pa-none header-main">
                 <q-item class="q-pr-none">
                     <q-item-section>
+                        <q-item-label class="text-h6 text-white">{{ $t("label.search") }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                        <q-btn
+                            class="text-caption text-white q-pl-xs q-pr-xs q-mr-xs"
+                            flat
+                            round
+                            glossy
+                            icon="close"
+                            v-close-popup
+                        >
+                            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+                        </q-btn>
+                    </q-item-section>
+                </q-item>
+            </q-card-section>
+            <q-card-section
+                style="max-height: 70vh;"
+                class="q-pa-xs q-mt-xs scroll"
+            >  
+                <q-select
+                    v-model="entity.filters['id.type']"
+                    :label="$t('label.id')"
+                    :options="option.id"
+                    filled
+                    class="q-mb-xs"
+                />
+                <q-form
+                    @submit="on_entity_filter_click"
+                    @reset="on_entity_reset_click"
+                >
+                    <q-input
+                        v-model="entity.filters.type"
+                        type="text"
+                        :label="$t('label.type')"
+                        filled
+                        class="q-mb-xs"
+                    />
+                </q-form>
+                <q-form
+                    @submit="on_entity_filter_click"
+                    @reset="on_entity_reset_click"
+                >
+                    <q-input
+                        v-model="entity.filters.table"
+                        type="text"
+                        :label="$t('label.table')"
+                        filled
+                        class="q-mb-xs"
+                    />
+                </q-form>
+                <q-select
+                    v-model="entity.filters.isSoftDelete"
+                    :label="$t('label.soft_delete')"
+                    :options="option.boolean"
+                    filled
+                    class="q-mb-xs"
+                />
+                <q-select
+                    v-model="entity.filters.isAudit"
+                    :label="$t('label.audit_object')"
+                    :options="option.boolean"
+                    filled
+                    class="q-mb-xs"
+                />
+                <q-select
+                    v-model="entity.filters.hasAuditMark"
+                    :label="$t('label.audit_annotation')"
+                    :options="option.boolean"
+                    filled
+                    class="q-mb-xs"
+                />
+                <q-select
+                    v-model="entity.filters.isApiExclude"
+                    :label="$t('label.api_exclude')"
+                    :options="option.boolean"
+                    filled
+                    class="q-mb-xs"
+                />
+            </q-card-section>
+            <q-separator />
+            <q-card-actions class="row">
+                <div class="col-6 q-pr-xs text-left">
+                    <q-btn
+                        :label="$t('label.reset')"
+                        color="orange"
+                        no-caps
+                        glossy
+                        @click="on_entity_reset_click"
+                    />
+                </div>
+                <div class="col-6 q-pl-xs text-right">
+                    <q-btn
+                        :label="$t('label.filter')"
+                        color="purple"
+                        no-caps
+                        glossy
+                        @click="on_entity_filter_click"
+                    />
+                </div>
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
+
+    <!--
+        DIALOG REPLICA
+    -->
+    <q-dialog v-model="dialog.replica.show" persistent>
+        <q-card :style="($q.screen.lt.md ? '' : 'width: 60vw; max-width: 61vw;')">
+            <q-card-section class="q-pa-none header-main">
+                <q-item class="q-pr-none">
+                    <q-item-section style="max-width: 80vw; overflow-x: scroll;">
                         <q-item-label class="text-white">{{ dialog.replica.title }}</q-item-label>
                     </q-item-section>
                     <q-item-section side>
@@ -335,7 +463,10 @@
                     </q-item-section>
                 </q-item>
             </q-card-section>
-            <q-card-section :style="($q.screen.lt.md ? 'max-height: 50vh;' : 'max-height: 70vh;')" class="q-pa-xs q-mt-xs scroll">
+            <q-card-section 
+                :style="($q.screen.lt.md ? 'max-height: 65vh;' : 'max-height: 70vh; width: 60vw; max-width: 61vw;')" 
+                class="q-pa-xs q-mt-xs scroll"
+            >
                 <q-list>
                     <q-item
                         v-for="(sql, index) in dialog.replica.sqls"
@@ -376,10 +507,10 @@
         DIALOG GRID
     -->
     <q-dialog v-model="dialog.grid.show" persistent>
-        <q-card :style="($q.screen.lt.md ? 'width: 99vw; max-width: 100vw;' : 'width: 50vw; max-width: 51vw;')">
+        <q-card :style="($q.screen.lt.md ? '' : 'width: 60vw; max-width: 61vw;')">
             <q-card-section class="q-pa-none header-main">
                 <q-item class="q-pr-none">
-                    <q-item-section>
+                    <q-item-section style="max-width: 80vw; overflow-x: scroll;">
                         <q-item-label class="text-white">{{ dialog.grid.title }}</q-item-label>
                     </q-item-section>
                     <q-item-section side>
@@ -396,17 +527,19 @@
                     </q-item-section>
                 </q-item>
             </q-card-section>
-            <q-card-section :style="($q.screen.lt.md ? 'max-height: 50vh;' : 'max-height: 70vh;')" class="q-pa-xs q-mt-xs scroll">
-                <q-input
-                    type="text"
-                    v-model="dialog.grid.text"
-                    filled
-                    dense
-                    readonly
-                    autogrow
-                    class="text-left text-caption q-mt-xs"
-                >
-                </q-input>
+            <q-card-section 
+                :style="($q.screen.lt.md ? 'max-height: 65vh;' : 'max-height: 70vh; width: 60vw; max-width: 61vw;')" 
+                class="q-pa-xs q-mt-xs scroll"
+            >
+                <VueJsonPretty 
+                    :data="JSON.parse(dialog.grid.text)" 
+                    :showLineNumber="true"
+                    :showLine="true"
+                    :showDoubleQuotes="false"
+                    :showIcon="true"
+                    :highlightSelectedNode="false"
+                    :showKeyValueSpace = "true"
+                />
             </q-card-section>
             <q-card-actions class="row">
                 <div class="col-12 text-center">
@@ -447,6 +580,7 @@ import { api } from "src/scripts/api";
 export default {
     components: {
         EntityView: defineAsyncComponent(() => import("src/pages/EntityView")),
+        VueJsonPretty: defineAsyncComponent(() => import("vue-json-pretty")),
     },
     
     setup() {
@@ -468,6 +602,7 @@ export default {
             }),
             entity: ref({
                 rows: [],
+                filters: {},
                 pagination: {
                     page: 1,
                     rowsPerPage: 10,
@@ -476,6 +611,7 @@ export default {
                     count: true,
                 },
                 loading: false,
+                search: false,
             }),
             columns: ref({
                 entity: [],
@@ -496,9 +632,13 @@ export default {
                 grid: {
                     show: false,
                     title: null,
-                    text: null,
+                    data: null,
                     copied: false,
                 },
+            }),
+            option: ref({
+                boolean: ['', 'true', 'false'],
+                id: ['', 'NONE', 'STANDARD', 'COMPOSITE', 'EMBEDDED'],
             }),
         };
     },
@@ -551,6 +691,13 @@ export default {
                 align: "left",
                 sortable: true,
             },
+            {
+                name: "isApiExclude",
+                label: self.$t('label.api_exclude'),
+                field: "isApiExclude",
+                align: "left",
+                sortable: true,
+            },
         ];
         self.columns.field = [
             {
@@ -573,6 +720,9 @@ export default {
                 field: "type",
                 align: "left",
                 sortable: true,
+                format: function(val, row) {
+                    return val + (util.isString(row.jdbcType) ? (" (" + row.jdbcType + ")") : "");
+                },
             },
             {
                 name: "isLazy",
@@ -752,15 +902,19 @@ export default {
         get_entities(props) {
             let self = this;
             let { page, rowsPerPage, sortBy, descending } = self.get_entity_pagination(props);
+            let params = {
+                manager: self.manager,
+                index: page,
+                size: rowsPerPage,
+                order: (descending ? "-" : "") + sortBy,
+            };
+            Object.keys(self.entity.filters).forEach((key) => {
+                params[key] = self.entity.filters[key];
+            });
             self.entity.loading = true;
             api.call({
                 path: "/manager/entities",
-                params: {
-                    manager: self.manager,
-                    index: page,
-                    size: rowsPerPage,
-                    order: (descending ? "-" : "") + sortBy,
-                },
+                params: params,
                 onFinish() {
                     self.entity.loading = false;
                 },
@@ -897,7 +1051,7 @@ export default {
         /*
          * ENTITY REPLICA COPY TO CLIPBOARD
          */
-         on_entity_replica_copy_to_clipboard_click() {
+        on_entity_replica_copy_to_clipboard_click() {
             let self = this;
             let sqls = self.dialog.replica.sqls;
             if (util.isArray(sqls) && sqls.length) {
@@ -909,7 +1063,49 @@ export default {
                 self.dialog.replica.copied = true;
                 setTimeout(function() { self.dialog.replica.copied = false; }, 3000);
             }
-         },
+        },
+
+
+        /*
+         * ENTITY FILTER CLICK
+         */
+        on_entity_filter_click() {
+            let self = this;
+            let filters = self.entity.filters;
+            if (!(util.isString(filters.type) && '' !== filters.type)) {
+                delete filters.type;
+            }
+            if (!(util.isString(filters.table) && '' !== filters.table)) {
+                delete filters.table;
+            }
+            if (!(util.isString(filters.isSoftDelete) && '' !== filters.isSoftDelete)) {
+                delete filters.isSoftDelete;
+            }
+            if (!(util.isString(filters.isAudit) && '' !== filters.isAudit)) {
+                delete filters.isAudit;
+            }
+            if (!(util.isString(filters.hasAuditMark) && '' !== filters.hasAuditMark)) {
+                delete filters.hasAuditMark;
+            }
+            if (!(util.isString(filters.isApiExclude) && '' !== filters.isApiExclude)) {
+                delete filters.isApiExclude;
+            }
+            if (!(util.isString(filters['id.type']) && '' !== filters['id.type'])) {
+                delete filters['id.type'];
+            }
+            self.get_entities ({
+                pagination: self.entity.pagination,
+            });
+            self.entity.search = false;
+        },
+
+        /*
+         * ENTITY RESET CLICK
+         */
+        on_entity_reset_click() {
+            let self = this;
+            self.entity.filters = {};
+        },
     
     },
 

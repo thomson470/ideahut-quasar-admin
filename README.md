@@ -23,7 +23,6 @@ quasar build
 
 ### Environment (file: .env)
 ```md
-APP_NAME=Admin
 PUBLIC_PATH=/_
 API_URL=http://localhost:5401/admin
 #API_URL=/admin

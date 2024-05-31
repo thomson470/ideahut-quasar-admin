@@ -102,7 +102,7 @@ const storage = {
             }
             persist(o);
         }
-        return o.dark || false;
+        return util.isBoolean(o.dark) ? o.dark : true;
     },
 };
 export { storage };

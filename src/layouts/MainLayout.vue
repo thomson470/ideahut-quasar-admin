@@ -15,7 +15,7 @@
                     flat
                     no-caps
                     no-wrap
-                    :label="util.appName()"
+                    :label="$t('app.title')"
                     :size="$q.screen.gt.sm ? 'xl' : 'lg'"
                     :class="'q-pa-xs text-weight-bold ' + ($q.screen.gt.sm ? 'q-ml-md' : 'q-ml-xs')"
                     @click="on_header_menu_click()"
@@ -24,11 +24,11 @@
                 <q-space />
                 <q-btn
                     round
-                    :icon="uix.dark.active() ? 'light_mode' : 'dark_mode'"
+                    :icon="is_dark_mode ? 'light_mode' : 'dark_mode'"
                     :size="$q.screen.gt.sm ? 'md' : 'sm'"
-                    @click="uix.dark.toggle()"
+                    @click="uix.dark.toggle(); is_dark_mode = uix.dark.active();"
                 >
-                    <q-tooltip>{{uix.dark.active() ? $t("label.light") : $t("label.dark")}}</q-tooltip>
+                    <q-tooltip>{{is_dark_mode ? $t("label.light") : $t("label.dark")}}</q-tooltip>
                 </q-btn>
                 <q-btn
                     v-if="is_logged_in"
@@ -187,6 +187,7 @@ export default {
             is_logged_in: ref(false),
             is_logout_progress: ref(false),
             is_show_menu: ref(false),
+            is_dark_mode: ref(false),
             active_menu: ref({ id: {} }),
             menus: ref([]),
         };
@@ -194,6 +195,7 @@ export default {
     created() {
         let self = this;
         let auth = storage.auth();
+        self.is_dark_mode = uix.dark.active();
         self.is_logged_in = util.isString(auth.token) && "" !== auth.token && true === auth.logout;
         api.call({
             path: "/menus",

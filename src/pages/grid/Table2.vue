@@ -25,12 +25,13 @@
                 :key="index"
                 :color="chips[index % chips.length]"
                 text-color="white"
+                class="ellipsis-text"
             >
                 <strong><span>{{ label.title }}:</span></strong> <span class="q-ml-sm">{{ label.value }}</span>
             </q-chip>
         </q-card-section>
         <q-card-section
-            style="max-height: 90vh; overflow-y: scroll !important"
+            style="max-height: 80vh; overflow-y: scroll !important"
             class="q-pa-xs"
         >
             <q-table
@@ -52,10 +53,11 @@
                 binary-state-sort
                 :separator="util.isObject(definition.table) ? definition.table.separator : 'cell'"
                 bordered
+                style="max-height: 72vh;"
             >
                 <template v-slot:top>
                     <q-btn
-                        v-if="util.isObject(definition.table) && 'multiple' === definition.table.selection && fxGrid.permission.isDeletes(template) && !onlyView"
+                        v-if="util.isObject(definition.table) && 'multiple' === definition.table.selection && fxGrid.permission.deletes(permission) && !onlyView"
                         glossy
                         round
                         dense
@@ -67,7 +69,7 @@
                         @click="on_delete_click"
                     />
                     <q-btn
-                        v-if="fxGrid.permission.add(template) && !onlyView"
+                        v-if="fxGrid.permission.add(permission) && !onlyView"
                         glossy
                         round
                         dense
@@ -114,7 +116,7 @@
 
                 <template v-slot:header-selection="scope">
                     <div
-                        v-if="util.isObject(definition.table) && 'multiple' === definition.table.selection && fxGrid.permission.deletes(template) && !onlyView"
+                        v-if="util.isObject(definition.table) && 'multiple' === definition.table.selection && fxGrid.permission.deletes(permission) && !onlyView"
                         class="text-left"
                     >
                         <q-checkbox
@@ -128,14 +130,14 @@
 
                 <template v-slot:body-selection="scope">
                     <q-checkbox
-                        v-if="util.isObject(definition.table) && 'multiple' === definition.table.selection && fxGrid.permission.deletes(template) && !onlyView"
+                        v-if="util.isObject(definition.table) && 'multiple' === definition.table.selection && fxGrid.permission.deletes(permission) && !onlyView"
                         dense
                         color="primary"
                         class="q-ma-none q-ml-sm q-mr-sm"
                         v-model="scope.selected"
                     />
                     <q-btn
-                        v-else-if="util.isObject(definition.table) && fxGrid.permission.delete(template) && !onlyView"
+                        v-else-if="util.isObject(definition.table) && fxGrid.permission.delete(permission) && !onlyView"
                         glossy
                         round
                         dense
@@ -146,7 +148,7 @@
                         @click="on_delete_click(scope)"
                     />
                     <q-btn
-                        v-if="fxGrid.permission.edit(template) && !onlyView"
+                        v-if="fxGrid.permission.edit(permission) && !onlyView"
                         glossy
                         round
                         dense
@@ -157,7 +159,7 @@
                         @click="on_edit_click(scope)"
                     />
                     <q-btn
-                        v-if="fxGrid.permission.view(template)"
+                        v-if="fxGrid.permission.view(permission)"
                         glossy
                         round
                         dense
@@ -293,6 +295,7 @@ export default {
 
             template: ref({}),
             definition: ref({}),
+            permission: ref({}),
             parentRow: ref({}),
             relations: ref([]),
             onlyView: ref(false),
@@ -350,6 +353,10 @@ export default {
         self.relations = fxGrid.get.array(params.relations);
         self.replica = fxGrid.get.number(params.replica, null);
         self.onlyView = true === params.onlyView;
+        self.permission = { actions: fxGrid.copy(self.template.actions) };
+        let excludes = self.definition?.action?.exclude ? self.definition.action.exclude : [];
+        self.permission.actions = self.template.actions.filter(x => !excludes.includes(x));
+
         self.search = {
             empty: true,
             filters: fxGrid.copy(fxGrid.get.array(self.definition.table.filters)),
@@ -532,15 +539,33 @@ export default {
         /*
          * CLOSE EDIT DIALOG
          */
-        on_close_dialog_edit(result) {
+         on_close_dialog_edit(result) {
             let self = this;
             let row = result.row;
             if (row) {
                 if (result.is_edit) {
-                    self.table.rows[result.index] = row;
+                    if (util.isDefined(row._pk_)) {
+                        self.table.rows[result.index] = row;
+                    } else {
+                        self.dialog.edit = { show: false, parameters: null };
+                        setTimeout(function() {
+                            self.dialog.edit = {
+                                show: true,
+                                parameters: {
+                                    row: row,
+                                    parentRow: self.parentRow,
+                                    template: self.template,
+                                    replica: self.replica,
+                                    definition: self.definition,
+                                    relations: self.relations,
+                                },
+                            };
+                        }, 100);
+                        return;
+                    }
                 } else {
                     self.do_request({
-                        pagination: self.pagination,
+                        pagination: self.table.pagination,
                     });
                 }
             }

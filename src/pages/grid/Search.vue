@@ -431,7 +431,6 @@
                                 option-label="label"
                                 emit-value
                                 map-options
-                                options-cover
                                 filled
                                 class="col-6 q-pl-xs"
                             />
@@ -443,7 +442,6 @@
                                 option-label="label"
                                 emit-value
                                 map-options
-                                options-cover
                                 filled
                                 class="col-6 q-pl-xs"
                             />
@@ -457,7 +455,6 @@
                             option-label="label"
                             emit-value
                             map-options
-                            options-cover
                             filled
                         />
                     </div>
@@ -475,7 +472,6 @@
                             option-label="label"
                             emit-value
                             map-options
-                            options-cover
                             filled
                         />
                     </div>

@@ -1,5 +1,5 @@
 <template>
-    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '80%;')">
+    <q-card>
         <q-card-section class="q-pa-none header-main">
             <q-item class="q-pr-none">
                 <q-item-section>
@@ -19,7 +19,7 @@
                 </q-item-section>
             </q-item>
         </q-card-section>
-        <q-card-section style="max-height: 70vh" class="q-pa-xs q-pt-sm scroll">
+        <q-card-section style="max-height: 80vh" class="q-pa-xs q-pt-sm scroll">
             <q-table
                 class="table-sticky-header q-ma-none"
                 :rows="table.rows"
@@ -38,6 +38,7 @@
                 binary-state-sort
                 :separator="util.isObject(pick.table) ? pick.table.separator : 'cell'"
                 bordered
+                style="max-height: 70vh;"
             >
                 <template v-slot:top>
                     <q-space />
