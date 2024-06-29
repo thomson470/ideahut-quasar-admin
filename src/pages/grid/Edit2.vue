@@ -40,7 +40,7 @@
           v-model="field.value"
           filled
           autogrow
-          style="max-height: 120px; overflow: scroll"
+          style="max-height: 200px; overflow: scroll"
         />
         <q-select
           v-else-if="'option' === field.type"

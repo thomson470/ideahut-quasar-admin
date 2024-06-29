@@ -35,7 +35,7 @@
                 filled
                 autogrow
                 class="col-6 q-pr-xs"
-                style="max-height: 120px; overflow: scroll"
+                style="max-height: 200px; overflow: scroll"
               />
               <q-input
                 type="text"
@@ -44,7 +44,7 @@
                 filled
                 autogrow
                 class="col-6 q-pl-xs"
-                style="max-height: 120px; overflow: scroll"
+                style="max-height: 200px; overflow: scroll"
               />
             </div>
             <q-input
@@ -54,7 +54,7 @@
               v-model="filter.value"
               filled
               autogrow
-              style="max-height: 120px; overflow: scroll"
+              style="max-height: 200px; overflow: scroll"
             />
           </div>
 

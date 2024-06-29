@@ -31,7 +31,7 @@
         filled
         autogrow
         class="q-mb-xs"
-        style="max-height: 120px; overflow: scroll"
+        style="max-height: 200px; overflow: scroll"
       />
       <div v-if="forms.length" class="q-mb-xs" style="width: 100%">
         <q-btn

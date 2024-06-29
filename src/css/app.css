@@ -172,6 +172,12 @@ body {
     background-color: #111 !important;
 }
 
+.table-sticky-header table tbody tr td {
+    max-width: 800px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .table-sticky-header thead tr:last-child th {
     top: 48px;
     z-index: 3;
@@ -192,6 +198,7 @@ body {
 .table-sticky-header td:first-child {
     z-index: 1;
     padding: 4px 2px 4px 2px !important;
+    white-space: nowrap !important;
 }
 .table-sticky-header td:first-child, .table-sticky-header th:first-child {
     position: sticky;
@@ -203,12 +210,6 @@ body {
     padding: 0px 8px 0px 8px !important;
     width: 0px;
     font-weight: bolder;
-
-    /*
-    word-wrap: break-word;
-    max-width: 100px;
-    overflow-wrap: break-word;
-    */
 }
 
 .table-sticky-header .table-child td, .table-sticky-header .table-child th{
