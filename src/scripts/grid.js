@@ -528,7 +528,14 @@ const grid = {
                 } else if ("pick" === field.type) {
                     if (undefined === field.value && field.nullable) {
                         if (util.isFunction(field.nullValue)) {
-                            value[field.name] = field.nullValue();
+                            let nval = field.nullValue();
+                            if (util.isObject(nval)) {
+                                Object.keys(nval).forEach((key) => {
+                                    value[key] = nval[key];
+                                });
+                            } else {
+                                value[field.name] = nval;
+                            }
                         } else {
                             value[field.name] = null;
                         }

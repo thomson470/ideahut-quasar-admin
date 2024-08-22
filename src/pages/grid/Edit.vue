@@ -304,7 +304,6 @@
     transition-show="slide-down"
     transition-hide="none"
     full-height
-    full-width
   >
     <Table2
       :parameters="dialog.table.parameters"

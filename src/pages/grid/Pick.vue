@@ -1,6 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <q-card>
+  <q-card style="min-width: 60vw; max-width: 90vw; max-height: 90vh;">
     <q-card-section class="q-pa-none header-main">
       <q-item class="q-pr-none">
         <q-item-section>

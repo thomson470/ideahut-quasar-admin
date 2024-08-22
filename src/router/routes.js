@@ -1,5 +1,4 @@
 import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
 import { storage } from "src/scripts/storage";
 
 const validation = async (to, from, next) => {

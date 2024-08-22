@@ -304,6 +304,7 @@ import { uix } from "src/scripts/uix";
 import { api } from "src/scripts/api";
 import { grid as fxGrid } from "src/scripts/grid";
 
+const PREFIX = util.uuid();
 window.__util__ = util;
 window.__grid__ = {};
 
@@ -383,7 +384,7 @@ export default {
       self.parent = parent;
       self.name = name;
       self.replica = null;
-      let id = parent + "_" + name;
+      let id = PREFIX + "_" + parent + "_" + name;
       if (!window.__grid__[id]) {
         if (!self.is_template_loading) {
           self.is_template_loading = true;
