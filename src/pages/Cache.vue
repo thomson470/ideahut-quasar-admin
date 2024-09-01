@@ -14,7 +14,6 @@
     :selected-rows-label="(selected) => {}"
     binary-state-sort
     :separator="'cell'"
-    hide-bottom
     bordered
   >
     <template v-slot:top>
