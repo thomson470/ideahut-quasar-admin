@@ -8,6 +8,7 @@
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
+const { APP } = require("./src/scripts/static");
 const { configure } = require("quasar/wrappers");
 const path = require("path");
 
@@ -54,14 +55,14 @@ module.exports = configure(function (/* ctx */) {
       },
 
       vueRouterMode: "history", // available values: 'hash', 'history'
-      env: require("dotenv").config().parsed,
+      //env: require("dotenv").config().parsed,
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      publicPath: process.env.PUBLIC_PATH,
+      publicPath: APP.web,
       // publicPath: '/',
       // analyze: true,
       // env: {},

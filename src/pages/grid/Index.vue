@@ -271,6 +271,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <Search
       :parameters="dialog.search.parameters"
@@ -283,6 +284,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <View :parameters="dialog.view.parameters" />
   </q-dialog>
@@ -292,6 +294,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <Edit :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
   </q-dialog>
@@ -307,6 +310,19 @@ import { grid as fxGrid } from "src/scripts/grid";
 const PREFIX = util.uuid();
 window.__util__ = util;
 window.__grid__ = {};
+window.__gkeys__ = [];
+
+const addGrid = (id, template) => {
+  window.__gkeys__.push(id);
+  window.__grid__[id] = template;
+  let diff = window.__gkeys__.length - 10;
+  if (diff > 0) {
+    const keys = window.__gkeys__.splice(0, diff);
+    for(const key of keys) {
+      delete window.__grid__[key];
+    }
+  }
+}
 
 export default {
   components: {
@@ -435,7 +451,7 @@ export default {
                 template.picks = picks;
 
                 // simpan grid ke window.__grid__
-                window.__grid__[id] = template;
+                addGrid(id, template);
                 self.template = window.__grid__[id];
                 self.replica = fxGrid.get.firstArray(self.template.replicas);
                 self.permission = self.get_permission();

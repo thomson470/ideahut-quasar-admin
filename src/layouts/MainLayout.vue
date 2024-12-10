@@ -5,7 +5,7 @@
                 <q-btn
                     round
                     :size="$q.screen.gt.sm ? 'md' : 'sm'"
-                    :aria-label="$t('label.menu')"
+                    :aria-label="APP.title"
                     icon="menu"
                     @click="on_toggle_menu"
                 >
@@ -15,7 +15,7 @@
                     flat
                     no-caps
                     no-wrap
-                    :label="$t('app.title')"
+                    :label="APP.title"
                     :size="$q.screen.gt.sm ? 'xl' : 'lg'"
                     :class="'q-pa-xs text-weight-bold ' + ($q.screen.gt.sm ? 'q-ml-md' : 'q-ml-xs')"
                     @click="on_header_menu_click()"
@@ -65,7 +65,16 @@
                                     <q-icon :name="menu.icon" />
                                 </q-item-section>
                                 <q-item-section>
-                                    {{ menu.title }}
+                                    <div>
+                                        {{ menu.title }}
+                                        <q-badge 
+                                            v-if="true === menu.badge" 
+                                            color="orange"
+                                            rounded
+                                            align="top"
+                                            transparent
+                                        />
+                                    </div>
                                 </q-item-section>
                             </template>
                             <div v-for="child in menu.children" :key="child.id" class="drawer-child">
@@ -79,7 +88,16 @@
                                             <q-icon :name="child.icon" />
                                         </q-item-section>
                                         <q-item-section>
-                                            {{ child.title }}
+                                            <div>
+                                                {{ child.title }}
+                                                <q-badge 
+                                                    v-if="true === child.badge" 
+                                                    color="orange"
+                                                    rounded
+                                                    align="top"
+                                                    transparent
+                                                />
+                                            </div>
                                         </q-item-section>
                                     </template>
                                     <div v-for="grand in child.children" :key="grand.id">
@@ -94,7 +112,16 @@
                                                 <q-icon :name="grand.icon" />
                                             </q-item-section>
                                             <q-item-section :class="active_menu.id === grand.id ? 'text-weight-bold' : ''">
-                                                {{ grand.title }}
+                                                <div>
+                                                    {{ grand.title }}
+                                                    <q-badge 
+                                                        v-if="true === grand.badge" 
+                                                        color="orange"
+                                                        rounded
+                                                        align="top"
+                                                        transparent
+                                                    />
+                                                </div>
                                             </q-item-section>
                                         </q-item>
                                     </div>
@@ -109,7 +136,16 @@
                                         <q-icon :name="child.icon" />
                                     </q-item-section>
                                     <q-item-section :class="active_menu.id === child.id ? 'text-weight-bold' : ''">
-                                        {{ child.title }}
+                                        <div>
+                                            {{ child.title }}
+                                            <q-badge 
+                                                v-if="true === child.badge" 
+                                                color="orange"
+                                                rounded
+                                                align="top"
+                                                transparent
+                                            />
+                                        </div>
                                     </q-item-section>
                                 </q-item>
                             </div>
@@ -149,7 +185,16 @@
                         <q-icon :name="active_menu.icon" />
                     </q-item-section>
                     <q-item-section>
-                        {{ active_menu.title }}
+                        <div>
+                            {{ active_menu.title }}
+                            <q-badge 
+                                v-if="true === active_menu.badge" 
+                                color="orange"
+                                rounded
+                                align="top"
+                                transparent
+                            />
+                        </div>
                     </q-item-section>
                 </q-item>
                 <router-view />
@@ -173,6 +218,7 @@
   
 <script>
 import { ref } from "vue";
+import { APP } from "src/scripts/static";
 import { util } from "src/scripts/util";
 import { api } from "src/scripts/api";
 import { uix } from "src/scripts/uix";
@@ -181,6 +227,7 @@ import { storage } from "src/scripts/storage";
 export default {
     setup() {
         return {
+            APP,
             util,
             api,
             uix,
@@ -257,7 +304,7 @@ export default {
             let cmenu = storage.menu();
             delete cmenu.active;
             storage.menu(cmenu);
-            window.location.href = util.publicPath() + "/";
+            window.location.href = util.webPath() + "/";
         },
   
         /*
@@ -271,7 +318,7 @@ export default {
                     let cmenu = storage.menu();
                     delete cmenu.active;
                     storage.menu(cmenu);
-                    window.location.href = util.publicPath() + menu.link;
+                    window.location.href = util.webPath() + menu.link;
                 } else {
                     self.active_menu = menu;
                     let cmenu = storage.menu();
@@ -292,7 +339,7 @@ export default {
                 let auth = storage.auth();
                 if (true === auth.persistent) {
                     storage.auth(null);
-                    window.location.href = util.publicPath();
+                    window.location.href = util.webPath();
                     self.is_logout_progress = false;
                 } else {
                     api.send({
@@ -303,7 +350,7 @@ export default {
                         },
                         onSuccess() {
                             storage.auth(null);
-                            window.location.href = util.publicPath();
+                            window.location.href = util.webPath();
                         },
                     });
                 }

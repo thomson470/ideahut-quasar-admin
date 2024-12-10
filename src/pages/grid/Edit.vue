@@ -295,6 +295,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <Pick :parameters="dialog.pick.parameters" @close="on_close_dialog_pick" />
   </q-dialog>
@@ -303,6 +304,7 @@
     v-model="dialog.table.show"
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
     full-height
   >
     <Table2
@@ -315,6 +317,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <FormE :parameters="dialog.form.parameters" @close="on_close_dialog_form" />
   </q-dialog>

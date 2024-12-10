@@ -6,7 +6,7 @@
                     flat
                     no-caps
                     no-wrap
-                    :label="$t('app.title')"
+                    :label="APP.title"
                     :size="$q.screen.gt.sm ? 'xl' : 'lg'"
                     :class="'q-pa-xs text-weight-bold ' + ($q.screen.gt.sm ? 'q-ml-md' : 'q-ml-xs')"
                     @click="on_header_menu_click()"
@@ -34,14 +34,15 @@
   
 <script>
 import { ref } from "vue";
+import { APP } from "src/scripts/static";
 import { util } from "src/scripts/util";
 import { api } from "src/scripts/api";
 import { uix } from "src/scripts/uix";
-import { storage } from "src/scripts/storage";
 
 export default {
     setup() {
         return {
+            APP,
             util,
             api,
             uix,
@@ -57,7 +58,7 @@ export default {
          * HEADER MENU
          */
         on_header_menu_click() {
-            window.location.href = util.publicPath() + "/";
+            window.location.href = util.webPath() + "/";
         },
     },
 };

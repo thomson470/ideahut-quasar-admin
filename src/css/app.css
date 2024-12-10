@@ -75,7 +75,7 @@ body {
     margin: 0 auto;
     background-color: #ABFF00;
     border-radius: 50%;
-    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #304701 0 -1px 9px, #00FF00 0 2px 12px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 2px 1px, inset #304701 0 -1px39px, #00FF00 0 2px 10px;
     -webkit-animation: blink-green 1.5s infinite;
     -moz-animation: blink-green 1.5s infinite;
     -ms-animation: blink-green 1.5s infinite;
@@ -84,27 +84,27 @@ body {
 }
 @-webkit-keyframes blink-green {
     from { background-color: #0F0; }
-    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 2px 1px, inset #00FF00 0 -1px 2px, rgba(0, 255, 0, 0.5) 0 2px 0;}
     to { background-color: #0F0; }
 }
 @-moz-keyframes blink-green {
     from { background-color: #0F0; }
-    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 2px 1px, inset #00FF00 0 -1px 2px, rgba(0, 255, 0, 0.5) 0 2px 0;}
     to { background-color: #0F0; }
 }
 @-ms-keyframes blink-green {
     from { background-color: #0F0; }
-    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 2px 1px, inset #00FF00 0 -1px 2px, rgba(0, 255, 0, 0.5) 0 2px 0;}
     to { background-color: #0F0; }
 }
 @-o-keyframes blink-green {
     from { background-color: #0F0; }
-    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #00FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 2px 1px, inset #00FF00 0 -1px 2px, rgba(0, 255, 0, 0.5) 0 2px 0;}
     to { background-color: #0F0; }
 }
 @keyframes blink-green {
     from { background-color: #0F0; }
-    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #89FF00 0 -1px 9px, rgba(0, 255, 0, 0.5) 0 2px 0;}
+    50% { background-color: #0A0; box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 2px 1px, inset #89FF00 0 -1px 2px, rgba(0, 255, 0, 0.5) 0 2px 0;}
     to { background-color: #0F0; }
 }
 
@@ -210,6 +210,11 @@ body {
     padding: 0px 8px 0px 8px !important;
     width: 0px;
     font-weight: bolder;
+}
+
+.table-sticky-header.no-column table tbody tr td {
+    max-width: none;
+    overflow: auto;
 }
 
 .table-sticky-header .table-child td, .table-sticky-header .table-child th{

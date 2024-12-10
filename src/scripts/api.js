@@ -1,13 +1,11 @@
 import { Router } from 'src/router/index.js';
+import { APP } from "src/scripts/static";
 import { util } from "src/scripts/util";
 import { uix } from "src/scripts/uix";
 import { storage } from "src/scripts/storage";
 import axios from "axios";
 
-const API_URL = process.env.API_URL;
-const API_TIMEOUT = parseInt(process.env.API_TIMEOUT);
-
-const processError = function (objerr, onError, notify) {
+const processError = (objerr, onError, notify) => {
     let error = {};
     if (util.isObject(objerr)) {
         if (util.isArray(objerr.response)) {
@@ -66,10 +64,10 @@ const processError = function (objerr, onError, notify) {
     }
 };
 
-const build = async function (options) {
+const build = async (options) => {
     let opts = util.isObject(options) ? options : {};
     opts.method = util.isString(opts.method) ? opts.method.trim().toUpperCase() : "GET";
-    opts.baseURL = API_URL;
+    opts.baseURL = APP.api;
     opts.url = util.isString(opts.url) ? opts.url : options.path;
     let auth = storage.auth();
     let headers = util.isObject(opts.headers) ? opts.headers : {};
@@ -83,7 +81,7 @@ const build = async function (options) {
         headers["Content-Type"] = "application/json";
     }
     opts.headers = headers;
-    opts.timeout = util.isNumber(opts.timeout) && opts.timeout > 0 ? opts.timeout : API_TIMEOUT;
+    opts.timeout = util.isNumber(opts.timeout) && opts.timeout > 0 ? opts.timeout : APP.timeout;
     opts.timeout = opts.timeout * 1000;
     if (util.isFunction(opts.onStart)) {
         opts.onStart(opts);
@@ -92,7 +90,7 @@ const build = async function (options) {
     return res;
 };
 
-const request = function (options) {
+const request = (options) => {
     let opts = util.isObject(options) ? options : {};
     build(opts)
     .then(function (response) {
@@ -126,7 +124,7 @@ const request = function (options) {
 };
 
 const api = {
-    multimedia: function (link) {
+    multimedia: (link) => {
         link = link || "";
         if (
             !link.startsWith("http://") &&
@@ -138,15 +136,15 @@ const api = {
         }
         return link;
     },
-    call: function (options) {
+    call: (options) => {
         request(options);
     },
-    send: function(options) {
+    send: (options) => {
         // tidak ada pengecekan format respon
         // bisa berguna untuk download
         let opts = util.isObject(options) ? options : {};
         build(opts)
-        .then(function (response) {
+        .then((response) => {
             util.log("<<api-send-success>>", response);
             if (util.isFunction(opts.onFinish)) {
                 opts.onFinish();
@@ -155,7 +153,7 @@ const api = {
                 opts.onSuccess(response);
             }
         })
-        .catch(function (error) {
+        .catch((error) => {
             util.log("<<api-send-error>>", error);
             if (util.isFunction(opts.onFinish)) {
                 opts.onFinish();

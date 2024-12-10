@@ -1,11 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="row q-mt-none q-pa-sm">
-    <div class="col-md-6 col-xs-12 q-pa-xs q-mb-sm">
+    <div :class="(metadata?.rows?.length ? 'col-md-6 ' : 'col-md-12 ') + ' col-xs-12 q-pa-xs q-mb-sm'">
       <q-table
-        v-if="setting.rows?.length"
         class="table-sticky-header no-column"
-        style="max-height: 36vh"
+        style="max-height: 27vh"
         :title="$t('label.setting')"
         :rows="setting.rows"
         :separator="'cell'"
@@ -17,25 +16,23 @@
         dense
       >
         <template v-slot:top-right>
-          <q-input
-            borderless
-            dense
-            debounce="300"
-            v-model="setting.filter"
-            :placeholder="$t('label.search')"
+          <q-btn
+              round
+              glossy
+              dense
+              size="sm"
+              icon="lightbulb"
+              @click="on_keyvalue_show($t('label.setting'), setting.rows)"
           >
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+              <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+          </q-btn>
         </template>
       </q-table>
     </div>
-    <div class="col-md-6 col-xs-12 q-pa-xs q-mb-sm">
+    <div v-if="metadata?.rows?.length" class="col-md-6 col-xs-12 q-pa-xs q-mb-sm">
       <q-table
-        v-if="metadata.rows?.length"
         class="table-sticky-header no-column"
-        style="max-height: 36vh"
+        style="max-height: 27vh"
         :title="$t('label.metadata')"
         :rows="metadata.rows"
         :separator="'cell'"
@@ -47,17 +44,16 @@
         dense
       >
         <template v-slot:top-right>
-          <q-input
-            borderless
-            dense
-            debounce="300"
-            v-model="metadata.filter"
-            :placeholder="$t('label.search')"
+          <q-btn
+              round
+              glossy
+              dense
+              size="sm"
+              icon="lightbulb"
+              @click="on_keyvalue_show($t('label.metadata'), metadata.rows)"
           >
-            <template v-slot:append>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+              <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+          </q-btn>
         </template>
       </q-table>
     </div>
@@ -207,7 +203,7 @@
                 :icon="props.expand ? 'remove' : 'add'"
                 @click="props.expand = !props.expand"
               >
-                <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+                <q-tooltip>{{ $t("label.expand") }}</q-tooltip>
               </q-btn>
             </q-td>
             <q-td
@@ -252,7 +248,7 @@
                       </q-item>
                     </q-list>
                   </q-btn-dropdown>
-                  <q-btn
+                  <q-btn-dropdown
                     glossy
                     dense
                     size="sm"
@@ -261,8 +257,25 @@
                     icon="view_quilt"
                     :label="$t('label.grid')"
                     :loading="loading.grid[props.row.type]"
-                    @click="on_entity_grid_click(props)"
-                  />
+                  >
+                    <q-list>
+                      <q-item 
+                        clickable 
+                        v-close-popup 
+                        @click="on_entity_grid_click(props, 'json')"
+                      >
+                        <q-item-section>JSON</q-item-section>
+                      </q-item>
+                      <q-separator />
+                      <q-item 
+                        clickable 
+                        v-close-popup 
+                        @click="on_entity_grid_click(props, 'yaml')"
+                      >
+                        <q-item-section>YAML</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
                 </div>
                 <q-table
                   class="table-child q-mt-sm"
@@ -370,12 +383,13 @@
   </div>
 
   <!--
-        DIALOG SEARCH
+      DIALOG SEARCH
     -->
   <q-dialog
     v-model="entity.search"
     transition-show="scale"
     transition-hide="fade"
+    backdrop-filter="blur(2px)"
     persistent
   >
     <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
@@ -434,15 +448,15 @@
           class="q-mb-xs"
         />
         <q-select
-          v-model="entity.filters.isAudit"
-          :label="$t('label.audit_object')"
+          v-model="entity.filters.isAuditEntity"
+          :label="$t('label.audit_entity')"
           :options="option.boolean"
           filled
           class="q-mb-xs"
         />
         <q-select
-          v-model="entity.filters.hasAuditMark"
-          :label="$t('label.audit_annotation')"
+          v-model="entity.filters.isAuditEnabled"
+          :label="$t('label.audit_enabled')"
           :options="option.boolean"
           filled
           class="q-mb-xs"
@@ -480,10 +494,10 @@
   </q-dialog>
 
   <!--
-        DIALOG REPLICA
+      DIALOG REPLICA
     -->
-  <q-dialog v-model="dialog.replica.show" persistent>
-    <q-card :style="$q.screen.lt.md ? '' : 'width: 60vw; max-width: 61vw;'">
+  <q-dialog v-model="dialog.replica.show" persistent backdrop-filter="blur(2px)">
+    <q-card :style="$q.screen.lt.md ? 'width: 80vw; max-width: 81vw;' : 'width: 60vw; max-width: 61vw;'">
       <q-card-section class="q-pa-none header-main">
         <q-item class="q-pr-none">
           <q-item-section style="max-width: 80vw; overflow-x: scroll">
@@ -550,10 +564,10 @@
   </q-dialog>
 
   <!--
-        DIALOG GRID
+      DIALOG GRID
     -->
-  <q-dialog v-model="dialog.grid.show" persistent>
-    <q-card :style="$q.screen.lt.md ? '' : 'width: 60vw; max-width: 61vw;'">
+  <q-dialog v-model="dialog.grid.show" persistent backdrop-filter="blur(2px)">
+    <q-card :style="$q.screen.lt.md ? 'width: 80vw; max-width: 81vw;' : 'width: 60vw; max-width: 61vw;'">
       <q-card-section class="q-pa-none header-main">
         <q-item class="q-pr-none">
           <q-item-section style="max-width: 80vw; overflow-x: scroll">
@@ -583,7 +597,18 @@
         "
         class="q-pa-xs q-mt-xs scroll"
       >
+        <q-input
+          v-if="'yaml' === dialog.grid.type"
+          type="text"
+          v-model="dialog.grid.text"
+          filled
+          dense
+          readonly
+          autogrow
+          class="text-left q-mt-xs full-width"
+        />
         <VueJsonPretty
+          v-else
           :data="JSON.parse(dialog.grid.text)"
           :showLineNumber="true"
           :showLine="true"
@@ -610,14 +635,31 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+  
+  <!--
+      DIALOG ENTITY
+    -->
   <q-dialog
     v-model="dialog.entity.show"
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
     full-width
   >
     <EntityView :parameters="dialog.entity.parameters" />
+  </q-dialog>
+
+  <!--
+      DIALOG KEY VALUE
+    -->
+  <q-dialog
+    v-model="dialog.keyvalue.show"
+    transition-show="scale"
+    transition-hide="fade"
+    backdrop-filter="blur(8px)"
+  >
+    <KeyValue :parameters="dialog.keyvalue.parameters" />
   </q-dialog>
 </template>
 
@@ -629,6 +671,7 @@ import { api } from "src/scripts/api";
 
 export default {
   components: {
+    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
     EntityView: defineAsyncComponent(() => import("src/pages/EntityView.vue")),
     VueJsonPretty: defineAsyncComponent(() => import("vue-json-pretty")),
   },
@@ -681,9 +724,14 @@ export default {
         },
         grid: {
           show: false,
+          type: null,
           title: null,
           data: null,
           copied: false,
+        },
+        keyvalue: {
+          show: false,
+          parameters: null,
         },
       }),
       option: ref({
@@ -728,16 +776,16 @@ export default {
         sortable: true,
       },
       {
-        name: "isAudit",
-        label: self.$t("label.audit_object"),
-        field: "isAudit",
+        name: "isAuditEntity",
+        label: self.$t("label.audit_entity"),
+        field: "isAuditEntity",
         align: "left",
         sortable: true,
       },
       {
-        name: "hasAuditMark",
-        label: self.$t("label.audit_annotation"),
-        field: "hasAuditMark",
+        name: "isAuditEnabled",
+        label: self.$t("label.audit_enabled"),
+        field: "isAuditEnabled",
         align: "left",
         sortable: true,
       },
@@ -1068,7 +1116,7 @@ export default {
     /*
      * ENTITY GRID CLICK
      */
-    on_entity_grid_click(props) {
+    on_entity_grid_click(props, type) {
       let self = this;
       self.loading.grid[props.row.type] = true;
       api.call({
@@ -1076,6 +1124,7 @@ export default {
         params: {
           manager: self.manager,
           entity: props.row.type,
+          type: type,
         },
         onFinish() {
           self.loading.grid[props.row.type] = false;
@@ -1085,6 +1134,7 @@ export default {
             self.dialog.grid = {
               title: props.row.type,
               text: data,
+              type: type,
               show: true,
             };
           }
@@ -1140,13 +1190,13 @@ export default {
       ) {
         delete filters.isSoftDelete;
       }
-      if (!(util.isString(filters.isAudit) && "" !== filters.isAudit)) {
-        delete filters.isAudit;
+      if (!(util.isString(filters.isAuditEntity) && "" !== filters.isAuditEntity)) {
+        delete filters.isAuditEntity;
       }
       if (
-        !(util.isString(filters.hasAuditMark) && "" !== filters.hasAuditMark)
+        !(util.isString(filters.isAuditEnabled) && "" !== filters.isAuditEnabled)
       ) {
-        delete filters.hasAuditMark;
+        delete filters.isAuditEnabled;
       }
       if (
         !(util.isString(filters.isApiExclude) && "" !== filters.isApiExclude)
@@ -1169,6 +1219,21 @@ export default {
       let self = this;
       self.entity.filters = {};
     },
+
+    /*
+     * KEY VALUE
+     */
+     on_keyvalue_show(title, rows) {
+      let self = this;
+      self.dialog.keyvalue = {
+        show: true,
+        parameters: {
+          title: title,
+          search: true,
+          rows: rows,
+        },
+      };
+    } 
   },
 };
 </script>

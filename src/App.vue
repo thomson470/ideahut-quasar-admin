@@ -13,7 +13,7 @@ export default defineComponent({
     created() {
         let self = this;
         let menu = storage.menu();
-        if (window.location.pathname === util.publicPath() + "/index.html") {
+        if (window.location.pathname === util.webPath() + "/index.html") {
             let qp = Object.fromEntries([...new URLSearchParams(window.location.href.split('?')[1])]);
             let next = util.isString(qp._next_) ? qp._next_ : "";
             if ("" !== next) {
@@ -35,7 +35,7 @@ export default defineComponent({
                         let dauth = storage.auth();
                         dauth.logout = true;
                         storage.auth(dauth);
-                        window.location.href = util.publicPath() + "/index.html";
+                        window.location.href = util.webPath() + "/index.html";
                     },
                     onError() {
                         let dauth = storage.auth();

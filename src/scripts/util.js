@@ -1,7 +1,6 @@
 import moment from "moment";
+import { APP } from "src/scripts/static";
 
-const PUBLIC_PATH = process.env.PUBLIC_PATH;
-const DEVELOPMENT = /true/i.test(process.env.DEVELOPMENT);
 const DATE = {
     LZ: function (x) {
         return (x < 0 || x > 9 ? "" : "0") + x;
@@ -62,19 +61,44 @@ const NUMBER_THRESHOLD = [
 
 const util = {
    /*
-     * PUBLIC PATH
+     * WEB PATH
      */
-    publicPath: function() {
-        return PUBLIC_PATH;
+    webPath: function() {
+        return APP.web;
     },
 
     /*
      * LOG
      */
     log: function (...args) {
-        if (DEVELOPMENT) {
+        if (true === APP.debug) {
             console.log(...args);
         }
+    },
+
+    /*
+     * ASSERT
+     */
+    assert(condition, message) {
+        if (false === condition) {
+        throw new Error(message);
+        }
+    },
+
+    /*
+     * APPLY
+     */
+    apply(fx, ...args) {
+        if (util.isFunction(fx)) {
+        return fx(...args);
+        }
+    },
+
+    /*
+    * COPY
+    */
+    copy: function (value) {
+        return JSON.parse(JSON.stringify(value));
     },
 
     /*
@@ -254,65 +278,33 @@ const util = {
     },
 
     /*
-    * CORDOVA
-    */
-    cordova: {
-        isActive: function () {
-            let webkit = window.webkit;
-            return webkit?.messageHandlers?.cordova_iab?.postMessage;
-        },
-        sendMessage: function (msg) {
-            if (util.cordova.isActive() && util.isObject(msg)) {
-                let str = JSON.stringify(msg);
-                window.webkit.messageHandlers.cordova_iab.postMessage(str);
-            }
-        },
-        ads: {
-            banner: function () {
-                util.cordova.sendMessage({ ads: { banner: true } });
-            },
-            interstitial: function () {
-                util.cordova.sendMessage({ ads: { interstitial: true } });
-            },
-            reward: function () {
-                util.cordova.sendMessage({ ads: { reward: true } });
-            },
-        },
-        command: {
-            close: function () {
-                util.cordova.sendMessage({ close: true });
-            },
-        },
-        onExit: function () {
-            util.cordova.sendMessage({ exit: "params.ads.reset();" });
-        },
-    },
-
-    /*
     * TYPE VALIDATION
     */
-    isFunction: function (o) {
+    isFunction(o) {
         return typeof o === "function";
     },
-    isObject: function (o) {
-       return Object.prototype.toString.apply(o) === "[object Object]";
+    isObject(o) {
+        return Object.prototype.toString.apply(o) === "[object Object]";
     },
-    isDefined: function (o) {
+    isDefined(o) {
         return typeof o !== "undefined";
     },
-    isBoolean: function (o) {
+    isBoolean(o) {
         return typeof o === "boolean";
     },
-    isString: function (o) {
+    isString(o) {
         return typeof o === "string";
     },
-    isNumber: function (o) {
+    isNumber(o) {
         return typeof o === "number";
     },
-    isArray: function (o) {
+    isInteger(o) {
+        return Number.isInteger(o);
+    },
+    isArray(o) {
         return Object.prototype.toString.apply(o) === "[object Array]";
     },
-    isEmail: function (o) {
+    isEmail(o) {
         return util.isString(o) ? o.match(EMAIL_REGEX) : false;
     },
 

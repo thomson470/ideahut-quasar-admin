@@ -8,6 +8,7 @@
     :loading="table.loading"
     :selection="'single'"
     v-model:selected="table.selected"
+    v-model:pagination="table.pagination"
     :dense="$q.screen.lt.md"
     :no-data-label="$t('error.data_not_available')"
     rows-per-page-label=" "
@@ -74,6 +75,21 @@
         </q-btn>
       </div>
     </template>
+
+    <template v-slot:body-cell="props">
+      <q-td :props="props">
+        <span>
+          {{ props.value }}
+          <q-badge 
+            v-if="'label' === props.col.name && true === props.row.isDefault" 
+            color="orange"
+            rounded
+            align="top"
+            transparent
+          />
+        </span>
+      </q-td>
+    </template>
   </q-table>
 
   <q-dialog
@@ -81,6 +97,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <Keys :parameters="dialog.keys.parameters" />
   </q-dialog>
@@ -111,6 +128,10 @@ export default {
         columns: [],
         loading: false,
         clearing: {},
+        pagination: {
+          page: 1,
+          rowsPerPage: 10,
+        },
       }),
 
       dialog: ref({
@@ -225,7 +246,7 @@ export default {
               return 0 === val ? self.$t("label.unlimited") : val;
             };
             self.table.columns[3].format = (val) => {
-              return val && val > 0 ? val : self.$t("label.never_expire");
+              return val?.value && val.value > 0 ? (val.value + "  (" + val.unit + ")") : self.$t("label.never_expire");
             };
             self.table.rows = [];
             Object.keys(groups).forEach((key) => {

@@ -41,7 +41,7 @@
           <q-table
             v-if="metadata?.length"
             class="table-sticky-header no-column q-ma-xs"
-            style="max-height: 28vh"
+            style="max-height: 25vh"
             :rows="metadata"
             :separator="'horizontal'"
             :rows-per-page-options="[0]"
@@ -74,41 +74,20 @@
       <q-card-section v-if="expand[id]" class="q-pa-xs">
         <q-table
           class="table-sticky-header"
-          :rows="group.triggers || []"
+          :rows="pagination[id].triggers"
           :visible-columns="visibles"
           :columns="columns"
           row-key="triggerId"
           :loading="loading[id]"
-          :pagination="pagination[id]"
+          v-model:pagination="pagination[id]"
           :filter="filter[id]"
           binary-state-sort
           separator="cell"
           selection="single"
+          rows-per-page-label=" "
+          :rows-per-page-options="[10, 20, 30, 40, 50]"
+          @request="on_table_request"
         >
-          <template v-slot:top-right>
-            <q-input
-              borderless
-              dense
-              v-model="filter[group.groupId]"
-              :placeholder="$t('label.search')"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              round
-              glossy
-              dense
-              size="sm"
-              icon="refresh"
-              class="q-ml-lg"
-              :loading="loading.group[id]"
-              @click="get_triggers(id)"
-            >
-              <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
-            </q-btn>
-          </template>
           <template v-slot:body-selection="scope">
             <div class="text-right">
               <q-btn
@@ -205,6 +184,19 @@
       </q-card-section>
       <q-badge color="transparent" floating transparent>
         <q-btn
+          v-if="expand[id]"
+          round
+          glossy
+          dense
+          size="sm"
+          icon="refresh"
+          class="q-ma-sm button-default"
+          :loading="loading.group[id]"
+          @click="refresh_triggers(id)"
+        >
+          <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        </q-btn>
+        <q-btn
           round
           glossy
           dense
@@ -215,6 +207,11 @@
         />
       </q-badge>
     </q-card>
+    <q-btn
+      flat
+      size="xs"
+      @click="on_reset_click"
+    />
   </div>
 
   <q-dialog
@@ -222,6 +219,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <View :parameters="dialog.view.parameters" />
   </q-dialog>
@@ -312,7 +310,6 @@ export default {
         label: self.$t("label.class"),
         field: "type",
         align: "left",
-        sortable: true,
         format: function (val) {
           if (val) {
             return val.classname;
@@ -326,7 +323,6 @@ export default {
         label: self.$t("label.run_on_startup"),
         field: "isRunOnStartup",
         align: "center",
-        sortable: true,
         format: function (val) {
           if ("Y" === val) {
             return self.$t("label.yes");
@@ -342,7 +338,6 @@ export default {
         label: self.$t("label.save"),
         field: "isSaveResult",
         align: "center",
-        sortable: true,
         format: function (val) {
           if ("Y" === val) {
             return self.$t("label.yes");
@@ -358,7 +353,6 @@ export default {
         label: self.$t("label.state"),
         field: "status",
         align: "center",
-        sortable: true,
         format: function (val) {
           return val ? val.state : "";
         },
@@ -368,7 +362,6 @@ export default {
         label: self.$t("label.priority"),
         field: "status",
         align: "center",
-        sortable: true,
         format: function (val) {
           return val && util.isNumber(val.priority) ? val.priority : "";
         },
@@ -489,9 +482,9 @@ export default {
     },
 
     /*
-     * RETRIEVE GROUP
+     * INIT GROUP
      */
-    retrieve_group(group, tmp_expand, tmp_filter) {
+    init_group(group, tmp_expand, tmp_filter) {
       let self = this;
       self.groups[group.groupId] = group;
       self.loading.group[group.groupId] = false;
@@ -502,9 +495,11 @@ export default {
         true === tmp_expand[group.groupId] ? true : false;
       self.pagination[group.groupId] = {
         page: 1,
-        rowsPerPage: 20,
+        rowsPerPage: 10,
         sortBy: "name",
         descending: false,
+        triggers: [],
+        groupId: group.groupId,
       };
     },
 
@@ -517,17 +512,19 @@ export default {
         path: "/scheduler/groups",
         params: {
           handler: self.handler,
+          size: 1000,
         },
-        onSuccess(groups) {
-          if (util.isArray(groups)) {
+        onSuccess(page) {
+          if (util.isArray(page?.data)) {
             let tmp_expand = JSON.parse(JSON.stringify(self.expand));
             let tmp_filter = JSON.parse(JSON.stringify(self.filter));
             self.groups = {};
             self.expand = {};
             self.filter = {};
-            for (const group of groups) {
-              self.retrieve_group(group, tmp_expand, tmp_filter);
-              self.get_triggers(group.groupId);
+            self.pagination = {};
+            for (const group of page.data) {
+              self.init_group(group, tmp_expand, tmp_filter);
+              self.refresh_triggers(group.groupId);
             }
           }
         },
@@ -537,38 +534,55 @@ export default {
     /*
      * TRIGGERS
      */
+    refresh_triggers(groupId) {
+      let self = this;
+      self.pagination[groupId].page = 1;
+      self.get_triggers(groupId);
+    },
     get_triggers(groupId) {
       let self = this;
-      if (util.isString(groupId)) {
-        self.loading.group[groupId] = true;
-      }
+      let page = self.pagination[groupId];
+      self.loading.group[groupId] = true;
       api.call({
         path: "/scheduler/triggers",
         params: {
           handler: self.handler,
-          groupId: util.isString(groupId) ? groupId : null,
+          groupId: groupId,
+          index: page.page,
+          size: page.rowsPerPage,
+          order: (page.descending ? "-" : "") + page.sortBy,
         },
         onFinish() {
-          if (util.isString(groupId)) {
-            self.loading.group[groupId] = false;
-          }
+          self.loading.group[groupId] = false;
         },
-        onSuccess(data) {
-          if (util.isArray(data)) {
-            let tmp_expand = JSON.parse(JSON.stringify(self.expand));
-            let tmp_filter = JSON.parse(JSON.stringify(self.filter));
-            if (util.isString(groupId)) {
-              self.retrieve_group(data[0], tmp_expand, tmp_filter);
+        onSuccess(page) {
+          let pagination = self.pagination[groupId];
+          if (util.isObject(page)) {
+            pagination.triggers = util.isArray(page.data) ? page.data : [];
+            pagination.page = page.index;
+            pagination.rowsPerPage = page.size;
+            if (util.isNumber(page.records)) {
+                pagination.rowsNumber = page.records;
             } else {
-              self.groups = {};
-              self.expand = {};
-              for (const group of data) {
-                self.retrieve_group(group, tmp_expand, tmp_filter);
-              }
+                let rowsNumber = page.index * page.size;
+                if (pagination.triggers.length !== page.size) {
+                    pagination.rowsNumber = rowsNumber;
+                } else {
+                    pagination.rowsNumber = rowsNumber + 1;
+                }
             }
           }
         },
       });
+    },
+
+    /*
+     * TABLE REQUEST
+     */
+    on_table_request(props) {
+      let self = this;
+      self.pagination[props.pagination.groupId] = props.pagination;
+      self.get_triggers(props.pagination.groupId);
     },
 
     /*
@@ -595,7 +609,6 @@ export default {
           });
         },
         self.$t("label." + (self.running ? "stop" : "start")) + " ?",
-        false
       );
     },
 
@@ -619,12 +632,11 @@ export default {
               self.loading.pause_resume[row.triggerId] = false;
             },
             onSuccess() {
-              self.get_triggers(row.group.groupId);
+              self.get_triggers(row.groupId);
             },
           });
         },
         self.$t("label.pause") + " <b>" + row.name + "</b> ?",
-        false
       );
     },
 
@@ -648,12 +660,11 @@ export default {
               self.loading.pause_resume[row.triggerId] = false;
             },
             onSuccess() {
-              self.get_triggers(row.group.groupId);
+              self.get_triggers(row.groupId);
             },
           });
         },
         self.$t("label.resume") + " <b>" + row.name + "</b> ?",
-        false
       );
     },
 
@@ -677,12 +688,11 @@ export default {
               self.loading.schedule_unschedule[row.triggerId] = false;
             },
             onSuccess() {
-              self.get_triggers(row.group.groupId);
+              self.get_triggers(row.groupId);
             },
           });
         },
         self.$t("label.schedule") + " <b>" + row.name + "</b> ?",
-        false
       );
     },
 
@@ -706,12 +716,11 @@ export default {
               self.loading.schedule_unschedule[row.triggerId] = false;
             },
             onSuccess() {
-              self.get_triggers(row.group.groupId);
+              self.get_triggers(row.groupId);
             },
           });
         },
         self.$t("label.unschedule") + " <b>" + row.name + "</b> ?",
-        false
       );
     },
 
@@ -735,12 +744,11 @@ export default {
               self.loading.trigger[row.triggerId] = false;
             },
             onSuccess() {
-              self.get_triggers(row.group.groupId);
+              self.get_triggers(row.groupId);
             },
           });
         },
         self.$t("label.trigger") + " <b>" + row.name + "</b> ?",
-        false
       );
     },
 
@@ -756,6 +764,25 @@ export default {
           columns: self.columns,
         },
       };
+    },
+
+    /*
+     * RESET CLICK
+     */
+    on_reset_click() {
+      let self = this;
+      uix.confirm(
+        function () {
+          api.call({
+            path: "/scheduler/reset",
+            method: "post",
+            params: {
+              handler: self.handler,
+            },
+          });
+        },
+        self.$t("label.reset") + " ?"
+      );
     },
   },
 };

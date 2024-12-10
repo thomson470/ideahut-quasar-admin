@@ -26,7 +26,7 @@ export default defineComponent({
     },
     created() {
         let self = this;
-        self.is_index = window.location.pathname === util.publicPath() + "/index.html";
+        self.is_index = window.location.pathname === util.webPath() + "/index.html";
     },
 });
 </script>

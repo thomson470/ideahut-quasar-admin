@@ -21,17 +21,6 @@ quasar build
 ```
 - Aplikasi yang sudah di-_build_ (folder: dist), bisa digunakan sebagai static resource di backend.
 
-### Environment (file: .env)
-```md
-PUBLIC_PATH=/_
-API_URL=http://localhost:5401/admin
-#API_URL=/admin
-API_TIMEOUT=60
-DEFAULT_LANGUAGE=en
-DEVELOPMENT=true
-```
-- `PUBLIC_PATH` path untuk akses static resource di backend.
-- `API_URL` untuk static resource yang akan di-_embed_ ke backend cukup dengan path API admin tanpa protokol, host, dan port ("/admin"). 
 
 ### Backend
 * [Springboot 3x MVC](https://github.com/thomson470/ideahut-springboot-3x-template-mvc)

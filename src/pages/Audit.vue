@@ -143,6 +143,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <Search
       :parameters="dialog.search.parameters"
@@ -155,6 +156,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <View :parameters="dialog.view.parameters" />
   </q-dialog>
@@ -521,7 +523,7 @@ export default {
                       return val;
                     }
                   };
-                } else if (true === self.info.isAudit) {
+                } else if (true === self.info.isAuditEntity) {
                   if ("createdOn" === field.name) {
                     column.timestamp = true;
                     column.pattern = util.isString(field.format)

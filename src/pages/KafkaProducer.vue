@@ -9,7 +9,7 @@
     :dense="$q.screen.lt.md"
     :no-data-label="$t('error.data_not_available')"
     rows-per-page-label=" "
-    :rows-per-page-options="[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]"
+    :rows-per-page-options="[10, 20, 30, 40, 50]"
     binary-state-sort
     :separator="'cell'"
     v-model:pagination="table.pagination"
@@ -63,63 +63,24 @@
         class="q-ma-none q-ml-xs q-mr-sm"
         color="deep-purple"
         icon="visibility"
-        @click="on_detail_click(scope)"
+        @click="on_view_click(scope)"
       >
         <q-tooltip>{{ $t("label.view") }}</q-tooltip>
       </q-btn>
     </template>
   </q-table>
 
+  <!-- VIEW DIALOG -->
   <q-dialog
-    v-model="dialog.detail.show"
+    v-model="dialog.view.show"
     transition-show="scale"
     transition-hide="fade"
     backdrop-filter="blur(2px)"
   >
-    <q-card :style="$q.screen.lt.md ? '' : 'width: 80vw; max-width: 81vw;'">
-      <q-card-section class="q-pa-none header-main">
-        <q-item class="q-pr-none">
-          <q-item-section style="max-width: 80vw; overflow-x: scroll">
-            <q-item-label class="text-white">{{
-              dialog.detail.title
-            }}</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-btn
-              class="text-caption text-white q-pl-xs q-pr-xs q-mr-xs"
-              flat
-              round
-              glossy
-              icon="close"
-              v-close-popup
-            >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
-            </q-btn>
-          </q-item-section>
-        </q-item>
-      </q-card-section>
-      <q-card-section
-        :style="
-          'overflow: scroll; ' +
-          ($q.screen.lt.md
-            ? 'max-height: 70vh;'
-            : 'max-height: 70vh; width: 80vw; max-width: 81vw;')
-        "
-        class="q-pa-xs q-mt-xs scroll"
-      >
-        <VueJsonPretty
-          :data="dialog.detail.data"
-          :showLineNumber="true"
-          :showLine="true"
-          :showDoubleQuotes="false"
-          :showIcon="true"
-          :highlightSelectedNode="false"
-          :showKeyValueSpace="true"
-        />
-      </q-card-section>
-    </q-card>
+    <KeyValue :parameters="dialog.view.parameters" />
   </q-dialog>
 
+  <!-- SEARCH DIALOG -->
   <q-dialog
     v-model="dialog.search.show"
     transition-show="scale"
@@ -152,57 +113,27 @@
       <q-card-section style="max-height: 70vh" class="q-pa-xs q-mt-xs scroll">
         <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
-            v-model="table.filters.path"
+            v-model="table.filters.producerId"
             type="text"
-            :label="$t('label.path')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-select
-          v-model="table.filters.method"
-          :label="$t('label.method')"
-          :options="option.methods"
-          filled
-          class="q-mb-xs"
-        />
-        <q-select
-          v-model="table.filters.isPublic"
-          :label="$t('label.public')"
-          :options="option.boolean"
-          filled
-          class="q-mb-xs"
-        />
-        <q-select
-          v-model="table.filters.isExclude"
-          :label="$t('label.exclude')"
-          :options="option.boolean"
-          filled
-          class="q-mb-xs"
-        />
-        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
-          <q-input
-            v-model="table.filters.bean"
-            type="text"
-            :label="$t('label.bean')"
+            :label="$t('label.producer_id')"
             filled
             class="q-mb-xs"
           />
         </q-form>
         <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
-            v-model="table.filters.function"
+            v-model="table.filters.topicName"
             type="text"
-            :label="$t('label.function')"
+            :label="$t('label.topic')"
             filled
             class="q-mb-xs"
           />
         </q-form>
         <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
-            v-model="table.filters.annotation"
+            v-model="table.filters.partition"
             type="text"
-            :label="$t('label.annotation')"
+            :label="$t('label.partition')"
             filled
             class="q-mb-xs"
           />
@@ -240,12 +171,13 @@ import { api } from "src/scripts/api";
 
 export default {
   components: {
-    VueJsonPretty: defineAsyncComponent(() => import("vue-json-pretty")),
+    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
   },
-
   setup() {
     return {
       util,
+
+      handler: ref(null),
 
       table: ref({
         rows: [],
@@ -255,96 +187,89 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 30,
-          sortBy: "path",
+          sortBy: "producerId",
           descending: false,
           count: true,
         },
       }),
 
       dialog: ref({
-        detail: {
+        view: {
           show: false,
-          title: null,
-          data: null,
+          parameters: null,
         },
         search: {
           show: false,
         },
       }),
 
-      option: ref({
-        methods: [
-          "",
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "HEAD",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-        ],
-        boolean: ["", "true", "false"],
-      }),
     };
   },
 
   created() {
     let self = this;
+    self.handler = self.$route.query.handler;
     self.table.columns = [
       {
-        name: "path",
-        label: self.$t("label.path"),
-        field: "patternValues",
+        name: "producerId",
+        label: self.$t("label.producer_id"),
+        field: "producerId",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "partition.topic",
+        label: self.$t("label.topic"),
+        field: "partition",
         align: "left",
         sortable: true,
         format: function (val, row) {
-          return val.join(", ");
+          return val.topic;
         },
       },
       {
-        name: "method",
-        label: self.$t("label.method"),
-        field: "methods",
+        name: "partition.index",
+        label: self.$t("label.partition"),
+        field: "partition",
         align: "left",
         sortable: true,
         format: function (val, row) {
-          return val.join(", ");
+          return val.index;
         },
       },
       {
-        name: "public",
-        label: self.$t("label.public"),
-        field: "public",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "exclude",
-        label: self.$t("label.exclude"),
-        field: "exclude",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "bean",
-        label: self.$t("label.bean"),
-        field: "handler",
+        name: "lastTimestamp",
+        label: self.$t("label.last_timestamp"),
+        field: "lastTimestamp",
         align: "left",
         sortable: true,
         format: function (val, row) {
-          return val.bean;
+          return util.isNumber(val) && val > 0 ? util.format.date(val, { format: "YYYY-MM-DD HH:mm:ss", }) : "";
         },
       },
       {
-        name: "function",
-        label: self.$t("label.function"),
-        field: "handler",
+        name: "lastSequence",
+        label: self.$t("label.last_sequence"),
+        field: "lastSequence",
         align: "left",
-        sortable: true,
-        format: function (val, row) {
-          return val.method.name + " (" + val.method.parameterCount + ")";
-        },
+      },
+      {
+        name: "producerEpoch",
+        label: self.$t("label.producer_epoch"),
+        field: "producerEpoch",
+        align: "left",
+      },
+      {
+        name: "coordinatorEpoch",
+        label: self.$t("label.coordinator_epoch"),
+        field: "coordinatorEpoch",
+        align: "left",
+      },
+      {
+        name: "currentTransactionStartOffset",
+        label: self.$t("label.current_trx_start_offset"),
+        field: "currentTransactionStartOffset",
+        align: "left",
       },
     ];
     self.on_refresh_click();
@@ -358,6 +283,7 @@ export default {
       let { page, rowsPerPage, sortBy, descending } =
         self.get_pagination(props);
       let params = {
+        name: self.handler,
         index: page,
         size: rowsPerPage,
         order: (descending ? "-" : "") + sortBy,
@@ -367,7 +293,7 @@ export default {
       });
       self.table.loading = true;
       api.call({
-        path: "/request/list",
+        path: "/kafka/producers",
         params: params,
         onFinish() {
           self.table.loading = false;
@@ -424,14 +350,23 @@ export default {
     },
 
     /*
-     * DETAIL CLICK
+     * VIEW CLICK
      */
-    on_detail_click(scope) {
+    on_view_click(scope) {
       let self = this;
-      self.dialog.detail = {
-        title: scope.row.patternValues[0],
-        data: scope.row,
+      let rows = [];
+      for (const col of scope.cols) {
+        rows.push({
+          label: col.label,
+          value: util.isFunction(col.format) ? col.format(scope.row[col.field], scope.row) : scope.row[col.field],
+        });
+      }
+      self.dialog.view = {
         show: true,
+        parameters: {
+          search: false,
+          rows: rows,
+        },
       };
     },
 
@@ -449,26 +384,14 @@ export default {
     on_search_filter_click() {
       let self = this;
       let filters = self.table.filters;
-      if (!(util.isString(filters.method) && "" !== filters.method)) {
-        delete filters.method;
+      if (!(util.isString(filters.producerId) && "" !== filters.producerId)) {
+        delete filters.producerId;
       }
-      if (!(util.isString(filters.path) && "" !== filters.path)) {
-        delete filters.path;
+      if (!(util.isString(filters.topicName) && "" !== filters.topicName)) {
+        delete filters.topicName;
       }
-      if (!(util.isString(filters.bean) && "" !== filters.bean)) {
-        delete filters.bean;
-      }
-      if (!(util.isString(filters.function) && "" !== filters.function)) {
-        delete filters.function;
-      }
-      if (!(util.isString(filters.annotation) && "" !== filters.annotation)) {
-        delete filters.annotation;
-      }
-      if (!(util.isString(filters.isPublic) && "" !== filters.isPublic)) {
-        delete filters.isPublic;
-      }
-      if (!(util.isString(filters.isExclude) && "" !== filters.isExclude)) {
-        delete filters.isExclude;
+      if (!(util.isString(filters.partition) && "" !== filters.partition)) {
+        delete filters.partition;
       }
       self.do_request({
         pagination: self.table.pagination,

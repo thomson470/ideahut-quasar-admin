@@ -9,7 +9,7 @@
     :dense="$q.screen.lt.md"
     :no-data-label="$t('error.data_not_available')"
     rows-per-page-label=" "
-    :rows-per-page-options="[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]"
+    :rows-per-page-options="[10, 20, 30, 40, 50]"
     binary-state-sort
     :separator="'cell'"
     v-model:pagination="table.pagination"
@@ -61,65 +61,59 @@
         dense
         size="sm"
         class="q-ma-none q-ml-xs q-mr-sm"
+        color="lime-10"
+        icon="dns"
+        @click="on_listener_click(scope)"
+      >
+        <q-tooltip>{{ $t("label.listener") }}</q-tooltip>
+      </q-btn>
+      <q-btn
+        glossy
+        round
+        dense
+        size="sm"
+        class="q-ma-none q-ml-xs q-mr-sm"
         color="deep-purple"
         icon="visibility"
-        @click="on_detail_click(scope)"
+        @click="on_view_click(scope)"
       >
         <q-tooltip>{{ $t("label.view") }}</q-tooltip>
       </q-btn>
     </template>
   </q-table>
 
+  <!-- VIEW DIALOG -->
   <q-dialog
-    v-model="dialog.detail.show"
+    v-model="dialog.view.show"
     transition-show="scale"
     transition-hide="fade"
     backdrop-filter="blur(2px)"
   >
-    <q-card :style="$q.screen.lt.md ? '' : 'width: 80vw; max-width: 81vw;'">
-      <q-card-section class="q-pa-none header-main">
-        <q-item class="q-pr-none">
-          <q-item-section style="max-width: 80vw; overflow-x: scroll">
-            <q-item-label class="text-white">{{
-              dialog.detail.title
-            }}</q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-btn
-              class="text-caption text-white q-pl-xs q-pr-xs q-mr-xs"
-              flat
-              round
-              glossy
-              icon="close"
-              v-close-popup
-            >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
-            </q-btn>
-          </q-item-section>
-        </q-item>
-      </q-card-section>
-      <q-card-section
-        :style="
-          'overflow: scroll; ' +
-          ($q.screen.lt.md
-            ? 'max-height: 70vh;'
-            : 'max-height: 70vh; width: 80vw; max-width: 81vw;')
-        "
-        class="q-pa-xs q-mt-xs scroll"
-      >
-        <VueJsonPretty
-          :data="dialog.detail.data"
-          :showLineNumber="true"
-          :showLine="true"
-          :showDoubleQuotes="false"
-          :showIcon="true"
-          :highlightSelectedNode="false"
-          :showKeyValueSpace="true"
-        />
-      </q-card-section>
-    </q-card>
+    <KeyValue :parameters="dialog.view.parameters" />
   </q-dialog>
 
+  <!-- PROPERTIES DIALOG -->
+  <q-dialog
+    v-model="dialog.properties.show"
+    transition-show="scale"
+    transition-hide="fade"
+    backdrop-filter="blur(2px)"
+  >
+    <KeyValue :parameters="dialog.properties.parameters" />
+  </q-dialog>
+
+  <!-- LISTENER -->
+  <q-dialog
+    v-model="dialog.listener.show"
+    persistent
+    transition-show="scale"
+    transition-hide="fade"
+    backdrop-filter="blur(2px)"
+  >
+    <Listener :parameters="dialog.listener.parameters" />
+  </q-dialog>
+
+  <!-- SEARCH DIALOG -->
   <q-dialog
     v-model="dialog.search.show"
     transition-show="scale"
@@ -152,57 +146,54 @@
       <q-card-section style="max-height: 70vh" class="q-pa-xs q-mt-xs scroll">
         <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
-            v-model="table.filters.path"
+            v-model="table.filters.groupId"
             type="text"
-            :label="$t('label.path')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-select
-          v-model="table.filters.method"
-          :label="$t('label.method')"
-          :options="option.methods"
-          filled
-          class="q-mb-xs"
-        />
-        <q-select
-          v-model="table.filters.isPublic"
-          :label="$t('label.public')"
-          :options="option.boolean"
-          filled
-          class="q-mb-xs"
-        />
-        <q-select
-          v-model="table.filters.isExclude"
-          :label="$t('label.exclude')"
-          :options="option.boolean"
-          filled
-          class="q-mb-xs"
-        />
-        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
-          <q-input
-            v-model="table.filters.bean"
-            type="text"
-            :label="$t('label.bean')"
+            :label="$t('label.group_id')"
             filled
             class="q-mb-xs"
           />
         </q-form>
         <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
-            v-model="table.filters.function"
+            v-model="table.filters.topicName"
             type="text"
-            :label="$t('label.function')"
+            :label="$t('label.topic')"
             filled
             class="q-mb-xs"
           />
         </q-form>
         <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
-            v-model="table.filters.annotation"
+            v-model="table.filters.keyType"
             type="text"
-            :label="$t('label.annotation')"
+            :label="$t('label.key_type')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
+          <q-input
+            v-model="table.filters.keyDeserializer"
+            type="text"
+            :label="$t('label.key_deserializer')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
+          <q-input
+            v-model="table.filters.valueType"
+            type="text"
+            :label="$t('label.value_type')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
+          <q-input
+            v-model="table.filters.valueDeserializer"
+            type="text"
+            :label="$t('label.value_deserializer')"
             filled
             class="q-mb-xs"
           />
@@ -237,15 +228,18 @@
 import { ref, defineAsyncComponent } from "vue";
 import { util } from "src/scripts/util";
 import { api } from "src/scripts/api";
+import { uix } from "src/scripts/uix";
 
 export default {
   components: {
-    VueJsonPretty: defineAsyncComponent(() => import("vue-json-pretty")),
+    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
+    Listener: defineAsyncComponent(() => import("src/pages/KafkaListener.vue")),
   },
-
   setup() {
     return {
       util,
+
+      handler: ref(null),
 
       table: ref({
         rows: [],
@@ -255,95 +249,85 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 30,
-          sortBy: "path",
+          sortBy: "groupId",
           descending: false,
           count: true,
         },
       }),
 
       dialog: ref({
-        detail: {
+        view: {
           show: false,
-          title: null,
-          data: null,
+          parameters: null,
+        },
+        properties: {
+          show: false,
+          parameters: null,
+        },
+        listener: {
+          show: false,
+          parameters: null,
         },
         search: {
           show: false,
         },
       }),
 
-      option: ref({
-        methods: [
-          "",
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "HEAD",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-        ],
-        boolean: ["", "true", "false"],
-      }),
     };
   },
 
   created() {
     let self = this;
+    self.handler = self.$route.query.handler;
     self.table.columns = [
       {
-        name: "path",
-        label: self.$t("label.path"),
-        field: "patternValues",
-        align: "left",
-        sortable: true,
-        format: function (val, row) {
-          return val.join(", ");
-        },
-      },
-      {
-        name: "method",
-        label: self.$t("label.method"),
-        field: "methods",
-        align: "left",
-        sortable: true,
-        format: function (val, row) {
-          return val.join(", ");
-        },
-      },
-      {
-        name: "public",
-        label: self.$t("label.public"),
-        field: "public",
+        name: "groupId",
+        label: self.$t("label.group_id"),
+        field: "groupId",
         align: "left",
         sortable: true,
       },
       {
-        name: "exclude",
-        label: self.$t("label.exclude"),
-        field: "exclude",
+        name: "phase",
+        label: self.$t("label.phase"),
+        field: "phase",
+        align: "left",
+      },
+      {
+        name: "keyType",
+        label: self.$t("label.key_type"),
+        field: "keyType",
         align: "left",
         sortable: true,
       },
       {
-        name: "bean",
-        label: self.$t("label.bean"),
-        field: "handler",
+        name: "keyDeserializer",
+        label: self.$t("label.key_deserializer"),
+        field: "keyDeserializer",
         align: "left",
         sortable: true,
-        format: function (val, row) {
-          return val.bean;
-        },
       },
       {
-        name: "function",
-        label: self.$t("label.function"),
-        field: "handler",
+        name: "valueType",
+        label: self.$t("label.value_type"),
+        field: "valueType",
         align: "left",
         sortable: true,
-        format: function (val, row) {
-          return val.method.name + " (" + val.method.parameterCount + ")";
+      },
+      {
+        name: "valueDeserializer",
+        label: self.$t("label.value_deserializer"),
+        field: "valueDeserializer",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "topics",
+        label: self.$t("label.topics"),
+        field: "topics",
+        align: "left",
+        format: (val, row) => {
+          return util.isObject(val) ? JSON.stringify(val) : val;
         },
       },
     ];
@@ -358,6 +342,7 @@ export default {
       let { page, rowsPerPage, sortBy, descending } =
         self.get_pagination(props);
       let params = {
+        name: self.handler,
         index: page,
         size: rowsPerPage,
         order: (descending ? "-" : "") + sortBy,
@@ -367,7 +352,7 @@ export default {
       });
       self.table.loading = true;
       api.call({
-        path: "/request/list",
+        path: "/kafka/containers",
         params: params,
         onFinish() {
           self.table.loading = false;
@@ -424,14 +409,143 @@ export default {
     },
 
     /*
-     * DETAIL CLICK
+     * VIEW CLICK
      */
-    on_detail_click(scope) {
+    on_view_click(scope) {
       let self = this;
-      self.dialog.detail = {
-        title: scope.row.patternValues[0],
-        data: scope.row,
+      let rows = [];
+      for (const col of scope.cols) {
+        rows.push({
+          label: col.label,
+          value: util.isFunction(col.format) ? col.format(scope.row[col.field], scope.row) : scope.row[col.field],
+        });
+      }
+      self.dialog.view = {
         show: true,
+        parameters: {
+          search: false,
+          rows: rows,
+          color: {
+            close: "red",
+          },
+          actions: [
+            {
+              icon: scope.row.isRunning ? "stop" : "play_arrow",
+              label: self.$t(scope.row.isRunning ? "label.stop" : "label.start"),
+              color: scope.row.isRunning ? "pink-10" : "purple-10",
+              click: () => self.on_start_stop_click(scope),
+            },
+            {
+              icon: "lightbulb",
+              color: "teal-10",
+              label: self.$t("label.properties"),
+              click: () => self.on_properties_click(scope),
+            }
+          ],
+        },
+      };
+    },
+
+    /*
+     * PROPERTIES CLICK
+     */
+     on_properties_click(scope) {
+      let self = this;
+      self.dialog.properties = {
+        show: true,
+        parameters: {
+          title: self.$t("label.properties"),
+          name: self.handler,
+          containerId: scope.row.containerId,
+          rows: [],
+          onRefresh: self.get_properties,
+        },
+      };
+    },
+    get_properties(i) {
+      let p = util.isObject(i) ? i : {};
+      util.apply(p.onStart);
+      api.call({
+        path: "/kafka/container/properties",
+        params: {
+          name: p.parameters.name,
+          containerId: p.parameters.containerId,
+        },
+        onFinish() {
+          util.apply(p.onFinish);
+        },
+        onSuccess(data) {
+          if (util.isObject(data)) {
+            let rows = [];
+            Object.keys(data).forEach((key) => {
+              rows.push({
+                label: key,
+                value: data[key],
+              });
+            });
+            rows.sort((a, b) => {
+              const la = a.label.toUpperCase();
+              const lb = b.label.toUpperCase();
+              if (la < lb) {
+                return -1;
+              }
+              if (la > lb) {
+                return 1;
+              }
+              return 0;
+            });
+            util.apply(p.onData, rows);
+          }
+        },
+        notify: true,
+      });
+    },
+
+     /*
+     * START / STOP CLICK
+     */
+    on_start_stop_click(scope) {
+      let self = this;
+      let row = scope.row;
+      let btn = self.dialog.view.parameters.actions[0];
+      uix.confirm(
+        function () {
+          btn.loading = true;
+          api.call({
+            path: "/kafka/container/" + (row.isRunning ? "stop" : "start"),
+            method: "post",
+            params: {
+              name: self.handler,
+              containerId: row.containerId,
+            },
+            onFinish() {
+              btn.loading = false;
+            },
+            onSuccess(data) {
+              row.isRunning = !row.isRunning;
+              btn.icon = row.isRunning ? "stop" : "play_arrow";
+              btn.label = self.$t(row.isRunning ? "label.stop" : "label.start");
+              btn.color = row.isRunning ? "pink-10" : "purple-10";
+            },
+          });
+        },
+        "confirm." + (row.isRunning ? 'stop' : 'start'),
+      );
+    },
+
+    /*
+     * LISTENER CLICK
+     */
+     on_listener_click(scope) {
+      let self = this;
+      let row = scope.row;
+      self.dialog.listener = {
+        show: true,
+        parameters: {
+          name: self.handler,
+          containerId: row.containerId,
+          title: row.groupId,
+        },
       };
     },
 
@@ -449,26 +563,26 @@ export default {
     on_search_filter_click() {
       let self = this;
       let filters = self.table.filters;
-      if (!(util.isString(filters.method) && "" !== filters.method)) {
-        delete filters.method;
+      if (!(util.isString(filters.containerId) && "" !== filters.containerId)) {
+        delete filters.containerId;
       }
-      if (!(util.isString(filters.path) && "" !== filters.path)) {
-        delete filters.path;
+      if (!(util.isString(filters.groupId) && "" !== filters.groupId)) {
+        delete filters.groupId;
       }
-      if (!(util.isString(filters.bean) && "" !== filters.bean)) {
-        delete filters.bean;
+      if (!(util.isString(filters.topicName) && "" !== filters.topicName)) {
+        delete filters.topicName;
       }
-      if (!(util.isString(filters.function) && "" !== filters.function)) {
-        delete filters.function;
+      if (!(util.isString(filters.keyType) && "" !== filters.keyType)) {
+        delete filters.keyType;
       }
-      if (!(util.isString(filters.annotation) && "" !== filters.annotation)) {
-        delete filters.annotation;
+      if (!(util.isString(filters.keyDeserializer) && "" !== filters.keyDeserializer)) {
+        delete filters.keyDeserializer;
       }
-      if (!(util.isString(filters.isPublic) && "" !== filters.isPublic)) {
-        delete filters.isPublic;
+      if (!(util.isString(filters.valueType) && "" !== filters.valueType)) {
+        delete filters.valueType;
       }
-      if (!(util.isString(filters.isExclude) && "" !== filters.isExclude)) {
-        delete filters.isExclude;
+      if (!(util.isString(filters.valueDeserializer) && "" !== filters.valueDeserializer)) {
+        delete filters.valueDeserializer;
       }
       self.do_request({
         pagination: self.table.pagination,

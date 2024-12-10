@@ -284,6 +284,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <Search
       :parameters="dialog.search.parameters"
@@ -296,6 +297,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <View2 :parameters="dialog.view.parameters" />
   </q-dialog>
@@ -305,6 +307,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <Edit2 :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
   </q-dialog>

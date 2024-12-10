@@ -64,6 +64,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
   >
     <FormV :parameters="dialog.form.parameters" />
   </q-dialog>
@@ -72,6 +73,7 @@
     v-model="dialog.table.show"
     transition-show="slide-down"
     transition-hide="none"
+    backdrop-filter="blur(2px)"
     full-height
   >
     <Table2

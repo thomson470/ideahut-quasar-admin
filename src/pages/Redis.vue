@@ -8,6 +8,7 @@
     :loading="table.loading"
     :selection="'single'"
     v-model:selected="table.selected"
+    v-model:pagination="table.pagination"
     :dense="$q.screen.lt.md"
     :no-data-label="$t('error.data_not_available')"
     rows-per-page-label=" "
@@ -53,25 +54,11 @@
           dense
           size="sm"
           class="q-ma-none q-ml-xs q-mr-sm"
-          color="pink-10"
-          icon="delete"
-          :loading="table.flushing.db[scope.row.name]"
-          @click="on_flush_click('db', scope)"
+          color="lime-10"
+          icon="account_tree"
+          @click="on_client_click(scope)"
         >
-          <q-tooltip>{{ $t("label.flush_db") }}</q-tooltip>
-        </q-btn>
-        <q-btn
-          glossy
-          round
-          dense
-          size="sm"
-          class="q-ma-none q-ml-xs q-mr-sm"
-          color="deep-orange-10"
-          icon="delete_sweep"
-          :loading="table.flushing.all[scope.row.name]"
-          @click="on_flush_click('all', scope)"
-        >
-          <q-tooltip>{{ $t("label.flush_all") }}</q-tooltip>
+          <q-tooltip>{{ $t("label.client") }}</q-tooltip>
         </q-btn>
         <q-btn
           glossy
@@ -83,13 +70,42 @@
           icon="lightbulb"
           @click="on_info_click(scope)"
         >
-          <q-tooltip>{{ $t("label.info") }}</q-tooltip>
+          <q-tooltip>{{ $t("label.properties") }}</q-tooltip>
         </q-btn>
+        <q-btn
+          glossy
+          round
+          dense
+          size="sm"
+          class="q-ma-none q-ml-xs q-mr-sm"
+          color="deep-purple"
+          icon="visibility"
+          @click="on_view_click(scope)"
+        >
+          <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+        </q-btn>
+
       </div>
     </template>
+    <template v-slot:body-cell="props">
+      <q-td :props="props">
+        <span>
+          {{ props.value }}
+          <q-badge
+            v-if="'label' === props.col.name && true === props.row.isDefault"
+            color="orange"
+            rounded
+            align="top"
+            transparent
+          />
+        </span>
+      </q-td>
+    </template>
+   
   </q-table>
 
-  <q-dialog v-model="flush.show" persistent>
+  <!-- FLUSH -->
+  <q-dialog v-model="flush.show" backdrop-filter="blur(2px)" persistent>
     <q-card>
       <q-card-section class="q-pa-xs q-pl-lg q-pr-lg text-center">
         {{ $t("label.flush_input_code") }}
@@ -136,77 +152,52 @@
     </q-card>
   </q-dialog>
 
+  <!-- INFO -->
   <q-dialog
     v-model="info.show"
     transition-show="scale"
     transition-hide="fade"
+    backdrop-filter="blur(2px)"
     persistent
   >
-    <q-card style="width: 700px; max-width: 80vw">
-      <q-card-section class="q-pa-none">
-        <q-table
-          class="table-sticky-header no-column"
-          style="max-height: 70vh"
-          :rows="info.rows"
-          :separator="'cell'"
-          :filter="info.filter"
-          :rows-per-page-options="[0]"
-          hide-bottom
-          hide-header
-          bordered
-          dense
-        >
-          <template v-slot:top-left>
-            <div class="text-h6">{{ info.title }}</div>
-          </template>
-          <template v-slot:top-right>
-            <q-input
-              borderless
-              dense
-              v-model="info.filter"
-              :placeholder="$t('label.search')"
-            >
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-            <q-btn
-              round
-              glossy
-              dense
-              size="sm"
-              icon="refresh"
-              class="q-ml-lg"
-              :loading="info.loading"
-              @click="get_properties"
-            >
-              <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
-            </q-btn>
-            <q-btn
-              round
-              glossy
-              dense
-              size="sm"
-              icon="close"
-              class="q-ml-sm"
-              @click="info.show = false"
-            >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
-            </q-btn>
-          </template>
-        </q-table>
-      </q-card-section>
-    </q-card>
+    <KeyValue :parameters="info.parameters" />
   </q-dialog>
+
+  <!-- VIEW -->
+  <q-dialog
+    v-model="view.show"
+    transition-show="scale"
+    transition-hide="fade"
+    backdrop-filter="blur(2px)"
+    persistent
+  >
+    <KeyValue :parameters="view.parameters" />
+  </q-dialog>
+
+  <!-- CLIENT -->
+  <q-dialog
+    v-model="clients.show"
+    persistent
+    transition-show="scale"
+    transition-hide="fade"
+    backdrop-filter="blur(2px)"
+  >
+    <Clients :parameters="clients.parameters" />
+  </q-dialog>
+
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, defineAsyncComponent } from "vue";
 import { util } from "src/scripts/util";
 import { uix } from "src/scripts/uix";
 import { api } from "src/scripts/api";
 
 export default {
+  components: {
+    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
+    Clients: defineAsyncComponent(() => import("src/pages/RedisClients.vue")),
+  },
   setup() {
     return {
       util,
@@ -223,6 +214,10 @@ export default {
           all: {},
           db: {},
         },
+        pagination: {
+          page: 1,
+          rowsPerPage: 10,
+        },
       }),
 
       flush: ref({
@@ -236,12 +231,19 @@ export default {
 
       info: ref({
         show: false,
-        loading: false,
-        rows: [],
-        name: null,
-        title: null,
-        filter: null,
+        parameters: null,
       }),
+
+      view: ref({
+        show: false,
+        parameters: null,
+      }),
+
+      clients: ref({
+        show: false,
+        parameters: null,
+      }),
+
     };
   },
 
@@ -257,15 +259,57 @@ export default {
       },
       {
         name: "keyType",
-        label: self.$t("label.key"),
+        label: self.$t("label.key_type"),
         field: "keyType",
         align: "left",
         sortable: true,
       },
       {
+        name: "keySerializer",
+        label: self.$t("label.key_serializer"),
+        field: "keySerializer",
+        align: "left",
+        sortable: true,
+      },
+      {
         name: "valueType",
-        label: self.$t("label.value"),
+        label: self.$t("label.value_type"),
         field: "valueType",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "valueSerializer",
+        label: self.$t("label.value_serializer"),
+        field: "valueSerializer",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "hashKeyType",
+        label: self.$t("label.hash_key_type"),
+        field: "hashKeyType",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "hashKeySerializer",
+        label: self.$t("label.hash_key_serializer"),
+        field: "hashKeySerializer",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "hashValueType",
+        label: self.$t("label.hash_value_type"),
+        field: "hashValueType",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "hashValueSerializer",
+        label: self.$t("label.hash_value_serializer"),
+        field: "hashValueSerializer",
         align: "left",
         sortable: true,
       },
@@ -350,40 +394,58 @@ export default {
     },
 
     /*
+     * CLIENT CLICK
+     */
+    on_client_click(scope) {
+      let self = this;
+      let row = scope.row;
+      self.clients = {
+        show: true,
+        parameters: {
+          name: row.name,
+          title: row.label,
+          badge: row.isDefault,
+        },
+      };
+    },
+
+    /*
      * INFO CLICK
      */
     on_info_click(scope) {
       let self = this;
-      self.info.show = true;
-      self.info.name = scope.row.name;
-      self.info.title = scope.row.label;
-      self.get_properties();
+      self.info = {
+        show: true,
+        parameters: {
+          title: scope.row.label,
+          name: scope.row.name,
+          badge: true === scope.row.isDefault,
+          rows: [],
+          onRefresh: self.get_info,
+        },
+      };
     },
-
-    /*
-     * GET PROPERTIES
-     */
-    get_properties() {
-      let self = this;
-      self.info.loading = true;
+    get_info(i) {
+      let p = util.isObject(i) ? i : {};
+      util.apply(p.onStart);
       api.call({
         path: "/redis/properties",
         params: {
-          name: self.info.name,
+          name: p.parameters.name,
         },
         onFinish() {
-          self.info.loading = false;
+          util.apply(p.onFinish);
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.info.rows = [];
+            let rows = [];
             Object.keys(data).forEach((key) => {
-              self.info.rows.push({
+              rows.push({
                 label: key,
                 value: data[key],
               });
             });
-            self.info.rows.sort((a, b) => {
+            rows.sort((a, b) => {
               const la = a.label.toUpperCase();
               const lb = b.label.toUpperCase();
               if (la < lb) {
@@ -394,13 +456,52 @@ export default {
               }
               return 0;
             });
+            util.apply(p.onData, rows);
           }
-        },
-        onError() {
-          self.info.show = false;
         },
         notify: true,
       });
+    },
+
+    /*
+     * VIEW CLICK
+     */
+     on_view_click(scope) {
+      let self = this;
+      let rows = [];
+      for (const col of scope.cols) {
+        rows.push({
+          label: col.label,
+          value: scope.row[col.field],
+        });
+      }
+      self.view = {
+        show: true,
+        parameters: {
+          title: scope.row.label,
+          name: scope.row.name,
+          badge: true === scope.row.isDefault,
+          search: false,
+          rows: rows,
+          color: {
+            close: "red",
+          },
+          actions: [
+            {
+              color: "deep-orange-10",
+              icon: "delete_sweep",
+              label: self.$t("label.flush_all"),
+              click: () => self.on_flush_click('all', scope),
+            },
+            {
+              color: "pink-10",
+              icon: "delete",
+              label: self.$t("label.flush_db"),
+              click: () => self.on_flush_click('db', scope),
+            },
+          ],
+        },
+      };
     },
   },
 };

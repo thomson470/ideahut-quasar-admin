@@ -55,6 +55,26 @@ const routes = [
                 component: () => import("pages/Request.vue"),
             },
             {
+                path: "/task",
+                component: () => import("pages/Task.vue"),
+            },
+            {
+                path: "/kafka/sender",
+                component: () => import("pages/KafkaSender.vue"),
+            },
+            {
+                path: "/kafka/container",
+                component: () => import("pages/KafkaContainer.vue"),
+            },
+            {
+                path: "/kafka/producer",
+                component: () => import("pages/KafkaProducer.vue"),
+            },
+            {
+                path: "/kafka/consumer",
+                component: () => import("pages/KafkaConsumer.vue"),
+            },
+            {
                 path: '/:catchAll(.*)*',
                 component: () => import('pages/ErrorNotFound.vue')
             }

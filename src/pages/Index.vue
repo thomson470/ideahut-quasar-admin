@@ -5,7 +5,7 @@
       <q-table
         v-if="application?.length"
         class="table-sticky-header no-column"
-        style="max-height: 36vh"
+        style="max-height: 27vh"
         :title="$t('label.application')"
         :rows="application"
         :separator="'cell'"
@@ -14,13 +14,26 @@
         hide-header
         bordered
         dense
-      />
+      >
+        <template v-slot:top-right>
+          <q-btn
+              round
+              glossy
+              dense
+              size="sm"
+              icon="lightbulb"
+              @click="on_keyvalue_show($t('label.application'), application)"
+          >
+              <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+          </q-btn>
+        </template>
+      </q-table>
     </div>
     <div class="col-md-6 col-xs-12 q-pa-xs q-mb-sm">
       <q-table
         v-if="version?.length"
         class="table-sticky-header no-column"
-        style="max-height: 36vh"
+        style="max-height: 27vh;"
         :title="$t('label.version')"
         :rows="version"
         :separator="'cell'"
@@ -29,7 +42,20 @@
         hide-header
         bordered
         dense
-      />
+      >
+        <template v-slot:top-right>
+          <q-btn
+              round
+              glossy
+              dense
+              size="sm"
+              icon="lightbulb"
+              @click="on_keyvalue_show($t('label.version'), version)"
+          >
+              <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+          </q-btn>
+        </template>
+      </q-table>
     </div>
     <div class="col-md-12 col-xs-12 q-pa-xs q-mb-sm">
       <q-table
@@ -167,10 +193,12 @@
       </q-table>
     </div>
   </div>
+
   <q-dialog
     v-model="bean.dialog"
     transition-show="scale"
     transition-hide="fade"
+    backdrop-filter="blur(2px)"
     persistent
   >
     <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
@@ -259,15 +287,26 @@
       </q-card-actions>
     </q-card>
   </q-dialog>
+
+  <q-dialog
+    v-model="dialog.keyvalue.show"
+    transition-show="scale"
+    transition-hide="fade"
+    backdrop-filter="blur(8px)"
+  >
+    <KeyValue :parameters="dialog.keyvalue.parameters" />
+  </q-dialog>
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, defineAsyncComponent } from "vue";
 import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
 import { api } from "src/scripts/api";
 
 export default {
+  components: {
+    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
+  },
   setup() {
     return {
       util,
@@ -288,6 +327,13 @@ export default {
       }),
       option: ref({
         boolean: ["", "true", "false"],
+      }),
+
+      dialog: ref({
+        keyvalue: {
+          show: false,
+          parameters: null,
+        },
       }),
     };
   },
@@ -351,6 +397,14 @@ export default {
                 value: app.id,
               },
               {
+                label: self.$t("label.reactive"),
+                value: app.reactive,
+              },
+              {
+                label: self.$t("label.native_image"),
+                value: app.inNativeImage,
+              },
+              {
                 label: self.$t("label.display_name"),
                 value: app.displayName,
               },
@@ -382,8 +436,8 @@ export default {
             let version = data.version;
             self.version = [
               {
-                label: "Reactive",
-                value: version.reactive,
+                label: "Ideahut",
+                value: version.ideahut,
               },
               {
                 label: "Java",
@@ -402,11 +456,20 @@ export default {
                 value: version.hibernate,
               },
               {
-                label: "Ideahut",
-                value: version.ideahut,
+                label: "Jedis",
+                value: version.jedis,
+              },
+              {
+                label: "Quartz",
+                value: version.quartz,
+              },
+              {
+                label: "Kafka",
+                value: version.kafka,
               },
             ];
           }
+          self.version = self.version.filter((o) => {return util.isString(o.value);})
           if (util.isArray(data.beans)) {
             self.bean.rows = data.beans;
             self.bean.pagination.rowsNumber = self.bean.rows.length;
@@ -522,6 +585,21 @@ export default {
       let self = this;
       self.bean.filters = {};
     },
+
+    /*
+     * KEY VALUE
+     */
+    on_keyvalue_show(title, rows) {
+      let self = this;
+      self.dialog.keyvalue = {
+        show: true,
+        parameters: {
+          title: title,
+          search: false,
+          rows: rows,
+        },
+      };
+    } 
   },
 };
 </script>
