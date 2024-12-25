@@ -449,9 +449,8 @@ export default {
         table: self.table,
         search: self.search,
         definition: self.definition,
-        replica: self.replica,
+        replica: true === self.definition.enableReplica ? self.replica : null,
         relations: self.relations,
-        allUseSameReplica: self.template.allUseSameReplica,
       });
     },
 

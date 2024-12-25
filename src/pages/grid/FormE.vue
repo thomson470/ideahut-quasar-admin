@@ -298,7 +298,7 @@ export default {
     let params = fxGrid.get.object(self.parameters);
     let form = fxGrid.get.object(params.form);
     self.template = fxGrid.get.object(params.template);
-    self.replica = fxGrid.get.object(params.replica);
+    self.replica = params.replica;
     self.relations = fxGrid.get.array(params.relations);
     self.enums = {};
     if (util.isObject(self.template.enums)) {

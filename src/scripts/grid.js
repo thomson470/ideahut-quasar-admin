@@ -140,10 +140,10 @@ const grid = {
                 } else if ("EMBEDDED" === idInfo.type) {
                     for (const data of value) {
                         pk = data[idInfo.fields[0]];
-                        if (Object.keys(pk).length === 0) {
-                            pk = undefined;
-                        } else {
+                        if (util.isObject(pk) && Object.keys(pk).length !== 0) {
                             pk = JSON.stringify(pk);
+                        } else {
+                            pk = undefined;
                         }
                         data._pk_ = pk;
                         data._grid_id_ = gridId;
@@ -169,10 +169,10 @@ const grid = {
                 }
                 else if ("EMBEDDED" === idInfo.type) {
                     pk = value[idInfo.fields[0]];
-                    if (Object.keys(pk).length === 0) {
-                        pk = undefined;
-                    } else {
+                    if (util.isObject(pk) && Object.keys(pk).length !== 0) {
                         pk = JSON.stringify(pk);
+                    } else {
+                        pk = undefined;
                     }
                 }
                 else if ("STANDARD" === idInfo.type) {
@@ -390,10 +390,9 @@ const grid = {
             let body = grid.copy(definition.crud);
             if (util.isNumber(replica) && replica > -1) {
                 body.replica = replica;
-                let allUseSameReplica = true === input.allUseSameReplica;
-                if (allUseSameReplica) {
-                    if (util.isArray(body.joins)) {
-                        for (const join of body.joins) {
+                if (util.isArray(body.joins)) {
+                    for (const join of body.joins) {
+                        if (true === join.enableReplica) {
                             join.replica = body.replica;
                         }
                     }

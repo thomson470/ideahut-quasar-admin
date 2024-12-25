@@ -540,7 +540,6 @@ export default {
         search: self.search,
         definition: self.template,
         replica: self.replica,
-        allUseSameReplica: self.template.allUseSameReplica,
       });
     },
 

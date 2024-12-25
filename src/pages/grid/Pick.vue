@@ -272,18 +272,13 @@ export default {
      */
     do_request(props) {
       let self = this;
-      let replica = null;
-      if (true === self.template.allUseSameReplica) {
-        replica = self.replica;
-      }
       fxGrid.action.page({
         props: props,
         table: self.table,
         search: self.search,
         definition: self.pick,
         relations: self.relations,
-        replica: replica,
-        allUseSameReplica: self.template.allUseSameReplica,
+        replica: true === self.pick.enableReplica ? self.replica : null,
       });
     },
 

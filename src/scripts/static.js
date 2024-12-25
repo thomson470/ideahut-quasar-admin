@@ -4,7 +4,7 @@ const STATIC = {
         id: "",
         title: "",
         //web: "",
-        //api: "http://localhost:5402/_/api",
+        //api: "http://localhost:7101/_/api",
         web: "/_/web",
         api: "/_/api",
         timeout: 60,
