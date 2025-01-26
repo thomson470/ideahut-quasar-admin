@@ -1,12 +1,13 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
-    <q-card-section class="q-pa-none header-main">
+    <q-card-section
+      class="q-pa-none header-main"
+      :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+    >
       <q-item class="q-pr-none">
         <q-item-section>
-          <q-item-label class="text-h6 text-white">{{
-            $t("label.search")
-          }}</q-item-label>
+          <q-item-label class="text-h6 text-white">{{ $t('label.search') }}</q-item-label>
         </q-item-section>
         <q-item-section side>
           <q-btn
@@ -17,7 +18,7 @@
             icon="close"
             v-close-popup
           >
-            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.close') }}</q-tooltip>
           </q-btn>
         </q-item-section>
       </q-item>
@@ -61,9 +62,7 @@
           <!-- DATETIME / DATE / TIME -->
           <div
             v-else-if="
-              'datetime' === filter.type ||
-              'date' === filter.type ||
-              'time' === filter.type
+              'datetime' === filter.type || 'date' === filter.type || 'time' === filter.type
             "
             class="q-mb-xs"
           >
@@ -81,8 +80,8 @@
                       'time' === filter.type
                         ? 'schedule'
                         : 'date' === filter.type
-                        ? 'calendar_month'
-                        : 'event'
+                          ? 'calendar_month'
+                          : 'event'
                     "
                     class="cursor-pointer"
                   >
@@ -90,10 +89,7 @@
                       transition-show="scale"
                       transition-hide="scale"
                       cover
-                      @before-show="
-                        filter.proxy_value = filter.value;
-                        filter.tab = 'time' === filter.type ? 'time' : 'date';
-                      "
+                      @before-show="uix.calendar.beforeShow(filter, 'tab', 'proxy_value', 'value')"
                     >
                       <div class="bg-primary">
                         <q-tabs
@@ -105,45 +101,29 @@
                           active-color="white"
                         >
                           <q-tab
-                            v-if="
-                              'datetime' === filter.type ||
-                              'date' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'date' === filter.type"
                             name="date"
                           >
-                            <span>{{ $t("label.date") }}</span>
+                            <span>{{ $t('label.date') }}</span>
                           </q-tab>
                           <q-tab
-                            v-if="
-                              'datetime' === filter.type ||
-                              'time' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'time' === filter.type"
                             name="time"
                           >
-                            <span>{{ $t("label.time") }}</span>
+                            <span>{{ $t('label.time') }}</span>
                           </q-tab>
                         </q-tabs>
                         <q-separator />
                         <q-tab-panels v-model="filter.tab">
                           <q-tab-panel
-                            v-if="
-                              'datetime' === filter.type ||
-                              'date' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'date' === filter.type"
                             name="date"
                             class="q-pa-none"
                           >
-                            <q-date
-                              v-model="filter.proxy_value"
-                              :mask="filter.pattern"
-                              square
-                            />
+                            <q-date v-model="filter.proxy_value" :mask="filter.pattern" square />
                           </q-tab-panel>
                           <q-tab-panel
-                            v-if="
-                              'datetime' === filter.type ||
-                              'time' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'time' === filter.type"
                             name="time"
                             class="q-pa-none"
                           >
@@ -158,12 +138,7 @@
                         <q-separator />
                         <div class="q-pa-xs bg-white row">
                           <div class="col-6 text-left">
-                            <q-btn
-                              :label="$t('label.cancel')"
-                              color="red"
-                              no-caps
-                              v-close-popup
-                            />
+                            <q-btn :label="$t('label.cancel')" color="red" no-caps v-close-popup />
                           </div>
                           <div class="col-6 text-right">
                             <q-btn
@@ -193,8 +168,8 @@
                       'time' === filter.type
                         ? 'schedule'
                         : 'date' === filter.type
-                        ? 'calendar_month'
-                        : 'event'
+                          ? 'calendar_month'
+                          : 'event'
                     "
                     class="cursor-pointer"
                   >
@@ -203,8 +178,7 @@
                       transition-hide="scale"
                       cover
                       @before-show="
-                        filter.proxy_value2 = filter.value2;
-                        filter.tab2 = 'time' === filter.type ? 'time' : 'date';
+                        uix.calendar.beforeShow(filter, 'tab2', 'proxy_value2', 'value2')
                       "
                     >
                       <div class="bg-primary">
@@ -216,45 +190,29 @@
                           active-color="white"
                         >
                           <q-tab
-                            v-if="
-                              'datetime' === filter.type ||
-                              'date' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'date' === filter.type"
                             name="date"
                           >
-                            <span>{{ $t("label.date") }}</span>
+                            <span>{{ $t('label.date') }}</span>
                           </q-tab>
                           <q-tab
-                            v-if="
-                              'datetime' === filter.type ||
-                              'time' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'time' === filter.type"
                             name="time"
                           >
-                            <span>{{ $t("label.time") }}</span>
+                            <span>{{ $t('label.time') }}</span>
                           </q-tab>
                         </q-tabs>
                         <q-separator />
                         <q-tab-panels v-model="filter.tab2">
                           <q-tab-panel
-                            v-if="
-                              'datetime' === filter.type ||
-                              'date' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'date' === filter.type"
                             name="date"
                             class="q-pa-none"
                           >
-                            <q-date
-                              v-model="filter.proxy_value2"
-                              :mask="filter.pattern"
-                              square
-                            />
+                            <q-date v-model="filter.proxy_value2" :mask="filter.pattern" square />
                           </q-tab-panel>
                           <q-tab-panel
-                            v-if="
-                              'datetime' === filter.type ||
-                              'time' === filter.type
-                            "
+                            v-if="'datetime' === filter.type || 'time' === filter.type"
                             name="time"
                             class="q-pa-none"
                           >
@@ -269,12 +227,7 @@
                         <q-separator />
                         <div class="q-pa-xs bg-white row">
                           <div class="col-6 text-left">
-                            <q-btn
-                              :label="$t('label.cancel')"
-                              color="red"
-                              no-caps
-                              v-close-popup
-                            />
+                            <q-btn :label="$t('label.cancel')" color="red" no-caps v-close-popup />
                           </div>
                           <div class="col-6 text-right">
                             <q-btn
@@ -292,21 +245,15 @@
                 </template>
               </q-input>
             </div>
-            <q-input
-              v-else
-              type="text"
-              :label="filter.label"
-              v-model="filter.value"
-              filled
-            >
+            <q-input v-else type="text" :label="filter.label" v-model="filter.value" filled>
               <template v-slot:append>
                 <q-icon
                   :name="
                     'time' === filter.type
                       ? 'schedule'
                       : 'date' === filter.type
-                      ? 'calendar_month'
-                      : 'event'
+                        ? 'calendar_month'
+                        : 'event'
                   "
                   class="cursor-pointer"
                 >
@@ -314,10 +261,7 @@
                     transition-show="scale"
                     transition-hide="scale"
                     cover
-                    @before-show="
-                      filter.proxy_value = filter.value;
-                      filter.tab = 'time' === filter.type ? 'time' : 'date';
-                    "
+                    @before-show="uix.calendar.beforeShow(filter, 'tab', 'proxy_value', 'value')"
                   >
                     <div class="bg-primary">
                       <q-tabs
@@ -328,41 +272,29 @@
                         active-color="white"
                       >
                         <q-tab
-                          v-if="
-                            'datetime' === filter.type || 'date' === filter.type
-                          "
+                          v-if="'datetime' === filter.type || 'date' === filter.type"
                           name="date"
                         >
-                          <span>{{ $t("label.date") }}</span>
+                          <span>{{ $t('label.date') }}</span>
                         </q-tab>
                         <q-tab
-                          v-if="
-                            'datetime' === filter.type || 'time' === filter.type
-                          "
+                          v-if="'datetime' === filter.type || 'time' === filter.type"
                           name="time"
                         >
-                          <span>{{ $t("label.time") }}</span>
+                          <span>{{ $t('label.time') }}</span>
                         </q-tab>
                       </q-tabs>
                       <q-separator />
                       <q-tab-panels v-model="filter.tab">
                         <q-tab-panel
-                          v-if="
-                            'datetime' === filter.type || 'date' === filter.type
-                          "
+                          v-if="'datetime' === filter.type || 'date' === filter.type"
                           name="date"
                           class="q-pa-none"
                         >
-                          <q-date
-                            v-model="filter.proxy_value"
-                            :mask="filter.pattern"
-                            square
-                          />
+                          <q-date v-model="filter.proxy_value" :mask="filter.pattern" square />
                         </q-tab-panel>
                         <q-tab-panel
-                          v-if="
-                            'datetime' === filter.type || 'time' === filter.type
-                          "
+                          v-if="'datetime' === filter.type || 'time' === filter.type"
                           name="time"
                           class="q-pa-none"
                         >
@@ -377,12 +309,7 @@
                       <q-separator />
                       <div class="q-pa-xs bg-white row">
                         <div class="col-6 text-left">
-                          <q-btn
-                            :label="$t('label.cancel')"
-                            color="red"
-                            no-caps
-                            v-close-popup
-                          />
+                          <q-btn :label="$t('label.cancel')" color="red" no-caps v-close-popup />
                         </div>
                         <div class="col-6 text-right">
                           <q-btn
@@ -486,82 +413,82 @@
     <q-separator />
     <q-card-actions class="row">
       <div class="col-6 q-pr-xs text-left">
-        <q-btn
-          :label="$t('label.reset')"
-          color="orange"
-          no-caps
-          glossy
-          @click="on_reset_click"
-        />
+        <q-btn :label="$t('label.reset')" color="orange" no-caps glossy @click="on_reset_click" />
       </div>
       <div class="col-6 q-pl-xs text-right">
-        <q-btn
-          :label="$t('label.filter')"
-          color="purple"
-          no-caps
-          glossy
-          @click="on_filter_click"
-        />
+        <q-btn :label="$t('label.filter')" color="purple" no-caps glossy @click="on_filter_click" />
       </div>
     </q-card-actions>
   </q-card>
 </template>
 
 <script>
-import { ref } from "vue";
-import { util } from "src/scripts/util";
+import { ref } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
 
 export default {
-  props: ["parameters"],
-  emits: ["close"],
+  props: ['parameters'],
+  emits: ['close'],
   setup() {
     return {
+      APP,
+      uix,
+
       filters: ref([]),
       template: ref({}),
       enums: ref({}),
       options: ref({}),
-    };
+    }
   },
 
   created() {
-    let self = this;
-    let params = self.parameters || {};
-    self.filters = util.isArray(params.filters) ? params.filters : [];
-    self.template = util.isObject(params.template) ? params.template : {};
-    self.enums = {};
+    let self = this
+    let params = self.parameters || {}
+    self.filters = util.isArray(params.filters) ? params.filters : []
+    self.template = util.isObject(params.template) ? params.template : {}
+    self.enums = {}
     if (util.isObject(self.template.enums)) {
       Object.keys(self.template.enums).forEach((key) => {
-        self.enums[key] = [null].concat(self.template.enums[key]);
-      });
+        self.enums[key] = [null].concat(self.template.enums[key])
+      })
     }
-    self.options = {};
+    self.options = {}
     if (util.isObject(self.template.options)) {
       Object.keys(self.template.options).forEach((key) => {
-        self.options[key] = [null].concat(self.template.options[key]);
-      });
+        self.options[key] = [null].concat(self.template.options[key])
+      })
     }
   },
 
   methods: {
+    /*
+     * RESET CLICK
+     */
     on_reset_click() {
-      let self = this;
+      let self = this
       for (const element of self.filters) {
-        delete element.value;
-        delete element.value2;
+        delete element.value
+        delete element.value2
       }
     },
+
+    /*
+     * FILTER CLICK
+     */
     on_filter_click() {
-      let self = this;
+      let self = this
       for (const element of self.filters) {
         if (util.isDefined(element.value) && element.value === null) {
-          delete element.value;
+          delete element.value
         }
         if (util.isDefined(element.value2) && element.value2 === null) {
-          delete element.value2;
+          delete element.value2
         }
       }
-      self.$emit("close", self.filters);
+      self.$emit('close', self.filters)
     },
   },
-};
+}
 </script>

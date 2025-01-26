@@ -1,12 +1,14 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <q-card style="min-width: 60vw; max-width: 90vw; max-height: 90vh;">
-    <q-card-section class="q-pa-none header-main">
+  <q-card :style="'min-width: 60vw; max-width: 90vw; max-height: 90vh;' + dialog.main.style">
+    <q-card-section
+      class="q-pa-none header-main"
+      :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+      v-touch-pan.mouse="dialog.main.onDrag"
+    >
       <q-item class="q-pr-none">
         <q-item-section>
-          <q-item-label class="text-h6 text-white">{{
-            pick.title
-          }}</q-item-label>
+          <q-item-label class="text-h6 text-white">{{ pick.title }}</q-item-label>
         </q-item-section>
         <q-item-section side>
           <q-btn
@@ -17,7 +19,7 @@
             icon="close"
             v-close-popup
           >
-            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.close') }}</q-tooltip>
           </q-btn>
         </q-item-section>
       </q-item>
@@ -160,13 +162,7 @@
     <q-separator />
     <q-card-actions class="row">
       <div class="col-6 q-pr-xs text-left">
-        <q-btn
-          :label="$t('label.cancel')"
-          color="negative"
-          no-caps
-          glossy
-          v-close-popup
-        />
+        <q-btn :label="$t('label.cancel')" color="negative" no-caps glossy v-close-popup />
       </div>
       <div class="col-6 q-pl-xs text-right">
         <q-btn
@@ -191,23 +187,29 @@
     <Search
       :parameters="dialog.search.parameters"
       @close="on_close_dialog_search"
+      :style="dialog.search.style"
+      v-touch-pan.mouse="dialog.search.onDrag"
     />
   </q-dialog>
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { grid as fxGrid } from "src/scripts/grid";
+import { ref, defineAsyncComponent } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { grid as fxGrid } from 'src/scripts/grid'
+let self
 
 export default {
-  props: ["parameters"],
-  emits: ["close"],
+  props: ['parameters'],
+  emits: ['close'],
   components: {
-    Search: defineAsyncComponent(() => import("src/pages/grid/Search.vue")),
+    Search: defineAsyncComponent(() => import('src/pages/grid/Search.vue')),
   },
   setup() {
     return {
+      APP,
       util,
       template: ref({}),
       field: ref({}),
@@ -227,27 +229,25 @@ export default {
         empty: true,
       }),
       dialog: ref({
-        search: {
-          show: false,
-          parameters: null,
-        },
+        main: uix.dialog.init(() => self.dialog.main),
+        search: uix.dialog.init(() => self.dialog.search),
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
-    let params = fxGrid.get.object(self.parameters);
-    self.template = fxGrid.get.object(params.template);
-    self.replica = fxGrid.get.number(params.replica, null);
-    self.field = fxGrid.get.object(params.field);
-    self.relations = fxGrid.get.array(params.relations);
-    self.pick = fxGrid.get.object(params.pick);
-    self.pick._grid_id_ = self.template._grid_id_;
+    self = this
+    let params = fxGrid.get.object(self.parameters)
+    self.template = fxGrid.get.object(params.template)
+    self.replica = fxGrid.get.number(params.replica, null)
+    self.field = fxGrid.get.object(params.field)
+    self.relations = fxGrid.get.array(params.relations)
+    self.pick = fxGrid.get.object(params.pick)
+    self.pick._grid_id_ = self.template._grid_id_
     self.search = {
       empty: true,
       filters: fxGrid.copy(fxGrid.get.array(self.pick.table.filters)),
-    };
+    }
     self.table = {
       rows: [],
       columns: self.pick.table.columns,
@@ -260,10 +260,10 @@ export default {
         descending: true === self.pick.table.order.descending,
       },
       loading: false,
-    };
+    }
     self.do_request({
       pagination: self.table.pagination,
-    });
+    })
   },
 
   methods: {
@@ -271,7 +271,6 @@ export default {
      * REQUEST
      */
     do_request(props) {
-      let self = this;
       fxGrid.action.page({
         props: props,
         table: self.table,
@@ -279,64 +278,58 @@ export default {
         definition: self.pick,
         relations: self.relations,
         replica: true === self.pick.enableReplica ? self.replica : null,
-      });
+      })
     },
 
     /*
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * SELECT CLICK
      */
     on_select_click() {
-      let self = this;
-      self.$emit("close", self.table.selected);
+      self.$emit('close', self.table.selected)
     },
 
     /*
      * SEARCH CLICK
      */
     on_search_click() {
-      let self = this;
-      let dialog = self.dialog.search;
-      dialog.parameters = {
+      uix.dialog.show(self.dialog.search, {
         filters: fxGrid.copy(self.search.filters),
         template: self.template,
-      };
-      dialog.show = true;
+      })
     },
 
     /*
      * CLOSE SEARCH DIALOG
      */
     on_close_dialog_search(filters) {
-      let self = this;
       if (util.isArray(filters)) {
         let search = self.search,
           v1,
-          v2;
-        search.filters = filters;
-        search.empty = true;
+          v2
+        search.filters = filters
+        search.empty = true
         for (const filter of search.filters) {
-          v1 = util.isDefined(filter.value) ? filter.value : "";
-          v2 = util.isDefined(filter.value2) ? filter.value2 : "";
-          if ("" !== v1 || "" !== v2) {
-            search.empty = false;
-            break;
+          v1 = util.isDefined(filter.value) ? filter.value : ''
+          v2 = util.isDefined(filter.value2) ? filter.value2 : ''
+          if ('' !== v1 || '' !== v2) {
+            search.empty = false
+            break
           }
         }
-        self.dialog.search = { show: false, parameters: null };
-        self.table.pagination.page = 1;
+        uix.dialog.hide(self.dialog.search)
+        self.table.pagination.page = 1
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
 
@@ -344,14 +337,13 @@ export default {
      * PAGE CHANGED
      */
     on_page_changed() {
-      let self = this;
-      let page = +self.table.pagination.page;
+      let page = +self.table.pagination.page
       if (!isNaN(page) && page > 0) {
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
   },
-};
+}
 </script>

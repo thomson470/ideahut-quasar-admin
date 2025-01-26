@@ -26,12 +26,8 @@
         icon="search"
         @click="on_search_dialog_click"
       >
-        <q-badge
-          v-if="Object.keys(table.filters).length"
-          class="led-green"
-          floating
-        ></q-badge>
-        <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+        <q-badge v-if="Object.keys(table.filters).length" class="led-green" floating></q-badge>
+        <q-tooltip>{{ $t('label.search') }}</q-tooltip>
       </q-btn>
       <q-btn
         glossy
@@ -43,7 +39,7 @@
         :loading="table.loading"
         @click="on_refresh_click"
       >
-        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -65,7 +61,7 @@
         icon="visibility"
         @click="on_view_click(scope)"
       >
-        <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.view') }}</q-tooltip>
       </q-btn>
     </template>
   </q-table>
@@ -75,19 +71,27 @@
     v-model="dialog.view.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <KeyValue :parameters="dialog.view.parameters" />
+    <KeyValue
+      :parameters="dialog.view.parameters"
+      :style="dialog.view.style"
+      v-touch-pan.mouse="dialog.view.onDrag"
+    />
   </q-dialog>
 
-   <!-- PROPERTIES DIALOG -->
+  <!-- PROPERTIES DIALOG -->
   <q-dialog
     v-model="dialog.properties.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <KeyValue :parameters="dialog.properties.parameters" />
+    <KeyValue
+      :parameters="dialog.properties.parameters"
+      :style="dialog.properties.style"
+      v-touch-pan.mouse="dialog.properties.onDrag"
+    />
   </q-dialog>
 
   <!-- SEARCH DIALOG -->
@@ -95,16 +99,18 @@
     v-model="dialog.search.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
     persistent
   >
-    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
-      <q-card-section class="q-pa-none header-main">
+    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + dialog.search.style">
+      <q-card-section
+        class="q-pa-none header-main"
+        :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+        v-touch-pan.mouse="dialog.search.onDrag"
+      >
         <q-item class="q-pr-none">
           <q-item-section>
-            <q-item-label class="text-h6 text-white">{{
-              $t("label.search")
-            }}</q-item-label>
+            <q-item-label class="text-h6 text-white">{{ $t('label.search') }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-btn
@@ -115,13 +121,13 @@
               icon="close"
               v-close-popup
             >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+              <q-tooltip>{{ $t('label.close') }}</q-tooltip>
             </q-btn>
           </q-item-section>
         </q-item>
       </q-card-section>
       <q-card-section style="max-height: 70vh" class="q-pa-xs q-mt-xs scroll">
-       <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
+        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
             v-model="table.filters.topicName"
             type="text"
@@ -200,21 +206,22 @@
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
-import { uix } from "src/scripts/uix";
+import { ref, defineAsyncComponent } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { api } from 'src/scripts/api'
+import { uix } from 'src/scripts/uix'
+let self
 
 export default {
   components: {
-    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
+    KeyValue: defineAsyncComponent(() => import('src/pages/KeyValue.vue')),
   },
   setup() {
     return {
+      APP,
       util,
-
       handler: ref(null),
-
       table: ref({
         rows: [],
         filters: {},
@@ -223,333 +230,302 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 30,
-          sortBy: "topic",
+          sortBy: 'topic',
           descending: false,
           count: true,
         },
       }),
-
       dialog: ref({
-        view: {
-          show: false,
-          parameters: null,
-        },
-        properties: {
-          show: false,
-          parameters: null,
-        },
-        search: {
-          show: false,
-        },
+        view: uix.dialog.init(() => self.dialog.view),
+        properties: uix.dialog.init(() => self.dialog.properties),
+        search: uix.dialog.init(() => self.dialog.search),
       }),
-
       option: ref({
-        boolean: ["", "true", "false"],
+        boolean: ['', 'true', 'false'],
       }),
-
-    };
+    }
   },
 
   created() {
-    let self = this;
-    self.handler = self.$route.query.handler;
+    self = this
+    self.handler = self.$route.query.handler
     self.table.columns = [
       {
-        name: "topic",
-        label: self.$t("label.topic"),
-        field: "topic",
-        align: "left",
+        name: 'topic',
+        label: self.$t('label.topic'),
+        field: 'topic',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "isReply",
-        label: self.$t("label.reply"),
-        field: "isReply",
-        align: "left",
+        name: 'isReply',
+        label: self.$t('label.reply'),
+        field: 'isReply',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "keyType",
-        label: self.$t("label.key_type"),
-        field: "keyType",
-        align: "left",
+        name: 'keyType',
+        label: self.$t('label.key_type'),
+        field: 'keyType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "keySerializer",
-        label: self.$t("label.key_serializer"),
-        field: "keySerializer",
-        align: "left",
+        name: 'keySerializer',
+        label: self.$t('label.key_serializer'),
+        field: 'keySerializer',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "valueType",
-        label: self.$t("label.value_type"),
-        field: "valueType",
-        align: "left",
+        name: 'valueType',
+        label: self.$t('label.value_type'),
+        field: 'valueType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "valueSerializer",
-        label: self.$t("label.value_serializer"),
-        field: "valueSerializer",
-        align: "left",
+        name: 'valueSerializer',
+        label: self.$t('label.value_serializer'),
+        field: 'valueSerializer',
+        align: 'left',
         sortable: true,
       },
-    ];
-    self.on_refresh_click();
+    ]
+    self.on_refresh_click()
   },
   methods: {
     /*
      * REQUEST
      */
     do_request(props) {
-      let self = this;
-      let { page, rowsPerPage, sortBy, descending } =
-        self.get_pagination(props);
+      let { page, rowsPerPage, sortBy, descending } = self.get_pagination(props)
       let params = {
         name: self.handler,
         index: page,
         size: rowsPerPage,
-        order: (descending ? "-" : "") + sortBy,
-      };
+        order: (descending ? '-' : '') + sortBy,
+      }
       Object.keys(self.table.filters).forEach((key) => {
-        params[key] = self.table.filters[key];
-      });
-      self.table.loading = true;
+        params[key] = self.table.filters[key]
+      })
+      self.table.loading = true
       api.call({
-        path: "/kafka/senders",
+        path: '/kafka/senders',
         params: params,
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.table.rows = util.isArray(data.data) ? data.data : [];
-            let pagination = self.table.pagination;
-            pagination.page = data.index;
-            pagination.rowsPerPage = data.size;
+            self.table.rows = util.isArray(data.data) ? data.data : []
+            let pagination = self.table.pagination
+            pagination.page = data.index
+            pagination.rowsPerPage = data.size
             if (util.isNumber(data.records)) {
-              pagination.rowsNumber = data.records;
+              pagination.rowsNumber = data.records
             } else {
-              let rowsNumber = data.index * data.size;
+              let rowsNumber = data.index * data.size
               if (self.table.rows.length !== data.size) {
-                pagination.rowsNumber = rowsNumber;
+                pagination.rowsNumber = rowsNumber
               } else {
-                pagination.rowsNumber = rowsNumber + 1;
+                pagination.rowsNumber = rowsNumber + 1
               }
             }
           }
         },
-      });
+      })
     },
 
     /*
      * GET PAGINATION
      */
     get_pagination(props) {
-      let self = this;
-      let pagination = props?.pagination
-        ? props.pagination
-        : self.table.pagination;
+      let pagination = props?.pagination ? props.pagination : self.table.pagination
       if (pagination) {
-        self.table.pagination = pagination;
-        return pagination;
+        self.table.pagination = pagination
+        return pagination
       }
-      return self.table.pagination;
+      return self.table.pagination
     },
 
     /*
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       if (!self.table.rows?.length) {
         if (self.table.pagination.page > 1) {
-          self.table.pagination.page = 1;
+          self.table.pagination.page = 1
         }
       }
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * VIEW CLICK
      */
     on_view_click(scope) {
-      let self = this;
-      let rows = [];
+      let rows = []
       for (const col of scope.cols) {
         rows.push({
           label: col.label,
-          value: util.isFunction(col.format) ? col.format(scope.row[col.field], scope.row) : scope.row[col.field],
-        });
+          value: util.isFunction(col.format)
+            ? col.format(scope.row[col.field], scope.row)
+            : scope.row[col.field],
+        })
       }
-      let actions = [];
+      let actions = []
       if (true === scope.row.isReply) {
-        actions.push(
-          {
-            icon: scope.row.isRunning ? "stop" : "play_arrow",
-            label: self.$t(scope.row.isRunning ? "label.stop" : "label.start"),
-            color: scope.row.isRunning ? "pink-10" : "purple-10",
-            click: () => self.on_start_stop_click(scope),
-          },
-        );
+        actions.push({
+          icon: scope.row.isRunning ? 'stop' : 'play_arrow',
+          label: self.$t(scope.row.isRunning ? 'label.stop' : 'label.start'),
+          color: scope.row.isRunning ? 'pink-10' : 'purple-10',
+          click: () => self.on_start_stop_click(scope),
+        })
       }
-      actions.push(
-        {
-          icon: "lightbulb",
-          color: "teal-10",
-          label: self.$t("label.properties"),
-          click: () => self.on_properties_click(scope),
-        }
-      );
-      self.dialog.view = {
-        show: true,
-        parameters: {
-          search: false,
-          rows: rows,
-          color: {
-            close: "red",
-          },
-          actions: actions,
+      actions.push({
+        icon: 'lightbulb',
+        color: 'teal-10',
+        label: self.$t('label.properties'),
+        click: () => self.on_properties_click(scope),
+      })
+      uix.dialog.show(self.dialog.view, {
+        search: false,
+        rows: rows,
+        color: {
+          close: 'red',
         },
-      };
+        actions: actions,
+      })
     },
 
     /*
      * PROPERTIES CLICK
      */
-     on_properties_click(scope) {
-      let self = this;
-      self.dialog.properties = {
-        show: true,
-        parameters: {
-          title: self.$t("label.properties"),
-          name: self.handler,
-          topic: scope.row.topic,
-          rows: [],
-          onRefresh: self.get_properties,
-        },
-      };
+    on_properties_click(scope) {
+      uix.dialog.show(self.dialog.properties, {
+        title: self.$t('label.properties'),
+        name: self.handler,
+        topic: scope.row.topic,
+        rows: [],
+        onRefresh: self.get_properties,
+      })
     },
     get_properties(i) {
-      let p = util.isObject(i) ? i : {};
-      util.apply(p.onStart);
+      let p = util.isObject(i) ? i : {}
+      util.apply(p.onStart)
       api.call({
-        path: "/kafka/sender/properties",
+        path: '/kafka/sender/properties',
         params: {
           name: p.parameters.name,
           topic: p.parameters.topic,
         },
         onFinish() {
-          util.apply(p.onFinish);
+          util.apply(p.onFinish)
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            let rows = [];
+            let rows = []
             Object.keys(data).forEach((key) => {
               rows.push({
                 label: key,
                 value: data[key],
-              });
-            });
+              })
+            })
             rows.sort((a, b) => {
-              const la = a.label.toUpperCase();
-              const lb = b.label.toUpperCase();
+              const la = a.label.toUpperCase()
+              const lb = b.label.toUpperCase()
               if (la < lb) {
-                return -1;
+                return -1
               }
               if (la > lb) {
-                return 1;
+                return 1
               }
-              return 0;
-            });
-            util.apply(p.onData, rows);
+              return 0
+            })
+            util.apply(p.onData, rows)
           }
         },
         notify: true,
-      });
+      })
     },
 
     /*
      * START / STOP CLICK
      */
     on_start_stop_click(scope) {
-      let self = this;
-      let row = scope.row;
-      let btn = self.dialog.view.parameters.actions[0];
+      let row = scope.row
+      let btn = self.dialog.view.parameters.actions[0]
       uix.confirm(
         function () {
-          btn.loading = true;
+          btn.loading = true
           api.call({
-            path: "/kafka/sender/" + (row.isRunning ? "stop" : "start"),
-            method: "post",
+            path: '/kafka/sender/' + (row.isRunning ? 'stop' : 'start'),
+            method: 'post',
             params: {
               name: self.handler,
               topic: row.topic,
             },
             onFinish() {
-              btn.loading = false;
+              btn.loading = false
             },
-            onSuccess(data) {
-              row.isRunning = !row.isRunning;
-              btn.icon = row.isRunning ? "stop" : "play_arrow";
-              btn.label = self.$t(row.isRunning ? "label.stop" : "label.start");
-              btn.color = row.isRunning ? "pink-10" : "purple-10";
+            onSuccess() {
+              row.isRunning = !row.isRunning
+              btn.icon = row.isRunning ? 'stop' : 'play_arrow'
+              btn.label = self.$t(row.isRunning ? 'label.stop' : 'label.start')
+              btn.color = row.isRunning ? 'pink-10' : 'purple-10'
             },
-          });
+          })
         },
-        "confirm." + (row.isRunning ? 'stop' : 'start'),
-      );
+        'confirm.' + (row.isRunning ? 'stop' : 'start'),
+      )
     },
 
     /*
      * SEARCH RESET CLICK
      */
     on_search_reset_click() {
-      let self = this;
-      self.table.filters = {};
+      self.table.filters = {}
     },
 
     /*
      * SEARCH FILTER CLICK
      */
     on_search_filter_click() {
-      let self = this;
-      let filters = self.table.filters;
-      if (!(util.isString(filters.topicName) && "" !== filters.topicName)) {
-        delete filters.topicName;
+      let filters = self.table.filters
+      if (!(util.isString(filters.topicName) && '' !== filters.topicName)) {
+        delete filters.topicName
       }
-      if (!(util.isString(filters.isReply) && "" !== filters.isReply)) {
-        delete filters.isReply;
+      if (!(util.isString(filters.isReply) && '' !== filters.isReply)) {
+        delete filters.isReply
       }
-      if (!(util.isString(filters.keyType) && "" !== filters.keyType)) {
-        delete filters.keyType;
+      if (!(util.isString(filters.keyType) && '' !== filters.keyType)) {
+        delete filters.keyType
       }
-      if (!(util.isString(filters.keySerializer) && "" !== filters.keySerializer)) {
-        delete filters.keySerializer;
+      if (!(util.isString(filters.keySerializer) && '' !== filters.keySerializer)) {
+        delete filters.keySerializer
       }
-      if (!(util.isString(filters.valueType) && "" !== filters.valueType)) {
-        delete filters.valueType;
+      if (!(util.isString(filters.valueType) && '' !== filters.valueType)) {
+        delete filters.valueType
       }
-      if (!(util.isString(filters.valueSerializer) && "" !== filters.valueSerializer)) {
-        delete filters.valueSerializer;
+      if (!(util.isString(filters.valueSerializer) && '' !== filters.valueSerializer)) {
+        delete filters.valueSerializer
       }
       self.do_request({
         pagination: self.table.pagination,
-      });
-      self.dialog.search.show = false;
+      })
+      uix.dialog.hide(self.dialog.search)
     },
 
     /*
      * SEARCH DIALOG CLICK
      */
     on_search_dialog_click() {
-      let self = this;
-      self.dialog.search.show = true;
+      uix.dialog.show(self.dialog.search)
     },
   },
-};
+}
 </script>

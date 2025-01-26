@@ -17,14 +17,14 @@
       >
         <template v-slot:top-right>
           <q-btn
-              round
-              glossy
-              dense
-              size="sm"
-              icon="lightbulb"
-              @click="on_keyvalue_show($t('label.application'), application)"
+            round
+            glossy
+            dense
+            size="sm"
+            icon="lightbulb"
+            @click="on_keyvalue_show($t('label.application'), application)"
           >
-              <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.view') }}</q-tooltip>
           </q-btn>
         </template>
       </q-table>
@@ -33,7 +33,7 @@
       <q-table
         v-if="version?.length"
         class="table-sticky-header no-column"
-        style="max-height: 27vh;"
+        style="max-height: 27vh"
         :title="$t('label.version')"
         :rows="version"
         :separator="'cell'"
@@ -45,14 +45,14 @@
       >
         <template v-slot:top-right>
           <q-btn
-              round
-              glossy
-              dense
-              size="sm"
-              icon="lightbulb"
-              @click="on_keyvalue_show($t('label.version'), version)"
+            round
+            glossy
+            dense
+            size="sm"
+            icon="lightbulb"
+            @click="on_keyvalue_show($t('label.version'), version)"
           >
-              <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.view') }}</q-tooltip>
           </q-btn>
         </template>
       </q-table>
@@ -83,14 +83,10 @@
             class="q-ma-none q-ml-md"
             color="deep-orange"
             icon="search"
-            @click="bean.dialog = true"
+            @click="on_bean_search_click"
           >
-            <q-badge
-              v-if="Object.keys(bean.filters).length"
-              class="led-green"
-              floating
-            ></q-badge>
-            <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+            <q-badge v-if="Object.keys(bean.filters).length" class="led-green" floating></q-badge>
+            <q-tooltip>{{ $t('label.search') }}</q-tooltip>
           </q-btn>
           <q-btn
             glossy
@@ -102,7 +98,7 @@
             :loading="bean.loading"
             @click="on_bean_refresh_click"
           >
-            <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
           </q-btn>
         </template>
 
@@ -123,7 +119,7 @@
             color="deep-purple"
             icon="visibility"
           >
-            <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.view') }}</q-tooltip>
             <q-popup-proxy
               transition-show="scale"
               transition-hide="scale"
@@ -131,10 +127,7 @@
               :style="'width: 400px;'"
             >
               <q-card>
-                <q-card-section
-                  style="max-height: 600px"
-                  class="q-pa-xs q-mt-none scroll"
-                >
+                <q-card-section style="max-height: 600px" class="q-pa-xs q-mt-none scroll">
                   <q-input
                     type="text"
                     :label="$t('label.bean_name')"
@@ -195,19 +188,21 @@
   </div>
 
   <q-dialog
-    v-model="bean.dialog"
+    v-model="bean.search.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
     persistent
   >
-    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
-      <q-card-section class="q-pa-none header-main">
+    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + bean.search.style">
+      <q-card-section
+        class="q-pa-none header-main"
+        :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+        v-touch-pan.mouse="bean.search.onDrag"
+      >
         <q-item class="q-pr-none">
           <q-item-section>
-            <q-item-label class="text-h6 text-white">{{
-              $t("label.search")
-            }}</q-item-label>
+            <q-item-label class="text-h6 text-white">{{ $t('label.search') }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-btn
@@ -218,7 +213,7 @@
               icon="close"
               v-close-popup
             >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+              <q-tooltip>{{ $t('label.close') }}</q-tooltip>
             </q-btn>
           </q-item-section>
         </q-item>
@@ -292,23 +287,31 @@
     v-model="dialog.keyvalue.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(8px)"
+    backdrop-filter="blur(1px)"
   >
-    <KeyValue :parameters="dialog.keyvalue.parameters" />
+    <KeyValue
+      :parameters="dialog.keyvalue.parameters"
+      :style="dialog.keyvalue.style"
+      v-touch-pan.mouse="dialog.keyvalue.onDrag"
+    />
   </q-dialog>
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
+import { ref, defineAsyncComponent } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
   components: {
-    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
+    KeyValue: defineAsyncComponent(() => import('src/pages/KeyValue.vue')),
   },
   setup() {
     return {
+      APP,
       util,
       application: ref([]),
       version: ref([]),
@@ -320,286 +323,277 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 20,
-          sortBy: "beanName",
+          sortBy: 'beanName',
           descending: false,
         },
-        dialog: false,
+        search: uix.dialog.init(() => self.bean.search),
       }),
       option: ref({
-        boolean: ["", "true", "false"],
+        boolean: ['', 'true', 'false'],
       }),
-
       dialog: ref({
-        keyvalue: {
-          show: false,
-          parameters: null,
-        },
+        keyvalue: uix.dialog.init(() => self.dialog.keyvalue),
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
+    self = this
     self.bean.columns = [
       {
-        name: "beanName",
-        label: self.$t("label.bean_name"),
-        field: "beanName",
-        align: "left",
+        name: 'beanName',
+        label: self.$t('label.bean_name'),
+        field: 'beanName',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "isProxy",
-        label: self.$t("label.proxy"),
-        field: "isProxy",
-        align: "left",
+        name: 'isProxy',
+        label: self.$t('label.proxy'),
+        field: 'isProxy',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "isReloadable",
-        label: self.$t("label.reloadable"),
-        field: "isReloadable",
-        align: "left",
+        name: 'isReloadable',
+        label: self.$t('label.reloadable'),
+        field: 'isReloadable',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "isReconfigure",
-        label: self.$t("label.reconfigure"),
-        field: "isReconfigure",
-        align: "left",
+        name: 'isReconfigure',
+        label: self.$t('label.reconfigure'),
+        field: 'isReconfigure',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "className",
-        label: self.$t("label.class_name"),
-        field: "className",
-        align: "left",
+        name: 'className',
+        label: self.$t('label.class_name'),
+        field: 'className',
+        align: 'left',
         sortable: true,
       },
-    ];
-    self.get_info();
-    self.get_beans();
+    ]
+    self.get_info()
+    self.get_beans()
   },
   methods: {
     /*
      * GET INFO
      */
     get_info() {
-      let self = this;
       api.call({
-        path: "/info",
+        path: '/info',
         onSuccess(data) {
           if (util.isObject(data.application)) {
-            let app = data.application;
+            let app = data.application
             self.application = [
               {
-                label: self.$t("label.id"),
+                label: self.$t('label.id'),
                 value: app.id,
               },
               {
-                label: self.$t("label.reactive"),
+                label: self.$t('label.reactive'),
                 value: app.reactive,
               },
               {
-                label: self.$t("label.native_image"),
+                label: self.$t('label.native_image'),
                 value: app.inNativeImage,
               },
               {
-                label: self.$t("label.display_name"),
+                label: self.$t('label.display_name'),
                 value: app.displayName,
               },
               {
-                label: self.$t("label.server_classname"),
-                value: util.isString(app.serverClassname)
-                  ? app.serverClassname
-                  : "",
+                label: self.$t('label.server_classname'),
+                value: util.isString(app.serverClassname) ? app.serverClassname : '',
               },
               {
-                label: self.$t("label.server_port"),
-                value: util.isNumber(app.serverPort) ? app.serverPort : "",
+                label: self.$t('label.server_port'),
+                value: util.isNumber(app.serverPort) ? app.serverPort : '',
               },
               {
-                label: self.$t("label.bean_count"),
+                label: self.$t('label.bean_count'),
                 value: app.beanCount,
               },
               {
-                label: self.$t("label.startup_date"),
+                label: self.$t('label.startup_date'),
                 value: util.isNumber(app.startupDate)
                   ? util.format.date(app.startupDate, {
-                      format: "YYYY-MM-DD HH:mm:ss",
+                      format: 'YYYY-MM-DD HH:mm:ss',
                     })
-                  : "",
+                  : '',
               },
-            ];
+            ]
           }
           if (util.isObject(data.version)) {
-            let version = data.version;
+            let version = data.version
             self.version = [
               {
-                label: "Ideahut",
+                label: 'Ideahut',
                 value: version.ideahut,
               },
               {
-                label: "Java",
+                label: 'Java',
                 value: version.java,
               },
               {
-                label: "Spring Framework",
+                label: 'Spring Framework',
                 value: version.springFramework,
               },
               {
-                label: "Spring Boot",
+                label: 'Spring Boot',
                 value: version.springBoot,
               },
               {
-                label: "Hibernate",
+                label: 'Hibernate',
                 value: version.hibernate,
               },
               {
-                label: "Jedis",
+                label: 'Jedis',
                 value: version.jedis,
               },
               {
-                label: "Quartz",
+                label: 'Quartz',
                 value: version.quartz,
               },
               {
-                label: "Kafka",
+                label: 'Kafka',
                 value: version.kafka,
               },
-            ];
+            ]
           }
-          self.version = self.version.filter((o) => {return util.isString(o.value);})
+          self.version = self.version.filter((o) => {
+            return util.isString(o.value)
+          })
           if (util.isArray(data.beans)) {
-            self.bean.rows = data.beans;
-            self.bean.pagination.rowsNumber = self.bean.rows.length;
+            self.bean.rows = data.beans
+            self.bean.pagination.rowsNumber = self.bean.rows.length
           }
         },
-      });
+      })
     },
 
     /*
      * GET BEANS
      */
     get_beans(props) {
-      let self = this;
-      let { page, rowsPerPage, sortBy, descending } =
-        self.bean_pagination(props);
+      let { page, rowsPerPage, sortBy, descending } = self.bean_pagination(props)
       let params = {
         index: page,
         size: rowsPerPage,
-        order: (descending ? "-" : "") + sortBy,
-      };
+        order: (descending ? '-' : '') + sortBy,
+      }
       Object.keys(self.bean.filters).forEach((key) => {
-        params[key] = self.bean.filters[key];
-      });
-      self.bean.loading = true;
+        params[key] = self.bean.filters[key]
+      })
+      self.bean.loading = true
       api.call({
-        path: "/beans",
+        path: '/beans',
         params: params,
         onFinish() {
-          self.bean.loading = false;
+          self.bean.loading = false
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.bean.rows = util.isArray(data.data) ? data.data : [];
-            let pagination = self.bean.pagination;
-            pagination.page = data.index;
-            pagination.rowsPerPage = data.size;
+            self.bean.rows = util.isArray(data.data) ? data.data : []
+            for (const row of self.bean.rows) {
+              row.isProxy = row.isProxy + ''
+              row.isReconfigure = row.isReconfigure + ''
+              row.isReloadable = row.isReloadable + ''
+            }
+            let pagination = self.bean.pagination
+            pagination.page = data.index
+            pagination.rowsPerPage = data.size
             if (util.isNumber(data.records)) {
-              pagination.rowsNumber = data.records;
+              pagination.rowsNumber = data.records
             } else {
-              let rowsNumber = data.index * data.size;
+              let rowsNumber = data.index * data.size
               if (self.bean.rows.length !== data.size) {
-                pagination.rowsNumber = rowsNumber;
+                pagination.rowsNumber = rowsNumber
               } else {
-                pagination.rowsNumber = rowsNumber + 1;
+                pagination.rowsNumber = rowsNumber + 1
               }
             }
           }
         },
-      });
+      })
     },
     bean_pagination(props) {
-      let self = this;
-      let pagination = props?.pagination
-        ? props.pagination
-        : self.bean.pagination;
+      let pagination = props?.pagination ? props.pagination : self.bean.pagination
       if (pagination) {
-        self.bean.pagination = pagination;
-        return pagination;
+        self.bean.pagination = pagination
+        return pagination
       }
-      return self.bean.pagination;
+      return self.bean.pagination
     },
 
     /*
      * BEAN REFRESH CLICK
      */
     on_bean_refresh_click() {
-      let self = this;
       if (!self.bean.rows?.length) {
         if (self.bean.pagination.page > 1) {
-          self.bean.pagination.page = 1;
+          self.bean.pagination.page = 1
         }
       }
       self.get_beans({
         pagination: self.bean.pagination,
-      });
+      })
+    },
+
+    /*
+     * BEAN SEARCH CLICK
+     */
+    on_bean_search_click() {
+      uix.dialog.show(self.bean.search)
     },
 
     /*
      * BEAN FILTER CLICK
      */
     on_bean_filter_click() {
-      let self = this;
-      let filters = self.bean.filters;
-      if (!(util.isString(filters.beanName) && "" !== filters.beanName)) {
-        delete filters.beanName;
+      let filters = self.bean.filters
+      if (!(util.isString(filters.beanName) && '' !== filters.beanName)) {
+        delete filters.beanName
       }
-      if (!(util.isString(filters.className) && "" !== filters.className)) {
-        delete filters.className;
+      if (!(util.isString(filters.className) && '' !== filters.className)) {
+        delete filters.className
       }
-      if (!(util.isString(filters.isProxy) && "" !== filters.isProxy)) {
-        delete filters.isProxy;
+      if (!(util.isString(filters.isProxy) && '' !== filters.isProxy)) {
+        delete filters.isProxy
       }
-      if (
-        !(util.isString(filters.isReloadable) && "" !== filters.isReloadable)
-      ) {
-        delete filters.isReloadable;
+      if (!(util.isString(filters.isReloadable) && '' !== filters.isReloadable)) {
+        delete filters.isReloadable
       }
-      if (
-        !(util.isString(filters.isReconfigure) && "" !== filters.isReconfigure)
-      ) {
-        delete filters.isReconfigure;
+      if (!(util.isString(filters.isReconfigure) && '' !== filters.isReconfigure)) {
+        delete filters.isReconfigure
       }
       self.get_beans({
         pagination: self.bean.pagination,
-      });
-      self.bean.dialog = false;
+      })
+      uix.dialog.hide(self.bean.search)
     },
 
     /*
      * BEAN RESET CLICK
      */
     on_bean_reset_click() {
-      let self = this;
-      self.bean.filters = {};
+      self.bean.filters = {}
     },
 
     /*
      * KEY VALUE
      */
     on_keyvalue_show(title, rows) {
-      let self = this;
-      self.dialog.keyvalue = {
-        show: true,
-        parameters: {
-          title: title,
-          search: false,
-          rows: rows,
-        },
-      };
-    } 
+      uix.dialog.show(self.dialog.keyvalue, {
+        title: title,
+        search: false,
+        rows: rows,
+      })
+    },
   },
-};
+}
 </script>

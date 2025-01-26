@@ -29,7 +29,7 @@
         :loading="table.loading"
         @click="do_request"
       >
-        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -58,7 +58,7 @@
           icon="account_tree"
           @click="on_client_click(scope)"
         >
-          <q-tooltip>{{ $t("label.client") }}</q-tooltip>
+          <q-tooltip>{{ $t('label.client') }}</q-tooltip>
         </q-btn>
         <q-btn
           glossy
@@ -70,7 +70,7 @@
           icon="lightbulb"
           @click="on_info_click(scope)"
         >
-          <q-tooltip>{{ $t("label.properties") }}</q-tooltip>
+          <q-tooltip>{{ $t('label.properties') }}</q-tooltip>
         </q-btn>
         <q-btn
           glossy
@@ -82,9 +82,8 @@
           icon="visibility"
           @click="on_view_click(scope)"
         >
-          <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+          <q-tooltip>{{ $t('label.view') }}</q-tooltip>
         </q-btn>
-
       </div>
     </template>
     <template v-slot:body-cell="props">
@@ -101,40 +100,23 @@
         </span>
       </q-td>
     </template>
-   
   </q-table>
 
   <!-- FLUSH -->
-  <q-dialog v-model="flush.show" backdrop-filter="blur(2px)" persistent>
+  <q-dialog v-model="flush.show" backdrop-filter="blur(1px)" persistent>
     <q-card>
       <q-card-section class="q-pa-xs q-pl-lg q-pr-lg text-center">
-        {{ $t("label.flush_input_code") }}
+        {{ $t('label.flush_input_code') }}
       </q-card-section>
-      <q-card-section
-        class="q-pa-xs q-pl-lg q-pr-lg text-center text-weight-bold"
-      >
+      <q-card-section class="q-pa-xs q-pl-lg q-pr-lg text-center text-weight-bold">
         {{ flush.text }}
       </q-card-section>
       <q-card-section class="q-pa-sm">
-        <q-input
-          v-model="flush.code"
-          type="text"
-          filled
-          dense
-          input-class="text-center"
-        >
-        </q-input>
+        <q-input v-model="flush.code" type="text" filled dense input-class="text-center"> </q-input>
       </q-card-section>
       <q-card-actions class="row">
         <div class="col-6 text-left">
-          <q-btn
-            no-caps
-            ripple
-            glossy
-            :label="$t('label.cancel')"
-            color="negative"
-            v-close-popup
-          />
+          <q-btn no-caps ripple glossy :label="$t('label.cancel')" color="negative" v-close-popup />
         </div>
         <div class="col-6 text-right">
           <q-btn
@@ -157,10 +139,10 @@
     v-model="info.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
     persistent
   >
-    <KeyValue :parameters="info.parameters" />
+    <KeyValue :parameters="info.parameters" :style="info.style" v-touch-pan.mouse="info.onDrag" />
   </q-dialog>
 
   <!-- VIEW -->
@@ -168,10 +150,10 @@
     v-model="view.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
     persistent
   >
-    <KeyValue :parameters="view.parameters" />
+    <KeyValue :parameters="view.parameters" :style="view.style" v-touch-pan.mouse="view.onDrag" />
   </q-dialog>
 
   <!-- CLIENT -->
@@ -180,23 +162,23 @@
     persistent
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <Clients :parameters="clients.parameters" />
   </q-dialog>
-
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
-import { api } from "src/scripts/api";
+import { ref, defineAsyncComponent } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
   components: {
-    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
-    Clients: defineAsyncComponent(() => import("src/pages/RedisClients.vue")),
+    KeyValue: defineAsyncComponent(() => import('src/pages/KeyValue.vue')),
+    Clients: defineAsyncComponent(() => import('src/pages/RedisClients.vue')),
   },
   setup() {
     return {
@@ -205,7 +187,6 @@ export default {
       bean: ref(null),
       is_group: ref(false),
       columns: [],
-
       table: ref({
         rows: [],
         columns: [],
@@ -219,7 +200,6 @@ export default {
           rowsPerPage: 10,
         },
       }),
-
       flush: ref({
         show: false,
         loading: false,
@@ -228,134 +208,119 @@ export default {
         text: null,
         code: null,
       }),
-
-      info: ref({
-        show: false,
-        parameters: null,
-      }),
-
-      view: ref({
-        show: false,
-        parameters: null,
-      }),
-
-      clients: ref({
-        show: false,
-        parameters: null,
-      }),
-
-    };
+      info: ref(uix.dialog.init(() => self.info)),
+      view: ref(uix.dialog.init(() => self.view)),
+      clients: ref(uix.dialog.init()),
+    }
   },
 
   created() {
-    let self = this;
+    self = this
     self.columns = [
       {
-        name: "label",
-        label: self.$t("label.name"),
-        field: "label",
-        align: "left",
+        name: 'label',
+        label: self.$t('label.name'),
+        field: 'label',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "keyType",
-        label: self.$t("label.key_type"),
-        field: "keyType",
-        align: "left",
+        name: 'keyType',
+        label: self.$t('label.key_type'),
+        field: 'keyType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "keySerializer",
-        label: self.$t("label.key_serializer"),
-        field: "keySerializer",
-        align: "left",
+        name: 'keySerializer',
+        label: self.$t('label.key_serializer'),
+        field: 'keySerializer',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "valueType",
-        label: self.$t("label.value_type"),
-        field: "valueType",
-        align: "left",
+        name: 'valueType',
+        label: self.$t('label.value_type'),
+        field: 'valueType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "valueSerializer",
-        label: self.$t("label.value_serializer"),
-        field: "valueSerializer",
-        align: "left",
+        name: 'valueSerializer',
+        label: self.$t('label.value_serializer'),
+        field: 'valueSerializer',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "hashKeyType",
-        label: self.$t("label.hash_key_type"),
-        field: "hashKeyType",
-        align: "left",
+        name: 'hashKeyType',
+        label: self.$t('label.hash_key_type'),
+        field: 'hashKeyType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "hashKeySerializer",
-        label: self.$t("label.hash_key_serializer"),
-        field: "hashKeySerializer",
-        align: "left",
+        name: 'hashKeySerializer',
+        label: self.$t('label.hash_key_serializer'),
+        field: 'hashKeySerializer',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "hashValueType",
-        label: self.$t("label.hash_value_type"),
-        field: "hashValueType",
-        align: "left",
+        name: 'hashValueType',
+        label: self.$t('label.hash_value_type'),
+        field: 'hashValueType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "hashValueSerializer",
-        label: self.$t("label.hash_value_serializer"),
-        field: "hashValueSerializer",
-        align: "left",
+        name: 'hashValueSerializer',
+        label: self.$t('label.hash_value_serializer'),
+        field: 'hashValueSerializer',
+        align: 'left',
         sortable: true,
       },
-    ];
-    self.do_request();
+    ]
+    self.do_request()
   },
   methods: {
     /*
      * REQUEST
      */
     do_request() {
-      let self = this;
-      self.table.loading = true;
+      self.table.loading = true
       api.call({
-        path: "/redis/infos",
+        path: '/redis/infos',
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(data) {
           if (util.isArray(data)) {
-            self.table.rows = data;
+            self.table.rows = data
             for (const row of self.table.rows) {
-              self.table.flushing.all[row.name] = false;
-              self.table.flushing.db[row.name] = false;
+              self.table.flushing.all[row.name] = false
+              self.table.flushing.db[row.name] = false
             }
           }
         },
-      });
+      })
     },
 
     /*
      * FLUSH CLICK
      */
     on_flush_click(type, scope) {
-      let self = this;
       if (util.isDefined(type) && util.isDefined(scope)) {
         uix.confirm(
           function () {
-            self.table.flushing[type][scope.row.name] = true;
+            self.table.flushing[type][scope.row.name] = true
             api.call({
-              path: "/redis/flush/" + type,
+              path: '/redis/flush/' + type,
               params: {
                 name: scope.row.name,
               },
               onFinish() {
-                self.table.flushing[type][scope.row.name] = false;
+                self.table.flushing[type][scope.row.name] = false
               },
               onSuccess(data) {
                 if (util.isString(data)) {
@@ -366,30 +331,30 @@ export default {
                     type: type,
                     text: data,
                     code: null,
-                  };
+                  }
                 }
               },
-            });
+            })
           },
-          "confirm.flush_" + type,
-          scope.row.label
-        );
+          'confirm.flush_' + type,
+          scope.row.label,
+        )
       } else {
-        self.flush.loading = true;
+        self.flush.loading = true
         api.call({
-          path: "/redis/flush/" + self.flush.type,
-          method: "post",
+          path: '/redis/flush/' + self.flush.type,
+          method: 'post',
           params: {
             name: self.flush.name,
             code: self.flush.code,
           },
           onFinish() {
-            self.flush.loading = false;
+            self.flush.loading = false
           },
-          onSuccess(data) {
-            self.flush.show = false;
+          onSuccess() {
+            self.flush.show = false
           },
-        });
+        })
       }
     },
 
@@ -397,112 +362,100 @@ export default {
      * CLIENT CLICK
      */
     on_client_click(scope) {
-      let self = this;
-      let row = scope.row;
-      self.clients = {
-        show: true,
-        parameters: {
-          name: row.name,
-          title: row.label,
-          badge: row.isDefault,
-        },
-      };
+      let row = scope.row
+      uix.dialog.show(self.clients, {
+        name: row.name,
+        title: row.label,
+        badge: row.isDefault,
+      })
     },
 
     /*
      * INFO CLICK
      */
     on_info_click(scope) {
-      let self = this;
-      self.info = {
-        show: true,
-        parameters: {
-          title: scope.row.label,
-          name: scope.row.name,
-          badge: true === scope.row.isDefault,
-          rows: [],
-          onRefresh: self.get_info,
-        },
-      };
+      uix.dialog.show(self.info, {
+        title: scope.row.label,
+        name: scope.row.name,
+        badge: true === scope.row.isDefault,
+        rows: [],
+        onRefresh: self.get_info,
+      })
     },
     get_info(i) {
-      let p = util.isObject(i) ? i : {};
-      util.apply(p.onStart);
+      let p = util.isObject(i) ? i : {}
+      util.apply(p.onStart)
       api.call({
-        path: "/redis/properties",
+        path: '/redis/properties',
         params: {
           name: p.parameters.name,
         },
         onFinish() {
-          util.apply(p.onFinish);
+          util.apply(p.onFinish)
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            let rows = [];
+            let rows = []
             Object.keys(data).forEach((key) => {
               rows.push({
                 label: key,
                 value: data[key],
-              });
-            });
+              })
+            })
             rows.sort((a, b) => {
-              const la = a.label.toUpperCase();
-              const lb = b.label.toUpperCase();
+              const la = a.label.toUpperCase()
+              const lb = b.label.toUpperCase()
               if (la < lb) {
-                return -1;
+                return -1
               }
               if (la > lb) {
-                return 1;
+                return 1
               }
-              return 0;
-            });
-            util.apply(p.onData, rows);
+              return 0
+            })
+            util.apply(p.onData, rows)
           }
         },
         notify: true,
-      });
+      })
     },
 
     /*
      * VIEW CLICK
      */
-     on_view_click(scope) {
-      let self = this;
-      let rows = [];
+    on_view_click(scope) {
+      let rows = []
       for (const col of scope.cols) {
         rows.push({
           label: col.label,
           value: scope.row[col.field],
-        });
+        })
       }
-      self.view = {
-        show: true,
-        parameters: {
-          title: scope.row.label,
-          name: scope.row.name,
-          badge: true === scope.row.isDefault,
-          search: false,
-          rows: rows,
-          color: {
-            close: "red",
-          },
-          actions: [
-            {
-              color: "deep-orange-10",
-              icon: "delete_sweep",
-              label: self.$t("label.flush_all"),
-              click: () => self.on_flush_click('all', scope),
-            },
-            {
-              color: "pink-10",
-              icon: "delete",
-              label: self.$t("label.flush_db"),
-              click: () => self.on_flush_click('db', scope),
-            },
-          ],
+      uix.dialog.show(self.view, {
+        title: scope.row.label,
+        name: scope.row.name,
+        badge: true === scope.row.isDefault,
+        search: false,
+        rows: rows,
+        color: {
+          close: 'red',
         },
-      };
+        actions: [
+          {
+            color: 'deep-orange-10',
+            icon: 'delete_sweep',
+            label: self.$t('label.flush_all'),
+            click: () => self.on_flush_click('all', scope),
+          },
+          {
+            color: 'pink-10',
+            icon: 'delete',
+            label: self.$t('label.flush_db'),
+            click: () => self.on_flush_click('db', scope),
+          },
+        ],
+      })
     },
   },
-};
+}
 </script>

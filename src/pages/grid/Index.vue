@@ -7,9 +7,7 @@
     :visible-columns="table.visibles"
     :row-key="'_pk_'"
     :loading="table.loading"
-    :selection="
-      util.isObject(template.table) ? template.table.selection : 'single'
-    "
+    :selection="util.isObject(template.table) ? template.table.selection : 'single'"
     v-model:selected="table.selected"
     v-model:pagination="table.pagination"
     :dense="$q.screen.lt.md"
@@ -23,9 +21,7 @@
     "
     @request="do_request"
     binary-state-sort
-    :separator="
-      util.isObject(template.table) ? template.table.separator : 'cell'
-    "
+    :separator="util.isObject(template.table) ? template.table.separator : 'cell'"
     bordered
   >
     <template v-slot:top>
@@ -45,7 +41,7 @@
         :loading="table.deleting"
         @click="on_delete_click"
       >
-        <q-tooltip>{{ $t("label.delete") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.delete') }}</q-tooltip>
       </q-btn>
       <q-btn
         v-if="fxGrid.permission.add(permission)"
@@ -57,7 +53,7 @@
         icon="add"
         @click="on_add_click"
       >
-        <q-tooltip>{{ $t("label.new") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.new') }}</q-tooltip>
       </q-btn>
       <q-space />
       <q-select
@@ -92,7 +88,7 @@
         @click="on_search_click"
       >
         <q-badge v-if="!search.empty" class="led-green" floating></q-badge>
-        <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.search') }}</q-tooltip>
       </q-btn>
       <q-btn
         glossy
@@ -104,7 +100,7 @@
         :loading="table.loading"
         @click="on_refresh_click"
       >
-        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -150,9 +146,7 @@
         v-model="scope.selected"
       />
       <q-btn
-        v-else-if="
-          util.isObject(template.table) && fxGrid.permission.delete(permission)
-        "
+        v-else-if="util.isObject(template.table) && fxGrid.permission.delete(permission)"
         glossy
         round
         dense
@@ -162,7 +156,7 @@
         icon="delete"
         @click="on_delete_click(scope)"
       >
-        <q-tooltip>{{ $t("label.delete") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.delete') }}</q-tooltip>
       </q-btn>
       <q-btn
         v-if="fxGrid.permission.edit(permission)"
@@ -175,7 +169,7 @@
         icon="drive_file_rename_outline"
         @click="on_edit_click(scope)"
       >
-        <q-tooltip>{{ $t("label.edit") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.edit') }}</q-tooltip>
       </q-btn>
       <q-btn
         v-if="fxGrid.permission.view(permission)"
@@ -188,7 +182,7 @@
         icon="visibility"
         @click="on_view_click(scope)"
       >
-        <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.view') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -271,11 +265,13 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <Search
       :parameters="dialog.search.parameters"
       @close="on_close_dialog_search"
+      :style="dialog.search.style"
+      v-touch-pan.mouse="dialog.search.onDrag"
     />
   </q-dialog>
 
@@ -284,7 +280,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <View :parameters="dialog.view.parameters" />
   </q-dialog>
@@ -294,42 +290,42 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <Edit :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
   </q-dialog>
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
-import { api } from "src/scripts/api";
-import { grid as fxGrid } from "src/scripts/grid";
-
-const PREFIX = util.uuid();
-window.__util__ = util;
-window.__grid__ = {};
-window.__gkeys__ = [];
+import { ref, defineAsyncComponent } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+import { grid as fxGrid } from 'src/scripts/grid'
+let self
+const PREFIX = util.uuid()
+window.__util__ = util
+window.__grid__ = {}
+window.__gkeys__ = []
 
 const addGrid = (id, template) => {
-  window.__gkeys__.push(id);
-  window.__grid__[id] = template;
-  let diff = window.__gkeys__.length - 10;
+  window.__gkeys__.push(id)
+  window.__grid__[id] = template
+  let diff = window.__gkeys__.length - 10
   if (diff > 0) {
-    const keys = window.__gkeys__.splice(0, diff);
-    for(const key of keys) {
-      delete window.__grid__[key];
+    const keys = window.__gkeys__.splice(0, diff)
+    for (const key of keys) {
+      delete window.__grid__[key]
     }
   }
 }
 
 export default {
   components: {
-    Search: defineAsyncComponent(() => import("src/pages/grid/Search.vue")),
+    Search: defineAsyncComponent(() => import('src/pages/grid/Search.vue')),
     // eslint-disable-next-line vue/no-reserved-component-names
-    View: defineAsyncComponent(() => import("src/pages/grid/View.vue")),
-    Edit: defineAsyncComponent(() => import("src/pages/grid/Edit.vue")),
+    View: defineAsyncComponent(() => import('src/pages/grid/View.vue')),
+    Edit: defineAsyncComponent(() => import('src/pages/grid/Edit.vue')),
   },
 
   setup() {
@@ -337,34 +333,21 @@ export default {
       uix,
       util,
       fxGrid,
-
       is_template_loading: ref(false),
       template: ref({}),
       permission: ref({}),
       parent: ref(null),
       name: ref(null),
       replica: ref(null),
-
       dialog: ref({
-        search: {
-          show: false,
-          parameters: null,
-        },
-        view: {
-          show: false,
-          parameters: null,
-        },
-        edit: {
-          show: false,
-          parameters: null,
-        },
+        search: uix.dialog.init(() => self.dialog.search),
+        view: uix.dialog.init(),
+        edit: uix.dialog.init(),
       }),
-
       search: ref({
         filters: [],
         empty: true,
       }),
-
       table: ref({
         rows: [],
         columns: [],
@@ -374,13 +357,14 @@ export default {
         loading: false,
         deleting: false,
       }),
-    };
+    }
   },
   created() {
-    this.do_load_grid();
+    self = this
+    self.do_load_grid()
   },
   beforeUpdate() {
-    this.do_load_grid();
+    this.do_load_grid()
   },
 
   methods: {
@@ -389,92 +373,91 @@ export default {
      */
     do_load_grid() {
       if (!util.isObject(window.__grid__)) {
-        window.__grid__ = {};
+        window.__grid__ = {}
       }
-      let self = this;
-      let parent = fxGrid.get.string(self.$route.query.parent, "_");
-      let name = fxGrid.get.string(self.$route.query.name, "");
+      let parent = fxGrid.get.string(self.$route.query.parent, '_')
+      let name = fxGrid.get.string(self.$route.query.name, '')
       if (parent === self.parent && name === self.name) {
-        return;
+        return
       }
-      self.parent = parent;
-      self.name = name;
-      self.replica = null;
-      let id = PREFIX + "_" + parent + "_" + name;
+      self.parent = parent
+      self.name = name
+      self.replica = null
+      let id = PREFIX + '_' + parent + '_' + name
       if (!window.__grid__[id]) {
         if (!self.is_template_loading) {
-          self.is_template_loading = true;
+          self.is_template_loading = true
           api.call({
-            path: "/grid",
+            path: '/grid',
             params: {
               name: name,
               parent: parent,
             },
             onSuccess(data) {
               try {
-                let template = fxGrid.get.object(data);
-                template._grid_id_ = id;
+                let template = fxGrid.get.object(data)
+                template._grid_id_ = id
 
                 // table
-                let table = fxGrid.get.object(template.table);
-                fxGrid.prepare.toFunction(table.columns);
-                template.table = table;
+                let table = fxGrid.get.object(template.table)
+                fxGrid.prepare.toFunction(table.columns)
+                template.table = table
 
                 // fields
-                let fields = fxGrid.get.array(template.fields);
-                fxGrid.prepare.toFunction(fields);
-                template.fields = fields;
+                let fields = fxGrid.get.array(template.fields)
+                fxGrid.prepare.toFunction(fields)
+                template.fields = fields
 
                 // children
-                let children = fxGrid.get.array(template.children);
-                fxGrid.prepare.children(children);
-                template.children = children;
+                let children = fxGrid.get.array(template.children)
+                fxGrid.prepare.children(children)
+                template.children = children
 
                 // enums
-                let enums = fxGrid.get.object(template.enums);
-                fxGrid.prepare.options(enums);
-                template.enums = enums;
+                let enums = fxGrid.get.object(template.enums)
+                fxGrid.prepare.options(enums)
+                template.enums = enums
 
                 // options
-                let options = fxGrid.get.object(template.options);
-                fxGrid.prepare.options(options);
-                template.options = options;
+                let options = fxGrid.get.object(template.options)
+                fxGrid.prepare.options(options)
+                template.options = options
 
                 // forms
-                let forms = fxGrid.get.array(template.forms);
-                fxGrid.prepare.forms(forms);
-                template.forms = forms;
+                let forms = fxGrid.get.array(template.forms)
+                fxGrid.prepare.forms(forms)
+                template.forms = forms
 
                 // picks
-                let picks = fxGrid.get.object(template.picks);
-                fxGrid.prepare.picks(picks);
-                template.picks = picks;
+                let picks = fxGrid.get.object(template.picks)
+                fxGrid.prepare.picks(picks)
+                template.picks = picks
 
                 // simpan grid ke window.__grid__
-                addGrid(id, template);
-                self.template = window.__grid__[id];
-                self.replica = fxGrid.get.firstArray(self.template.replicas);
-                self.permission = self.get_permission();
-                self.do_load_data();
+                addGrid(id, template)
+                self.template = window.__grid__[id]
+                self.replica = fxGrid.get.firstArray(self.template.replicas)
+                self.permission = self.get_permission()
+                self.do_load_data()
               } catch (e) {
-                util.log("<<get-grid-1::" + id + ">>", e);
+                util.log('<<get-grid-1::' + id + '>>', e)
               }
-              self.is_template_loading = false;
+              self.is_template_loading = false
             },
             notify: true,
-            onError(error) {
-              self.is_template_loading = false;
+            onError() {
+              self.is_template_loading = false
             },
-          });
+          })
         }
       } else {
-        self.template = window.__grid__[id];
-        self.replica = fxGrid.get.firstArray(self.template.replicas);
-        self.permission = self.get_permission();
+        self.template = window.__grid__[id]
+        self.replica = fxGrid.get.firstArray(self.template.replicas)
+        self.permission = self.get_permission()
         try {
-          self.do_load_data();
+          self.do_load_data()
         } catch (e) {
-          util.log("<<get-grid-2::" + id + ">>", e);
+          util.log('<<get-grid-2::' + id + '>>', e)
         }
       }
     },
@@ -483,81 +466,74 @@ export default {
      * GET PERMISSION
      */
     get_permission() {
-      let self = this;
-      let template = self.template;
-      let table = fxGrid.get.object(template.table);
-      let permission = { actions: fxGrid.copy(template.actions) };
-      let excludes = table?.action?.exclude ? table.action.exclude : [];
-      permission.actions = template.actions.filter(
-        (x) => !excludes.includes(x)
-      );
-      return permission;
+      let template = self.template
+      let table = fxGrid.get.object(template.table)
+      let permission = { actions: fxGrid.copy(template.actions) }
+      let excludes = table?.action?.exclude ? table.action.exclude : []
+      permission.actions = template.actions.filter((x) => !excludes.includes(x))
+      return permission
     },
 
     /*
      * LOAD DATA
      */
     do_load_data() {
-      let self = this;
       self.table = {
         rows: [],
-        columns: [{ name: "_pk_" }],
-        visibles: ["_pk_"],
+        columns: [{ name: '_pk_' }],
+        visibles: ['_pk_'],
         selected: [],
         pagination: {},
         loading: false,
         deleting: false,
-      };
-      let template = self.template;
-      let table = fxGrid.get.object(template.table);
-      let page = fxGrid.get.object(table.page);
-      let order = fxGrid.get.object(table.order);
+      }
+      let template = self.template
+      let table = fxGrid.get.object(template.table)
+      let page = fxGrid.get.object(table.page)
+      let order = fxGrid.get.object(table.order)
       self.search = {
         empty: true,
         filters: fxGrid.copy(fxGrid.get.array(table.filters)),
-      };
+      }
       self.table.pagination = {
         page: 1,
         rowsPerPage: page.default,
         sortBy: order.field,
         descending: true === order.descending,
-      };
-      self.table.columns = table.columns;
-      self.table.visibles = table.visibles;
+      }
+      self.table.columns = table.columns
+      self.table.visibles = table.visibles
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * REQUEST
      */
     do_request(props) {
-      let self = this;
       fxGrid.action.page({
         props: props,
         table: self.table,
         search: self.search,
         definition: self.template,
         replica: self.replica,
-      });
+      })
     },
 
     /*
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * DELETE CLICK
      */
     on_delete_click(scope) {
-      let self = this;
       fxGrid.action.delete({
         row: scope.row,
         definition: self.template,
@@ -567,48 +543,44 @@ export default {
         onSuccess: function () {
           self.do_request({
             pagination: self.table.pagination,
-          });
+          })
         },
-      });
+      })
     },
 
     /*
      * SEARCH CLICK
      */
     on_search_click() {
-      let self = this;
-      let dialog = self.dialog.search;
-      dialog.parameters = {
+      uix.dialog.show(self.dialog.search, {
         filters: fxGrid.copy(self.search.filters),
         template: self.template,
-      };
-      dialog.show = true;
+      })
     },
 
     /*
      * CLOSE SEARCH DIALOG
      */
     on_close_dialog_search(filters) {
-      let self = this;
       if (util.isArray(filters)) {
         let search = self.search,
           v1,
-          v2;
-        search.filters = filters;
-        search.empty = true;
+          v2
+        search.filters = filters
+        search.empty = true
         for (const element of search.filters) {
-          v1 = util.isDefined(element.value) ? element.value : "";
-          v2 = util.isDefined(element.value2) ? element.value2 : "";
-          if ("" !== v1 || "" !== v2) {
-            search.empty = false;
-            break;
+          v1 = util.isDefined(element.value) ? element.value : ''
+          v2 = util.isDefined(element.value2) ? element.value2 : ''
+          if ('' !== v1 || '' !== v2) {
+            search.empty = false
+            break
           }
         }
-        self.dialog.search = { show: false, parameters: null };
-        self.table.pagination.page = 1;
+        uix.dialog.hide(self.dialog.search)
+        self.table.pagination.page = 1
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
 
@@ -616,92 +588,75 @@ export default {
      * VIEW CLICK
      */
     on_view_click(scope) {
-      let self = this;
-      self.dialog.view = {
-        show: true,
-        parameters: {
-          template: self.template,
-          replica: self.replica,
-          row: scope.row,
-        },
-      };
+      uix.dialog.show(self.dialog.view, {
+        template: self.template,
+        replica: self.replica,
+        row: scope.row,
+      })
     },
 
     /*
      * EDIT CLICK
      */
     on_edit_click(scope) {
-      let self = this;
-      self.dialog.edit = {
-        show: true,
-        parameters: {
-          template: self.template,
-          replica: self.replica,
-          row: scope.row,
-          index: scope.rowIndex,
-        },
-      };
+      uix.dialog.show(self.dialog.edit, {
+        template: self.template,
+        replica: self.replica,
+        row: scope.row,
+        index: scope.rowIndex,
+      })
     },
 
     /*
      * ADD CLICK
      */
     on_add_click() {
-      let self = this;
-      self.dialog.edit = {
-        show: true,
-        parameters: {
-          template: self.template,
-          replica: self.replica,
-        },
-      };
+      uix.dialog.show(self.dialog.edit, {
+        template: self.template,
+        replica: self.replica,
+      })
     },
 
     /*
      * CLOSE EDIT DIALOG
      */
     on_close_dialog_edit(result) {
-      let self = this;
-      let row = result.row;
+      let row = result.row
       if (row) {
         if (result.is_edit) {
           if (util.isDefined(row._pk_)) {
-            self.table.rows[result.index] = row;
+            self.table.rows[result.index] = row
           } else {
-            self.dialog.edit = { show: false, parameters: null };
+            uix.dialog.hide(self.dialog.edit)
             setTimeout(function () {
-              self.dialog.edit = {
-                show: true,
-                parameters: {
-                  template: self.template,
-                  replica: self.replica,
-                  row: row,
-                },
-              };
-            }, 100);
-            return;
+              uix.dialog.show(self.dialog.edit, {
+                template: self.template,
+                replica: self.replica,
+                row: row,
+              })
+            }, 100)
+            return
           }
         } else {
           self.do_request({
             pagination: self.table.pagination,
-          });
+          })
         }
       }
-      self.dialog.edit = { show: false, parameters: null };
+      uix.dialog.hide(self.dialog.edit)
     },
 
     /*
      * PAGE CHANGED
      */
     on_page_changed() {
-      let self = this;
-      let page = +self.table.pagination.page;
+      let page = +self.table.pagination.page
       if (!isNaN(page) && page > 0) {
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
   },
-};
+}
 </script>

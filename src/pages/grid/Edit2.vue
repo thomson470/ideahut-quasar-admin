@@ -1,13 +1,14 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
-    <q-card-section class="q-pa-none header-main">
+    <q-card-section
+      class="q-pa-none header-main"
+      :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+    >
       <q-item class="q-pr-none">
         <q-item-section>
           <q-item-label class="text-h6 text-white">{{
-            definition.title +
-            " - " +
-            (is_edit ? $t("label.edit") : $t("label.new"))
+            definition.title + ' - ' + (is_edit ? $t('label.edit') : $t('label.new'))
           }}</q-item-label>
         </q-item-section>
         <q-item-section side>
@@ -20,18 +21,13 @@
             :disable="saving"
             v-close-popup
           >
-            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.close') }}</q-tooltip>
           </q-btn>
         </q-item-section>
       </q-item>
     </q-card-section>
     <q-card-section style="max-height: 65vh" class="q-pa-xs q-mt-xs scroll">
-      <div
-        v-for="(field, index) in fields"
-        :key="index"
-        class="q-mb-xs"
-        style="width: 100%"
-      >
+      <div v-for="(field, index) in fields" :key="index" class="q-mb-xs" style="width: 100%">
         <q-input
           v-if="'words' === field.type"
           type="text"
@@ -67,11 +63,7 @@
           filled
         />
         <q-input
-          v-else-if="
-            'datetime' === field.type ||
-            'date' === field.type ||
-            'time' === field.type
-          "
+          v-else-if="'datetime' === field.type || 'date' === field.type || 'time' === field.type"
           type="text"
           :label="field.label"
           :readonly="!field.editable"
@@ -84,8 +76,8 @@
                 'time' === field.type
                   ? 'schedule'
                   : 'date' === field.type
-                  ? 'calendar_month'
-                  : 'event'
+                    ? 'calendar_month'
+                    : 'event'
               "
               class="cursor-pointer"
             >
@@ -93,10 +85,7 @@
                 transition-show="scale"
                 transition-hide="scale"
                 cover
-                @before-show="
-                  field.proxy_value = field.value;
-                  field.tab = 'time' === field.type ? 'time' : 'date';
-                "
+                @before-show="uix.calendar.beforeShow(field, 'tab', 'proxy_value', 'value')"
               >
                 <div class="bg-primary">
                   <q-tabs
@@ -106,17 +95,11 @@
                     indicator-color="transparent"
                     active-color="white"
                   >
-                    <q-tab
-                      v-if="'datetime' === field.type || 'date' === field.type"
-                      name="date"
-                    >
-                      <span>{{ $t("label.date") }}</span>
+                    <q-tab v-if="'datetime' === field.type || 'date' === field.type" name="date">
+                      <span>{{ $t('label.date') }}</span>
                     </q-tab>
-                    <q-tab
-                      v-if="'datetime' === field.type || 'time' === field.type"
-                      name="time"
-                    >
-                      <span>{{ $t("label.time") }}</span>
+                    <q-tab v-if="'datetime' === field.type || 'time' === field.type" name="time">
+                      <span>{{ $t('label.time') }}</span>
                     </q-tab>
                   </q-tabs>
                   <q-separator />
@@ -126,34 +109,20 @@
                       name="date"
                       class="q-pa-none"
                     >
-                      <q-date
-                        v-model="field.proxy_value"
-                        :mask="field.pattern"
-                        square
-                      />
+                      <q-date v-model="field.proxy_value" :mask="field.pattern" square />
                     </q-tab-panel>
                     <q-tab-panel
                       v-if="'datetime' === field.type || 'time' === field.type"
                       name="time"
                       class="q-pa-none"
                     >
-                      <q-time
-                        v-model="field.proxy_value"
-                        :mask="field.pattern"
-                        format24h
-                        square
-                      />
+                      <q-time v-model="field.proxy_value" :mask="field.pattern" format24h square />
                     </q-tab-panel>
                   </q-tab-panels>
                   <q-separator />
                   <div class="q-pa-xs bg-white row">
                     <div class="col-6 text-left">
-                      <q-btn
-                        :label="$t('label.cancel')"
-                        color="negative"
-                        no-caps
-                        v-close-popup
-                      />
+                      <q-btn :label="$t('label.cancel')" color="negative" no-caps v-close-popup />
                     </div>
                     <div class="col-6 text-right">
                       <q-btn
@@ -199,7 +168,7 @@
                 glossy
                 @click="on_pick_select_click(field)"
               >
-                <q-tooltip>{{ $t("label.select") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.select') }}</q-tooltip>
               </q-fab-action>
               <q-fab-action
                 v-if="field.value"
@@ -210,7 +179,7 @@
                 glossy
                 @click="on_pick_remove_click(field)"
               >
-                <q-tooltip>{{ $t("label.delete") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.delete') }}</q-tooltip>
               </q-fab-action>
             </q-fab>
           </template>
@@ -273,19 +242,24 @@
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
-import { grid as fxGrid } from "src/scripts/grid";
+import { ref, defineAsyncComponent } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+import { grid as fxGrid } from 'src/scripts/grid'
+let self
 
 export default {
-  props: ["parameters"],
-  emits: ["close"],
+  props: ['parameters'],
+  emits: ['close'],
   components: {
-    Pick: defineAsyncComponent(() => import("src/pages/grid/Pick.vue")),
+    Pick: defineAsyncComponent(() => import('src/pages/grid/Pick.vue')),
   },
   setup() {
     return {
+      APP,
+      uix,
       id: ref(null),
       is_edit: ref(false),
       saving: ref(false),
@@ -297,81 +271,73 @@ export default {
       row: ref(null),
       replica: ref(null),
       relations: ref([]),
-
       enums: ref({}),
       options: ref({}),
       loading: ref({}),
-
       dialog: ref({
-        pick: {
-          show: false,
-          field: null,
-          parameters: null,
-        },
+        pick: uix.dialog.init(),
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
-    self.fields = [];
-    self.is_edit = false;
-    let params = fxGrid.get.object(self.parameters);
-    self.replica = fxGrid.get.number(params.replica, null);
-    self.template = fxGrid.get.object(params.template);
-    self.definition = fxGrid.get.object(params.definition);
-    self.parentRow = fxGrid.get.object(params.parentRow);
-    self.relations = fxGrid.get.array(params.relations);
-    self.enums = {};
+    self = this
+    self.fields = []
+    self.is_edit = false
+    let params = fxGrid.get.object(self.parameters)
+    self.replica = fxGrid.get.number(params.replica, null)
+    self.template = fxGrid.get.object(params.template)
+    self.definition = fxGrid.get.object(params.definition)
+    self.parentRow = fxGrid.get.object(params.parentRow)
+    self.relations = fxGrid.get.array(params.relations)
+    self.enums = {}
     if (util.isObject(self.template.enums)) {
       Object.keys(self.template.enums).forEach((key) => {
-        self.enums[key] = [null].concat(self.template.enums[key]);
-      });
+        self.enums[key] = [null].concat(self.template.enums[key])
+      })
     }
-    self.options = {};
+    self.options = {}
     if (util.isObject(self.template.options)) {
       Object.keys(self.template.options).forEach((key) => {
-        self.options[key] = [null].concat(self.template.options[key]);
-      });
+        self.options[key] = [null].concat(self.template.options[key])
+      })
     }
-    self.row = fxGrid.get.object(params.row);
-    let fields = fxGrid.get.array(self.definition.fields);
+    self.row = fxGrid.get.object(params.row)
+    let fields = fxGrid.get.array(self.definition.fields)
     if (fields.length) {
       if (util.isObject(params.row)) {
         // edit
-        self.index = params.index;
-        self.id = fxGrid.id.fromPk(self.definition.id, params.row._pk_);
-        self.is_edit = util.isDefined(self.id);
+        self.index = params.index
+        self.id = fxGrid.id.fromPk(self.definition.id, params.row._pk_)
+        self.is_edit = util.isDefined(self.id)
         for (const element of fields) {
-          let field = fxGrid.clone.field(element);
-          field.value = util.getFieldValue(field.name, params.row);
-          if ("datetime" === field.type && "epoch" === field.converter) {
+          let field = fxGrid.clone.field(element)
+          field.value = util.getFieldValue(field.name, params.row)
+          if ('datetime' === field.type && 'epoch' === field.converter) {
             field.value = util.format.date(field.value, {
               format: field.pattern || null,
-            });
-          } else if ("pick" === field.type) {
+            })
+          } else if ('pick' === field.type) {
             if (util.isDefined(field.value)) {
               field.text = util.isFunction(field.format)
                 ? field.format(field.value, params.row)
-                : field.value + "";
+                : field.value + ''
             } else {
-              field.text = util.isFunction(field.format)
-                ? field.format(null, params.row)
-                : "";
+              field.text = util.isFunction(field.format) ? field.format(null, params.row) : ''
             }
           }
           if (!self.is_edit) {
-            field.editable = field.insertable;
+            field.editable = field.insertable
           }
-          self.fields.push(field);
+          self.fields.push(field)
         }
       } else {
         // add
         for (const element of fields) {
           if (element.insertable) {
-            let field = fxGrid.clone.field(element);
-            field.editable = field.insertable;
-            self.fields.push(field);
+            let field = fxGrid.clone.field(element)
+            field.editable = field.insertable
+            self.fields.push(field)
           }
         }
       }
@@ -383,76 +349,67 @@ export default {
      * PICK CLICK
      */
     on_pick_select_click(field) {
-      let self = this;
-      let pick = self.template.picks[field.pick];
+      let pick = self.template.picks[field.pick]
       if (!util.isObject(pick)) {
-        uix.error("error.required", "label.pick");
-        return;
+        uix.error('error.required', 'label.pick')
+        return
       }
-      let relations = util.isArray(pick.relations) ? pick.relations : [];
+      let relations = util.isArray(pick.relations) ? pick.relations : []
       for (const relation of relations) {
-        relation.value = util.getFieldValue(relation.source, self.parentRow);
+        relation.value = util.getFieldValue(relation.source, self.parentRow)
       }
-      self.dialog.pick = {
-        show: true,
-        parameters: {
-          template: self.template,
-          field: field,
-          pick: pick,
-          relations: relations,
-          replica: self.replica,
-        },
-      };
+      uix.dialog.show(self.dialog.pick, {
+        template: self.template,
+        field: field,
+        pick: pick,
+        relations: relations,
+        replica: self.replica,
+      })
     },
 
     /*
      * REMOVE PICK VALUE
      */
     on_pick_remove_click(field) {
-      field.value = undefined;
-      field.text = undefined;
+      field.value = undefined
+      field.text = undefined
     },
 
     /*
      * CLOSE PICK DIALOG
      */
     on_close_dialog_pick(value) {
-      let self = this;
       if (value?._pk_) {
-        let field = self.dialog.pick.parameters.field;
-        let text = util.isFunction(field.format)
-          ? field.format(value)
-          : value + "";
-        field.value = value;
-        field.text = text;
+        let field = self.dialog.pick.parameters.field
+        let text = util.isFunction(field.format) ? field.format(value) : value + ''
+        field.value = value
+        field.text = text
       }
-      self.dialog.pick = { show: false, parameters: null, field: null };
+      uix.dialog.hide(self.dialog.pick)
     },
 
     /*
      * CLONE CLICK
      */
     on_clone_click() {
-      let self = this;
-      let row = self.row ? fxGrid.copy(self.row) : null;
+      let row = self.row ? fxGrid.copy(self.row) : null
       if (row?._pk_) {
-        delete row._pk_;
-        let id = self.template.id;
-        if ("STANDARD" === id.type) {
-          delete row[id.fields[0]];
+        delete row._pk_
+        let id = self.template.id
+        if ('STANDARD' === id.type) {
+          delete row[id.fields[0]]
         }
       }
-      self.$emit("close", {
+      self.$emit('close', {
         row: row,
         is_edit: self.is_edit,
-      });
+      })
     },
 
     /*
      * SAVE CLICK
      */
     on_save_click() {
-      let self = this;
       fxGrid.action.save({
         id: self.id,
         fields: self.fields,
@@ -463,39 +420,39 @@ export default {
         relations: self.relations,
         onSuccess: function (data) {
           if (true === self.is_edit) {
-            self.saving = true;
-            let body = fxGrid.copy(self.definition.crud);
-            body.id = fxGrid.copy(self.id);
-            body.replica = self.replica;
+            self.saving = true
+            let body = fxGrid.copy(self.definition.crud)
+            body.id = fxGrid.copy(self.id)
+            body.replica = self.replica
             api.call({
-              path: "/crud/single",
-              method: "post",
+              path: '/crud/single',
+              method: 'post',
               data: body,
               onFinish() {
-                self.saving = false;
+                self.saving = false
               },
               onSuccess(object) {
                 if (util.isObject(object)) {
-                  object._grid_id_ = self.row._grid_id_;
-                  object._pk_ = self.row._pk_;
+                  object._grid_id_ = self.row._grid_id_
+                  object._pk_ = self.row._pk_
                 }
-                self.$emit("close", {
+                self.$emit('close', {
                   row: object,
                   is_edit: self.is_edit,
                   index: self.index,
-                });
+                })
               },
-            });
+            })
           } else {
-            self.$emit("close", {
+            self.$emit('close', {
               row: data,
               is_edit: self.is_edit,
               index: self.index,
-            });
+            })
           }
         },
-      });
+      })
     },
   },
-};
+}
 </script>

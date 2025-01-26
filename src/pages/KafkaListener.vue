@@ -1,5 +1,5 @@
 <template>
-  <q-card style="min-width: 50vw; max-width: 90vw">
+  <q-card :style="'min-width: 50vw; max-width: 90vw;' + main.style" v-touch-pan.mouse="main.onDrag">
     <q-card-section class="q-pa-none">
       <q-table
         class="table-sticky-header q-ma-none"
@@ -36,18 +36,10 @@
             :loading="table.loading"
             @click="on_refresh_click"
           >
-            <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
           </q-btn>
-          <q-btn
-            round
-            glossy
-            dense
-            size="sm"
-            icon="close"
-            class="q-ml-sm"
-            v-close-popup
-          >
-            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+          <q-btn round glossy dense size="sm" icon="close" class="q-ml-sm" v-close-popup>
+            <q-tooltip>{{ $t('label.close') }}</q-tooltip>
           </q-btn>
         </template>
         <template v-slot:no-data="{ message }">
@@ -72,7 +64,7 @@
             icon="visibility"
             @click="on_view_click(scope)"
           >
-            <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.view') }}</q-tooltip>
           </q-btn>
         </template>
         <template v-slot:pagination="scope">
@@ -149,9 +141,9 @@
     v-model="view.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <KeyValue :parameters="view.parameters" />
+    <KeyValue :parameters="view.parameters" :style="view.style" v-touch-pan.mouse="view.onDrag" />
   </q-dialog>
 
   <!-- PROPERTIES DIALOG -->
@@ -159,28 +151,31 @@
     v-model="properties.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <KeyValue :parameters="properties.parameters" />
+    <KeyValue
+      :parameters="properties.parameters"
+      :style="properties.style"
+      v-touch-pan.mouse="properties.onDrag"
+    />
   </q-dialog>
-
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
-import { format } from "quasar";
+import { ref, defineAsyncComponent } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
-  props: ["parameters"],
+  props: ['parameters'],
   components: {
-    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
+    KeyValue: defineAsyncComponent(() => import('src/pages/KeyValue.vue')),
   },
   setup() {
     return {
       util,
-
       table: ref({
         rows: [],
         columns: [],
@@ -188,90 +183,82 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 10,
-          sortBy: "topic",
+          sortBy: 'topic',
           descending: false,
         },
       }),
-
-      view: ref({
-        show: false,
-        parameters: null,
-      }),
-
-      properties: ref({
-        show: false,
-        parameters: null,
-      }),
-
-    };
+      main: ref(uix.dialog.init(() => self.main)),
+      view: ref(uix.dialog.init(() => self.view)),
+      properties: ref(uix.dialog.init(() => self.properties)),
+    }
   },
 
   created() {
-    let self = this;
+    self = this
     let columns = [
       {
-        name: "topic",
-        label: self.$t("label.topic"),
-        field: "topic",
-        align: "left",
+        name: 'topic',
+        label: self.$t('label.topic'),
+        field: 'topic',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "partitions",
-        label: self.$t("label.partition"),
-        field: "partitions",
-        align: "left",
-        format: (val, row) => {
-          return util.isArray(val) ? val.join(", ") : val;
+        name: 'partitions',
+        label: self.$t('label.partition'),
+        field: 'partitions',
+        align: 'left',
+        format: (val) => {
+          return util.isArray(val) ? val.join(', ') : val
         },
       },
       {
-        name: "isReply",
-        label: self.$t("label.reply"),
-        field: "isReply",
-        align: "left",
+        name: 'isReply',
+        label: self.$t('label.reply'),
+        field: 'isReply',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "objectType",
-        label: self.$t("label.object_type"),
-        field: "objectType",
-        align: "left",
+        name: 'objectType',
+        label: self.$t('label.object_type'),
+        field: 'objectType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "beanName",
-        label: self.$t("label.bean_name"),
-        field: "beanName",
-        align: "left",
+        name: 'beanName',
+        label: self.$t('label.bean_name'),
+        field: 'beanName',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "beanType",
-        label: self.$t("label.bean_type"),
-        field: "beanType",
-        align: "left",
+        name: 'beanType',
+        label: self.$t('label.bean_type'),
+        field: 'beanType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "classType",
-        label: self.$t("label.class_type"),
-        field: "classType",
-        align: "left",
+        name: 'classType',
+        label: self.$t('label.class_type'),
+        field: 'classType',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "methodName",
-        label: self.$t("label.method_name"),
-        field: "methodName",
-        align: "left",
+        name: 'methodName',
+        label: self.$t('label.method_name'),
+        field: 'methodName',
+        align: 'left',
         sortable: true,
       },
-    ];
-    self.table.columns = columns;
+    ]
+    self.table.columns = columns
     self.do_request({
       pagination: self.table.pagination,
-    });
+    })
   },
 
   methods: {
@@ -279,57 +266,52 @@ export default {
      * REQUEST
      */
     do_request(props) {
-      let self = this;
-      self.table.selected = [];
-      let { page, rowsPerPage } = props?.pagination
-        ? props.pagination
-        : self.table.pagination;
+      self.table.selected = []
+      let { page, rowsPerPage } = props?.pagination ? props.pagination : self.table.pagination
       let params = {
         name: self.parameters.name,
         containerId: self.parameters.containerId,
         index: page,
         size: rowsPerPage,
-      };
-      self.table.loading = true;
+      }
+      self.table.loading = true
       api.call({
-        path: "/kafka/listeners",
+        path: '/kafka/listeners',
         params: params,
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(page) {
-          self.table.rows = [];
+          self.table.rows = []
           if (util.isObject(page)) {
-            self.table.rows = util.isArray(page.data) ? page.data : [];
-            let pagination = self.table.pagination;
-            pagination.page = page.index;
-            pagination.rowsPerPage = page.size;
-            pagination.rowsNumber = page.records;
+            self.table.rows = util.isArray(page.data) ? page.data : []
+            let pagination = self.table.pagination
+            pagination.page = page.index
+            pagination.rowsPerPage = page.size
+            pagination.rowsNumber = page.records
           }
         },
-      });
+      })
     },
 
     /*
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * PAGE CHANGED
      */
     on_page_changed() {
-      let self = this;
-      let page = +self.table.pagination.page;
+      let page = +self.table.pagination.page
       if (!isNaN(page) && page > 0) {
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
 
@@ -337,87 +319,80 @@ export default {
      * VIEW CLICK
      */
     on_view_click(scope) {
-      let self = this;
-      let rows = [];
+      let rows = []
       for (const col of scope.cols) {
         rows.push({
           label: col.label,
-          value: util.isFunction(col.format) ? col.format(scope.row[col.field], scope.row) : scope.row[col.field],
-        });
+          value: util.isFunction(col.format)
+            ? col.format(scope.row[col.field], scope.row)
+            : scope.row[col.field],
+        })
       }
-      self.view = {
-        show: true,
-        parameters: {
-          search: false,
-          rows: rows,
-          actions: [
-            {
-              icon: "lightbulb",
-              label: self.$t("label.properties"),
-              click: () => self.on_properties_click(scope),
-            }
-          ],
-        },
-      };
+      uix.dialog.show(self.view, {
+        search: false,
+        rows: rows,
+        actions: [
+          {
+            icon: 'lightbulb',
+            label: self.$t('label.properties'),
+            click: () => self.on_properties_click(scope),
+          },
+        ],
+      })
     },
 
     /*
      * PROPERTIES CLICK
      */
     on_properties_click(scope) {
-      let self = this;
-      self.properties = {
-        show: true,
-        parameters: {
-          title: self.$t("label.properties"),
-          name: self.parameters.name,
-          containerId: scope.row.containerId,
-          listenerId: scope.row.listenerId,
-          rows: [],
-          onRefresh: self.get_properties,
-        },
-      };
+      uix.dialog.show(self.properties, {
+        title: self.$t('label.properties'),
+        name: self.parameters.name,
+        containerId: scope.row.containerId,
+        listenerId: scope.row.listenerId,
+        rows: [],
+        onRefresh: self.get_properties,
+      })
     },
     get_properties(i) {
-      let p = util.isObject(i) ? i : {};
-      util.apply(p.onStart);
+      let p = util.isObject(i) ? i : {}
+      util.apply(p.onStart)
       api.call({
-        path: "/kafka/listener/properties",
+        path: '/kafka/listener/properties',
         params: {
           name: p.parameters.name,
           containerId: p.parameters.containerId,
           listenerId: p.parameters.listenerId,
         },
         onFinish() {
-          util.apply(p.onFinish);
+          util.apply(p.onFinish)
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            let rows = [];
+            let rows = []
             Object.keys(data).forEach((key) => {
               rows.push({
                 label: key,
                 value: data[key],
-              });
-            });
+              })
+            })
             rows.sort((a, b) => {
-              const la = a.label.toUpperCase();
-              const lb = b.label.toUpperCase();
+              const la = a.label.toUpperCase()
+              const lb = b.label.toUpperCase()
               if (la < lb) {
-                return -1;
+                return -1
               }
               if (la > lb) {
-                return 1;
+                return 1
               }
-              return 0;
-            });
-            util.apply(p.onData, rows);
+              return 0
+            })
+            util.apply(p.onData, rows)
           }
         },
         notify: true,
-      });
+      })
     },
-
   },
-};
+}
 </script>

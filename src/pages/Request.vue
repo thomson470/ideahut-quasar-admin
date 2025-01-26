@@ -26,12 +26,8 @@
         icon="search"
         @click="on_search_dialog_click"
       >
-        <q-badge
-          v-if="Object.keys(table.filters).length"
-          class="led-green"
-          floating
-        ></q-badge>
-        <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+        <q-badge v-if="Object.keys(table.filters).length" class="led-green" floating></q-badge>
+        <q-tooltip>{{ $t('label.search') }}</q-tooltip>
       </q-btn>
       <q-btn
         glossy
@@ -43,7 +39,7 @@
         :loading="table.loading"
         @click="on_refresh_click"
       >
-        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -65,7 +61,7 @@
         icon="visibility"
         @click="on_detail_click(scope)"
       >
-        <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.view') }}</q-tooltip>
       </q-btn>
     </template>
   </q-table>
@@ -74,15 +70,17 @@
     v-model="dialog.detail.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <q-card :style="$q.screen.lt.md ? '' : 'width: 80vw; max-width: 81vw;'">
-      <q-card-section class="q-pa-none header-main">
+    <q-card :style="($q.screen.lt.md ? '' : 'width: 80vw; max-width: 81vw;') + dialog.detail.style">
+      <q-card-section
+        class="q-pa-none header-main"
+        :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+        v-touch-pan.mouse="dialog.detail.onDrag"
+      >
         <q-item class="q-pr-none">
           <q-item-section style="max-width: 80vw; overflow-x: scroll">
-            <q-item-label class="text-white">{{
-              dialog.detail.title
-            }}</q-item-label>
+            <q-item-label class="text-white">{{ dialog.detail.title }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-btn
@@ -93,7 +91,7 @@
               icon="close"
               v-close-popup
             >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+              <q-tooltip>{{ $t('label.close') }}</q-tooltip>
             </q-btn>
           </q-item-section>
         </q-item>
@@ -124,16 +122,18 @@
     v-model="dialog.search.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
     persistent
   >
-    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
-      <q-card-section class="q-pa-none header-main">
+    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + dialog.search.style">
+      <q-card-section
+        class="q-pa-none header-main"
+        :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+        v-touch-pan.mouse="dialog.search.onDrag"
+      >
         <q-item class="q-pr-none">
           <q-item-section>
-            <q-item-label class="text-h6 text-white">{{
-              $t("label.search")
-            }}</q-item-label>
+            <q-item-label class="text-h6 text-white">{{ $t('label.search') }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-btn
@@ -144,7 +144,7 @@
               icon="close"
               v-close-popup
             >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+              <q-tooltip>{{ $t('label.close') }}</q-tooltip>
             </q-btn>
           </q-item-section>
         </q-item>
@@ -234,17 +234,21 @@
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
+import { ref, defineAsyncComponent } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
   components: {
-    VueJsonPretty: defineAsyncComponent(() => import("vue-json-pretty")),
+    VueJsonPretty: defineAsyncComponent(() => import('vue-json-pretty')),
   },
 
   setup() {
     return {
+      APP,
       util,
 
       table: ref({
@@ -255,7 +259,7 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 30,
-          sortBy: "path",
+          sortBy: 'path',
           descending: false,
           count: true,
         },
@@ -263,226 +267,203 @@ export default {
 
       dialog: ref({
         detail: {
-          show: false,
+          ...uix.dialog.init(() => self.dialog.detail),
           title: null,
           data: null,
         },
-        search: {
-          show: false,
-        },
+        search: uix.dialog.init(() => self.dialog.search),
       }),
 
       option: ref({
-        methods: [
-          "",
-          "GET",
-          "POST",
-          "PUT",
-          "DELETE",
-          "HEAD",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-        ],
-        boolean: ["", "true", "false"],
+        methods: ['', 'GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE'],
+        boolean: ['', 'true', 'false'],
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
+    self = this
     self.table.columns = [
       {
-        name: "path",
-        label: self.$t("label.path"),
-        field: "patternValues",
-        align: "left",
+        name: 'path',
+        label: self.$t('label.path'),
+        field: 'patternValues',
+        align: 'left',
         sortable: true,
-        format: function (val, row) {
-          return val.join(", ");
+        format: function (val) {
+          return val.join(', ')
         },
       },
       {
-        name: "method",
-        label: self.$t("label.method"),
-        field: "methods",
-        align: "left",
+        name: 'method',
+        label: self.$t('label.method'),
+        field: 'methods',
+        align: 'left',
         sortable: true,
-        format: function (val, row) {
-          return val.join(", ");
+        format: function (val) {
+          return val.join(', ')
         },
       },
       {
-        name: "public",
-        label: self.$t("label.public"),
-        field: "public",
-        align: "left",
+        name: 'public',
+        label: self.$t('label.public'),
+        field: 'public',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "exclude",
-        label: self.$t("label.exclude"),
-        field: "exclude",
-        align: "left",
+        name: 'exclude',
+        label: self.$t('label.exclude'),
+        field: 'exclude',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "bean",
-        label: self.$t("label.bean"),
-        field: "handler",
-        align: "left",
+        name: 'bean',
+        label: self.$t('label.bean'),
+        field: 'handler',
+        align: 'left',
         sortable: true,
-        format: function (val, row) {
-          return val.bean;
+        format: function (val) {
+          return val.bean
         },
       },
       {
-        name: "function",
-        label: self.$t("label.function"),
-        field: "handler",
-        align: "left",
+        name: 'function',
+        label: self.$t('label.function'),
+        field: 'handler',
+        align: 'left',
         sortable: true,
-        format: function (val, row) {
-          return val.method.name + " (" + val.method.parameterCount + ")";
+        format: function (val) {
+          return val.method.name + ' (' + val.method.parameterCount + ')'
         },
       },
-    ];
-    self.on_refresh_click();
+    ]
+    self.on_refresh_click()
   },
   methods: {
     /*
      * REQUEST
      */
     do_request(props) {
-      let self = this;
-      let { page, rowsPerPage, sortBy, descending } =
-        self.get_pagination(props);
+      let { page, rowsPerPage, sortBy, descending } = self.get_pagination(props)
       let params = {
         index: page,
         size: rowsPerPage,
-        order: (descending ? "-" : "") + sortBy,
-      };
+        order: (descending ? '-' : '') + sortBy,
+      }
       Object.keys(self.table.filters).forEach((key) => {
-        params[key] = self.table.filters[key];
-      });
-      self.table.loading = true;
+        params[key] = self.table.filters[key]
+      })
+      self.table.loading = true
       api.call({
-        path: "/request/list",
+        path: '/request/list',
         params: params,
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.table.rows = util.isArray(data.data) ? data.data : [];
-            let pagination = self.table.pagination;
-            pagination.page = data.index;
-            pagination.rowsPerPage = data.size;
+            self.table.rows = util.isArray(data.data) ? data.data : []
+            let pagination = self.table.pagination
+            pagination.page = data.index
+            pagination.rowsPerPage = data.size
             if (util.isNumber(data.records)) {
-              pagination.rowsNumber = data.records;
+              pagination.rowsNumber = data.records
             } else {
-              let rowsNumber = data.index * data.size;
+              let rowsNumber = data.index * data.size
               if (self.table.rows.length !== data.size) {
-                pagination.rowsNumber = rowsNumber;
+                pagination.rowsNumber = rowsNumber
               } else {
-                pagination.rowsNumber = rowsNumber + 1;
+                pagination.rowsNumber = rowsNumber + 1
               }
             }
           }
         },
-      });
+      })
     },
 
     /*
      * GET PAGINATION
      */
     get_pagination(props) {
-      let self = this;
-      let pagination = props?.pagination
-        ? props.pagination
-        : self.table.pagination;
+      let pagination = props?.pagination ? props.pagination : self.table.pagination
       if (pagination) {
-        self.table.pagination = pagination;
-        return pagination;
+        self.table.pagination = pagination
+        return pagination
       }
-      return self.table.pagination;
+      return self.table.pagination
     },
 
     /*
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       if (!self.table.rows?.length) {
         if (self.table.pagination.page > 1) {
-          self.table.pagination.page = 1;
+          self.table.pagination.page = 1
         }
       }
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * DETAIL CLICK
      */
     on_detail_click(scope) {
-      let self = this;
-      self.dialog.detail = {
-        title: scope.row.patternValues[0],
-        data: scope.row,
-        show: true,
-      };
+      let d = self.dialog.detail
+      d.title = scope.row.patternValues[0]
+      d.data = scope.row
+      uix.dialog.show(d)
     },
 
     /*
      * SEARCH RESET CLICK
      */
     on_search_reset_click() {
-      let self = this;
-      self.table.filters = {};
+      self.table.filters = {}
     },
 
     /*
      * SEARCH FILTER CLICK
      */
     on_search_filter_click() {
-      let self = this;
-      let filters = self.table.filters;
-      if (!(util.isString(filters.method) && "" !== filters.method)) {
-        delete filters.method;
+      let filters = self.table.filters
+      if (!(util.isString(filters.method) && '' !== filters.method)) {
+        delete filters.method
       }
-      if (!(util.isString(filters.path) && "" !== filters.path)) {
-        delete filters.path;
+      if (!(util.isString(filters.path) && '' !== filters.path)) {
+        delete filters.path
       }
-      if (!(util.isString(filters.bean) && "" !== filters.bean)) {
-        delete filters.bean;
+      if (!(util.isString(filters.bean) && '' !== filters.bean)) {
+        delete filters.bean
       }
-      if (!(util.isString(filters.function) && "" !== filters.function)) {
-        delete filters.function;
+      if (!(util.isString(filters.function) && '' !== filters.function)) {
+        delete filters.function
       }
-      if (!(util.isString(filters.annotation) && "" !== filters.annotation)) {
-        delete filters.annotation;
+      if (!(util.isString(filters.annotation) && '' !== filters.annotation)) {
+        delete filters.annotation
       }
-      if (!(util.isString(filters.isPublic) && "" !== filters.isPublic)) {
-        delete filters.isPublic;
+      if (!(util.isString(filters.isPublic) && '' !== filters.isPublic)) {
+        delete filters.isPublic
       }
-      if (!(util.isString(filters.isExclude) && "" !== filters.isExclude)) {
-        delete filters.isExclude;
+      if (!(util.isString(filters.isExclude) && '' !== filters.isExclude)) {
+        delete filters.isExclude
       }
       self.do_request({
         pagination: self.table.pagination,
-      });
-      self.dialog.search.show = false;
+      })
+      uix.dialog.hide(self.dialog.search)
     },
 
     /*
      * SEARCH DIALOG CLICK
      */
     on_search_dialog_click() {
-      let self = this;
-      self.dialog.search.show = true;
+      uix.dialog.show(self.dialog.search)
     },
   },
-};
+}
 </script>

@@ -18,15 +18,8 @@
             @click="on_reload_click(bean)"
             :loading="bean.loading"
           >
-            <q-icon
-              name="memory"
-              :size="$q.screen.lt.md ? '6em' : '10em'"
-              center
-            ></q-icon>
-            <span
-              :class="$q.screen.lt.md ? 'text-h6' : 'text-h5'"
-              style="overflow-wrap: anywhere"
-            >
+            <q-icon name="memory" :size="$q.screen.lt.md ? '6em' : '10em'" center></q-icon>
+            <span :class="$q.screen.lt.md ? 'text-h6' : 'text-h5'" style="overflow-wrap: anywhere">
               {{ bean.title }}
             </span>
             <template v-slot:loading>
@@ -43,62 +36,62 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
-import { api } from "src/scripts/api";
+import { ref } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
 
 export default {
   setup() {
     return {
       util,
       beans: ref([]),
-    };
+    }
   },
 
   created() {
-    let self = this;
+    let self = this
     api.call({
-      path: "/reload",
+      path: '/reload',
       onSuccess(datas) {
         if (util.isArray(datas)) {
-          self.beans = [];
+          self.beans = []
           for (const data of datas) {
             self.beans.push({
               title: data.substring(0, 1).toUpperCase() + data.substring(1),
               value: data,
               loading: false,
-            });
+            })
           }
         }
       },
-    });
+    })
   },
   methods: {
     on_reload_click: function (bean) {
       uix.confirm(
         function () {
-          bean.loading = true;
+          bean.loading = true
           api.call({
-            path: "/reload",
+            path: '/reload',
             params: {
               name: bean.value,
             },
-            method: "post",
+            method: 'post',
             onFinish() {
-              bean.loading = false;
+              bean.loading = false
             },
             onSuccess(data) {
               if (false === data) {
-                uix.alert("info.being_processed", bean.title);
+                uix.alert('info.being_processed', bean.title)
               }
             },
-          });
+          })
         },
-        "confirm.reload",
-        bean.title
-      );
+        'confirm.reload',
+        bean.title,
+      )
     },
   },
-};
+}
 </script>

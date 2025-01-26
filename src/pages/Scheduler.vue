@@ -18,9 +18,7 @@
             :loading="loading.start_stop"
             @click="on_start_stop_click"
           >
-            <q-tooltip>{{
-              $t(running ? "label.stop" : "label.start")
-            }}</q-tooltip>
+            <q-tooltip>{{ $t(running ? 'label.stop' : 'label.start') }}</q-tooltip>
           </q-btn>
         </div>
         <div class="col-md-9 col-xs-12">
@@ -35,7 +33,7 @@
               :loading="loading.metadata"
               @click="get_metadata"
             >
-              <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+              <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
             </q-btn>
           </div>
           <q-table
@@ -54,17 +52,12 @@
         </div>
       </q-card-section>
     </q-card>
-    <q-card
-      v-for="(group, id) in groups"
-      :key="id"
-      class="q-pa-none q-mb-lg"
-      bordered
-    >
+    <q-card v-for="(group, id) in groups" :key="id" class="q-pa-none q-mb-lg" bordered>
       <q-item>
         <q-item-section>
           <q-item-label class="text-h5">{{ group.name }}</q-item-label>
           <q-item-label class="text-italic" caption>
-            {{ $t("label.zone_offset_seconds") }}: {{ group.zoneOffsetSeconds }}
+            {{ $t('label.zone_offset_seconds') }}: {{ group.zoneOffsetSeconds }}
           </q-item-label>
           <q-item-label class="ellipsis-text lines2" caption>
             {{ group.description }}
@@ -91,10 +84,7 @@
           <template v-slot:body-selection="scope">
             <div class="text-right">
               <q-btn
-                v-if="
-                  scope.row?.status?.state &&
-                  'PAUSED' === scope.row.status.state
-                "
+                v-if="scope.row?.status?.state && 'PAUSED' === scope.row.status.state"
                 glossy
                 round
                 dense
@@ -105,13 +95,10 @@
                 :loading="loading.pause_resume[scope.row.triggerId]"
                 @click="on_resume_click(scope)"
               >
-                <q-tooltip>{{ $t("label.resume") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.resume') }}</q-tooltip>
               </q-btn>
               <q-btn
-                v-if="
-                  scope.row?.status?.state &&
-                  'PAUSED' !== scope.row.status.state
-                "
+                v-if="scope.row?.status?.state && 'PAUSED' !== scope.row.status.state"
                 glossy
                 round
                 dense
@@ -122,7 +109,7 @@
                 :loading="loading.pause_resume[scope.row.triggerId]"
                 @click="on_pause_click(scope)"
               >
-                <q-tooltip>{{ $t("label.pause") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.pause') }}</q-tooltip>
               </q-btn>
               <q-btn
                 v-if="scope.row?.status && true !== scope.row.status.scheduled"
@@ -136,7 +123,7 @@
                 :loading="loading.schedule_unschedule[scope.row.triggerId]"
                 @click="on_schedule_click(scope)"
               >
-                <q-tooltip>{{ $t("label.schedule") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.schedule') }}</q-tooltip>
               </q-btn>
               <q-btn
                 v-if="scope.row?.status && true === scope.row.status.scheduled"
@@ -150,7 +137,7 @@
                 :loading="loading.schedule_unschedule[scope.row.triggerId]"
                 @click="on_unschedule_click(scope)"
               >
-                <q-tooltip>{{ $t("label.unschedule") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.unschedule') }}</q-tooltip>
               </q-btn>
               <q-btn
                 v-if="scope.row?.status && true === scope.row.status.scheduled"
@@ -164,7 +151,7 @@
                 :loading="loading.trigger[scope.row.triggerId]"
                 @click="on_trigger_click(scope)"
               >
-                <q-tooltip>{{ $t("label.trigger") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.trigger') }}</q-tooltip>
               </q-btn>
               <q-btn
                 glossy
@@ -176,7 +163,7 @@
                 icon="visibility"
                 @click="on_view_click(scope)"
               >
-                <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+                <q-tooltip>{{ $t('label.view') }}</q-tooltip>
               </q-btn>
             </div>
           </template>
@@ -194,7 +181,7 @@
           :loading="loading.group[id]"
           @click="refresh_triggers(id)"
         >
-          <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+          <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
         </q-btn>
         <q-btn
           round
@@ -207,34 +194,34 @@
         />
       </q-badge>
     </q-card>
-    <q-btn
-      flat
-      size="xs"
-      @click="on_reset_click"
-    />
+    <q-btn flat size="xs" @click="on_reset_click" />
   </div>
 
   <q-dialog
     v-model="dialog.view.show"
-    persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <View :parameters="dialog.view.parameters" />
+    <View
+      :parameters="dialog.view.parameters"
+      :style="dialog.view.style"
+      v-touch-pan.mouse="dialog.view.onDrag"
+    />
   </q-dialog>
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
-import { api } from "src/scripts/api";
+import { ref, defineAsyncComponent } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
   components: {
     // eslint-disable-next-line vue/no-reserved-component-names
-    View: defineAsyncComponent(() => import("src/pages/TableView.vue")),
+    View: defineAsyncComponent(() => import('src/pages/TableView.vue')),
   },
   setup() {
     return {
@@ -243,14 +230,11 @@ export default {
       running: ref(null),
       metadata: ref([]),
       groups: ref({}),
-
       columns: ref([]),
       visibles: ref([]),
-
       filter: ref({}),
       expand: ref({}),
       pagination: ref({}),
-
       loading: ref({
         start_stop: false,
         metadata: false,
@@ -259,171 +243,167 @@ export default {
         schedule_unschedule: {},
         trigger: {},
       }),
-
       dialog: ref({
-        view: {
-          show: false,
-          parameters: null,
-        },
+        view: uix.dialog.init(() => self.dialog.view),
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
+    self = this
     self.visibles = [
-      "name",
-      "cronExpression",
-      "type.classname",
-      "isRunOnStartup",
-      "status.state",
-      "status.priority",
-      "zoneOffsetSeconds",
-      "status.startTime",
-      "status.previousFireTime",
-      "status.nextFireTime",
-    ];
+      'name',
+      'cronExpression',
+      'type.classname',
+      'isRunOnStartup',
+      'status.state',
+      'status.priority',
+      'zoneOffsetSeconds',
+      'status.startTime',
+      'status.previousFireTime',
+      'status.nextFireTime',
+    ]
     self.columns = [
       {
-        name: "triggerId",
-        label: self.$t("label.id"),
-        field: "triggerId",
-        align: "left",
+        name: 'triggerId',
+        label: self.$t('label.id'),
+        field: 'triggerId',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "name",
-        label: self.$t("label.name"),
-        field: "name",
-        align: "left",
+        name: 'name',
+        label: self.$t('label.name'),
+        field: 'name',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "cronExpression",
-        label: self.$t("label.cron"),
-        field: "cronExpression",
-        align: "left",
+        name: 'cronExpression',
+        label: self.$t('label.cron'),
+        field: 'cronExpression',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "type.classname",
-        label: self.$t("label.class"),
-        field: "type",
-        align: "left",
+        name: 'type.classname',
+        label: self.$t('label.class'),
+        field: 'type',
+        align: 'left',
         format: function (val) {
           if (val) {
-            return val.classname;
+            return val.classname
           } else {
-            return val.name;
+            return val.name
           }
         },
       },
       {
-        name: "isRunOnStartup",
-        label: self.$t("label.run_on_startup"),
-        field: "isRunOnStartup",
-        align: "center",
+        name: 'isRunOnStartup',
+        label: self.$t('label.run_on_startup'),
+        field: 'isRunOnStartup',
+        align: 'center',
         format: function (val) {
-          if ("Y" === val) {
-            return self.$t("label.yes");
-          } else if ("N" === val) {
-            return self.$t("label.no");
+          if ('Y' === val) {
+            return self.$t('label.yes')
+          } else if ('N' === val) {
+            return self.$t('label.no')
           } else {
-            return "";
+            return ''
           }
         },
       },
       {
-        name: "isSaveResult",
-        label: self.$t("label.save"),
-        field: "isSaveResult",
-        align: "center",
+        name: 'isSaveResult',
+        label: self.$t('label.save'),
+        field: 'isSaveResult',
+        align: 'center',
         format: function (val) {
-          if ("Y" === val) {
-            return self.$t("label.yes");
-          } else if ("N" === val) {
-            return self.$t("label.no");
+          if ('Y' === val) {
+            return self.$t('label.yes')
+          } else if ('N' === val) {
+            return self.$t('label.no')
           } else {
-            return "";
+            return ''
           }
         },
       },
       {
-        name: "status.state",
-        label: self.$t("label.state"),
-        field: "status",
-        align: "center",
+        name: 'status.state',
+        label: self.$t('label.state'),
+        field: 'status',
+        align: 'center',
         format: function (val) {
-          return val ? val.state : "";
+          return val ? val.state : ''
         },
       },
       {
-        name: "status.priority",
-        label: self.$t("label.priority"),
-        field: "status",
-        align: "center",
+        name: 'status.priority',
+        label: self.$t('label.priority'),
+        field: 'status',
+        align: 'center',
         format: function (val) {
-          return val && util.isNumber(val.priority) ? val.priority : "";
+          return val && util.isNumber(val.priority) ? val.priority : ''
         },
       },
       {
-        name: "zoneOffsetSeconds",
-        label: self.$t("label.zone_offset_seconds"),
-        field: "zoneOffsetSeconds",
-        align: "left",
+        name: 'zoneOffsetSeconds',
+        label: self.$t('label.zone_offset_seconds'),
+        field: 'zoneOffsetSeconds',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "status.startTime",
-        label: self.$t("label.start_time"),
-        field: "status",
-        align: "center",
+        name: 'status.startTime',
+        label: self.$t('label.start_time'),
+        field: 'status',
+        align: 'center',
         format: function (val) {
           return val && util.isNumber(val.startTime)
-            ? util.format.date(val.startTime, { format: "yyyy-MM-dd HH:mm:ss" })
-            : "";
+            ? util.format.date(val.startTime, { format: 'yyyy-MM-dd HH:mm:ss' })
+            : ''
         },
       },
       {
-        name: "status.previousFireTime",
-        label: self.$t("label.previous_fire_time"),
-        field: "status",
-        align: "center",
+        name: 'status.previousFireTime',
+        label: self.$t('label.previous_fire_time'),
+        field: 'status',
+        align: 'center',
         format: function (val) {
           return val && util.isNumber(val.previousFireTime)
             ? util.format.date(val.previousFireTime, {
-                format: "yyyy-MM-dd HH:mm:ss",
+                format: 'yyyy-MM-dd HH:mm:ss',
               })
-            : "";
+            : ''
         },
       },
       {
-        name: "status.nextFireTime",
-        label: self.$t("label.next_fire_time"),
-        field: "status",
-        align: "center",
+        name: 'status.nextFireTime',
+        label: self.$t('label.next_fire_time'),
+        field: 'status',
+        align: 'center',
         format: function (val) {
           return val && util.isNumber(val.nextFireTime)
             ? util.format.date(val.nextFireTime, {
-                format: "yyyy-MM-dd HH:mm:ss",
+                format: 'yyyy-MM-dd HH:mm:ss',
               })
-            : "";
+            : ''
         },
       },
       {
-        name: "type",
-        label: self.$t("label.type"),
-        field: "type",
-        align: "left",
+        name: 'type',
+        label: self.$t('label.type'),
+        field: 'type',
+        align: 'left',
       },
       {
-        name: "status",
-        label: self.$t("label.status"),
-        field: "status",
-        align: "left",
+        name: 'status',
+        label: self.$t('label.status'),
+        field: 'status',
+        align: 'left',
       },
-    ];
-    self.do_init();
+    ]
+    self.do_init()
   },
 
   methods: {
@@ -431,359 +411,338 @@ export default {
      * INIT
      */
     do_init() {
-      let self = this;
-      let handler = self.$route.query.handler;
+      let handler = self.$route.query.handler
       if (handler === self.handler) {
-        return;
+        return
       }
-      self.handler = handler;
-      self.get_metadata();
-      self.get_groups();
+      self.handler = handler
+      self.get_metadata()
+      self.get_groups()
     },
 
     /*
      * METADATA
      */
     get_metadata() {
-      let self = this;
-      self.loading.metadata = true;
+      self.loading.metadata = true
       api.call({
-        path: "/scheduler/metadata",
+        path: '/scheduler/metadata',
         params: {
           handler: self.handler,
         },
         onFinish() {
-          self.loading.metadata = false;
+          self.loading.metadata = false
         },
         onSuccess(data, info) {
-          self.running = info.running;
-          self.metadata = [];
+          self.running = info.running
+          self.metadata = []
           if (util.isObject(data)) {
             Object.keys(data).forEach((key) => {
               self.metadata.push({
                 label: key.substring(0, 1).toUpperCase() + key.substring(1),
                 value:
-                  "runningSince" === key
+                  'runningSince' === key
                     ? util.format.date(data[key], {
-                        format: "yyyy-MM-dd HH:mm:ss",
+                        format: 'yyyy-MM-dd HH:mm:ss',
                       })
                     : data[key],
-              });
-            });
+              })
+            })
           }
           if (util.isArray(info.packages)) {
             self.metadata.push({
-              label: "JobPackages",
+              label: 'JobPackages',
               value: JSON.stringify(info.packages),
-            });
+            })
           }
         },
-      });
+      })
     },
 
     /*
      * INIT GROUP
      */
     init_group(group, tmp_expand, tmp_filter) {
-      let self = this;
-      self.groups[group.groupId] = group;
-      self.loading.group[group.groupId] = false;
-      self.filter[group.groupId] = tmp_filter[group.groupId]
-        ? tmp_filter[group.groupId]
-        : null;
-      self.expand[group.groupId] =
-        true === tmp_expand[group.groupId] ? true : false;
+      self.groups[group.groupId] = group
+      self.loading.group[group.groupId] = false
+      self.filter[group.groupId] = tmp_filter[group.groupId] ? tmp_filter[group.groupId] : null
+      self.expand[group.groupId] = true === tmp_expand[group.groupId] ? true : false
       self.pagination[group.groupId] = {
         page: 1,
         rowsPerPage: 10,
-        sortBy: "name",
+        sortBy: 'name',
         descending: false,
         triggers: [],
         groupId: group.groupId,
-      };
+      }
     },
 
     /*
      * GROUPS
      */
     get_groups() {
-      let self = this;
       api.call({
-        path: "/scheduler/groups",
+        path: '/scheduler/groups',
         params: {
           handler: self.handler,
           size: 1000,
         },
         onSuccess(page) {
           if (util.isArray(page?.data)) {
-            let tmp_expand = JSON.parse(JSON.stringify(self.expand));
-            let tmp_filter = JSON.parse(JSON.stringify(self.filter));
-            self.groups = {};
-            self.expand = {};
-            self.filter = {};
-            self.pagination = {};
+            let tmp_expand = JSON.parse(JSON.stringify(self.expand))
+            let tmp_filter = JSON.parse(JSON.stringify(self.filter))
+            self.groups = {}
+            self.expand = {}
+            self.filter = {}
+            self.pagination = {}
             for (const group of page.data) {
-              self.init_group(group, tmp_expand, tmp_filter);
-              self.refresh_triggers(group.groupId);
+              self.init_group(group, tmp_expand, tmp_filter)
+              self.refresh_triggers(group.groupId)
             }
           }
         },
-      });
+      })
     },
 
     /*
      * TRIGGERS
      */
     refresh_triggers(groupId) {
-      let self = this;
-      self.pagination[groupId].page = 1;
-      self.get_triggers(groupId);
+      self.pagination[groupId].page = 1
+      self.get_triggers(groupId)
     },
     get_triggers(groupId) {
-      let self = this;
-      let page = self.pagination[groupId];
-      self.loading.group[groupId] = true;
+      let page = self.pagination[groupId]
+      self.loading.group[groupId] = true
       api.call({
-        path: "/scheduler/triggers",
+        path: '/scheduler/triggers',
         params: {
           handler: self.handler,
           groupId: groupId,
           index: page.page,
           size: page.rowsPerPage,
-          order: (page.descending ? "-" : "") + page.sortBy,
+          order: (page.descending ? '-' : '') + page.sortBy,
         },
         onFinish() {
-          self.loading.group[groupId] = false;
+          self.loading.group[groupId] = false
         },
         onSuccess(page) {
-          let pagination = self.pagination[groupId];
+          let pagination = self.pagination[groupId]
           if (util.isObject(page)) {
-            pagination.triggers = util.isArray(page.data) ? page.data : [];
-            pagination.page = page.index;
-            pagination.rowsPerPage = page.size;
+            pagination.triggers = util.isArray(page.data) ? page.data : []
+            pagination.page = page.index
+            pagination.rowsPerPage = page.size
             if (util.isNumber(page.records)) {
-                pagination.rowsNumber = page.records;
+              pagination.rowsNumber = page.records
             } else {
-                let rowsNumber = page.index * page.size;
-                if (pagination.triggers.length !== page.size) {
-                    pagination.rowsNumber = rowsNumber;
-                } else {
-                    pagination.rowsNumber = rowsNumber + 1;
-                }
+              let rowsNumber = page.index * page.size
+              if (pagination.triggers.length !== page.size) {
+                pagination.rowsNumber = rowsNumber
+              } else {
+                pagination.rowsNumber = rowsNumber + 1
+              }
             }
           }
         },
-      });
+      })
     },
 
     /*
      * TABLE REQUEST
      */
     on_table_request(props) {
-      let self = this;
-      self.pagination[props.pagination.groupId] = props.pagination;
-      self.get_triggers(props.pagination.groupId);
+      self.pagination[props.pagination.groupId] = props.pagination
+      self.get_triggers(props.pagination.groupId)
     },
 
     /*
      * START / STOP CLICK
      */
     on_start_stop_click() {
-      let self = this;
       uix.confirm(
         function () {
-          self.loading.start_stop = true;
+          self.loading.start_stop = true
           api.call({
-            path: "/scheduler/" + (self.running ? "stop" : "start"),
-            method: "post",
+            path: '/scheduler/' + (self.running ? 'stop' : 'start'),
+            method: 'post',
             params: {
               handler: self.handler,
             },
             onFinish() {
-              self.loading.start_stop = false;
+              self.loading.start_stop = false
             },
             onSuccess() {
-              self.get_metadata();
-              self.get_groups();
+              self.get_metadata()
+              self.get_groups()
             },
-          });
+          })
         },
-        self.$t("label." + (self.running ? "stop" : "start")) + " ?",
-      );
+        self.$t('label.' + (self.running ? 'stop' : 'start')) + ' ?',
+      )
     },
 
     /*
      * PAUSE CLICK
      */
     on_pause_click(scope) {
-      let self = this;
-      let row = scope.row;
+      let row = scope.row
       uix.confirm(
         function () {
-          self.loading.pause_resume[row.triggerId] = true;
+          self.loading.pause_resume[row.triggerId] = true
           api.call({
-            path: "/scheduler/pause",
-            method: "post",
+            path: '/scheduler/pause',
+            method: 'post',
             params: {
               handler: self.handler,
               triggerId: row.triggerId,
             },
             onFinish() {
-              self.loading.pause_resume[row.triggerId] = false;
+              self.loading.pause_resume[row.triggerId] = false
             },
             onSuccess() {
-              self.get_triggers(row.groupId);
+              self.get_triggers(row.groupId)
             },
-          });
+          })
         },
-        self.$t("label.pause") + " <b>" + row.name + "</b> ?",
-      );
+        self.$t('label.pause') + ' <b>' + row.name + '</b> ?',
+      )
     },
 
     /*
      * RESUME CLICK
      */
     on_resume_click(scope) {
-      let self = this;
-      let row = scope.row;
+      let row = scope.row
       uix.confirm(
         function () {
-          self.loading.pause_resume[row.triggerId] = true;
+          self.loading.pause_resume[row.triggerId] = true
           api.call({
-            path: "/scheduler/resume",
-            method: "post",
+            path: '/scheduler/resume',
+            method: 'post',
             params: {
               handler: self.handler,
               triggerId: row.triggerId,
             },
             onFinish() {
-              self.loading.pause_resume[row.triggerId] = false;
+              self.loading.pause_resume[row.triggerId] = false
             },
             onSuccess() {
-              self.get_triggers(row.groupId);
+              self.get_triggers(row.groupId)
             },
-          });
+          })
         },
-        self.$t("label.resume") + " <b>" + row.name + "</b> ?",
-      );
+        self.$t('label.resume') + ' <b>' + row.name + '</b> ?',
+      )
     },
 
     /*
      * SCHEDULE CLICK
      */
     on_schedule_click(scope) {
-      let self = this;
-      let row = scope.row;
+      let row = scope.row
       uix.confirm(
         function () {
-          self.loading.schedule_unschedule[row.triggerId] = true;
+          self.loading.schedule_unschedule[row.triggerId] = true
           api.call({
-            path: "/scheduler/add",
-            method: "post",
+            path: '/scheduler/add',
+            method: 'post',
             params: {
               handler: self.handler,
               triggerId: row.triggerId,
             },
             onFinish() {
-              self.loading.schedule_unschedule[row.triggerId] = false;
+              self.loading.schedule_unschedule[row.triggerId] = false
             },
             onSuccess() {
-              self.get_triggers(row.groupId);
+              self.get_triggers(row.groupId)
             },
-          });
+          })
         },
-        self.$t("label.schedule") + " <b>" + row.name + "</b> ?",
-      );
+        self.$t('label.schedule') + ' <b>' + row.name + '</b> ?',
+      )
     },
 
     /*
      * UNSCHEDULE CLICK
      */
     on_unschedule_click(scope) {
-      let self = this;
-      let row = scope.row;
+      let row = scope.row
       uix.confirm(
         function () {
-          self.loading.schedule_unschedule[row.triggerId] = true;
+          self.loading.schedule_unschedule[row.triggerId] = true
           api.call({
-            path: "/scheduler/delete",
-            method: "post",
+            path: '/scheduler/delete',
+            method: 'post',
             params: {
               handler: self.handler,
               triggerId: row.triggerId,
             },
             onFinish() {
-              self.loading.schedule_unschedule[row.triggerId] = false;
+              self.loading.schedule_unschedule[row.triggerId] = false
             },
             onSuccess() {
-              self.get_triggers(row.groupId);
+              self.get_triggers(row.groupId)
             },
-          });
+          })
         },
-        self.$t("label.unschedule") + " <b>" + row.name + "</b> ?",
-      );
+        self.$t('label.unschedule') + ' <b>' + row.name + '</b> ?',
+      )
     },
 
     /*
      * TRIGGER CLICK
      */
     on_trigger_click(scope) {
-      let self = this;
-      let row = scope.row;
+      let row = scope.row
       uix.confirm(
         function () {
-          self.loading.trigger[row.triggerId] = true;
+          self.loading.trigger[row.triggerId] = true
           api.call({
-            path: "/scheduler/trigger",
-            method: "post",
+            path: '/scheduler/trigger',
+            method: 'post',
             params: {
               handler: self.handler,
               triggerId: row.triggerId,
             },
             onFinish() {
-              self.loading.trigger[row.triggerId] = false;
+              self.loading.trigger[row.triggerId] = false
             },
             onSuccess() {
-              self.get_triggers(row.groupId);
+              self.get_triggers(row.groupId)
             },
-          });
+          })
         },
-        self.$t("label.trigger") + " <b>" + row.name + "</b> ?",
-      );
+        self.$t('label.trigger') + ' <b>' + row.name + '</b> ?',
+      )
     },
 
     /*
      * VIEW CLICK
      */
     on_view_click(scope) {
-      let self = this;
-      self.dialog.view = {
-        show: true,
-        parameters: {
-          scope: scope,
-          columns: self.columns,
-        },
-      };
+      uix.dialog.show(self.dialog.view, {
+        scope: scope,
+        columns: self.columns,
+      })
     },
 
     /*
      * RESET CLICK
      */
     on_reset_click() {
-      let self = this;
       uix.confirm(
         function () {
           api.call({
-            path: "/scheduler/reset",
-            method: "post",
+            path: '/scheduler/reset',
+            method: 'post',
             params: {
               handler: self.handler,
             },
-          });
+          })
         },
-        self.$t("label.reset") + " ?"
-      );
+        self.$t('label.reset') + ' ?',
+      )
     },
   },
-};
+}
 </script>

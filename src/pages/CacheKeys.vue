@@ -1,6 +1,10 @@
 <template>
-  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '80%;')">
-    <q-card-section class="q-pa-none header-main">
+  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '80%;') + dialog.style">
+    <q-card-section
+      class="q-pa-none header-main"
+      :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+      v-touch-pan.mouse="dialog.onDrag"
+    >
       <q-item class="q-pr-none">
         <q-item-section>
           <q-item-label class="text-h6 text-white">{{ title }}</q-item-label>
@@ -14,7 +18,7 @@
             icon="close"
             v-close-popup
           >
-            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.close') }}</q-tooltip>
           </q-btn>
         </q-item-section>
       </q-item>
@@ -52,7 +56,7 @@
             :loading="table.deleting"
             @click="on_delete_click"
           >
-            <q-tooltip>{{ $t("label.delete") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.delete') }}</q-tooltip>
           </q-btn>
           <q-btn
             glossy
@@ -64,7 +68,7 @@
             :loading="table.clearing"
             @click="on_clear_click"
           >
-            <q-tooltip>{{ $t("label.clear") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.clear') }}</q-tooltip>
           </q-btn>
           <q-space />
           <q-btn
@@ -77,7 +81,7 @@
             :loading="table.loading"
             @click="on_refresh_click"
           >
-            <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
           </q-btn>
         </template>
 
@@ -183,21 +187,22 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
-import { api } from "src/scripts/api";
+import { ref } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
-  props: ["parameters"],
+  props: ['parameters'],
   setup() {
     return {
+      APP,
       util,
-
       title: ref(null),
       name: ref(null),
       group: ref(null),
-
       table: ref({
         rows: [],
         selected: [],
@@ -210,27 +215,28 @@ export default {
           rowsPerPage: 30,
         },
       }),
-    };
+      dialog: ref(uix.dialog.init(() => self.dialog)),
+    }
   },
 
   created() {
-    let self = this;
+    self = this
     self.table.columns = [
       {
-        name: "key",
-        label: self.$t("label.key"),
-        field: "key",
-        align: "left",
+        name: 'key',
+        label: self.$t('label.key'),
+        field: 'key',
+        align: 'left',
         sortable: true,
       },
-    ];
-    let params = util.isObject(self.parameters) ? self.parameters : {};
-    self.title = params.title;
-    self.name = params.name;
-    self.group = params.group;
+    ]
+    let params = util.isObject(self.parameters) ? self.parameters : {}
+    self.title = params.title
+    self.name = params.name
+    self.group = params.group
     self.do_request({
       pagination: self.table.pagination,
-    });
+    })
   },
 
   methods: {
@@ -238,11 +244,8 @@ export default {
      * REQUEST
      */
     do_request(props) {
-      let self = this;
-      self.table.selected = [];
-      let { page, rowsPerPage } = props?.pagination
-        ? props.pagination
-        : self.table.pagination;
+      self.table.selected = []
+      let { page, rowsPerPage } = props?.pagination ? props.pagination : self.table.pagination
       let body = {
         info: {
           name: self.name,
@@ -250,53 +253,51 @@ export default {
         },
         index: page,
         size: rowsPerPage,
-      };
-      self.table.loading = true;
+      }
+      self.table.loading = true
       api.call({
-        path: "/cache/keys",
-        method: "post",
+        path: '/cache/keys',
+        method: 'post',
         data: body,
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(page) {
-          self.table.rows = [];
+          self.table.rows = []
           if (util.isObject(page)) {
             if (util.isArray(page.data)) {
               for (const data of page.data) {
                 self.table.rows.push({
                   key: data,
-                });
+                })
               }
             }
-            let pagination = self.table.pagination;
-            pagination.page = page.index;
-            pagination.rowsPerPage = page.size;
-            pagination.rowsNumber = page.records;
+            let pagination = self.table.pagination
+            pagination.page = page.index
+            pagination.rowsPerPage = page.size
+            pagination.rowsNumber = page.records
           }
         },
-      });
+      })
     },
 
     /*
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * DELETE CLICK
      */
     on_delete_click() {
-      let self = this;
       if (self.table.selected?.length) {
-        let keys = [];
+        let keys = []
         for (const row of self.table.selected) {
-          keys.push(row.key);
+          keys.push(row.key)
         }
         let body = {
           info: {
@@ -304,25 +305,25 @@ export default {
             group: self.group,
           },
           keys: keys,
-        };
-        self.table.deleting = true;
+        }
+        self.table.deleting = true
         api.call({
-          path: "/cache/delete",
-          method: "post",
+          path: '/cache/delete',
+          method: 'post',
           data: body,
           onSuccess() {
             setTimeout(function () {
-              self.table.deleting = false;
+              self.table.deleting = false
               self.do_request({
                 pagination: self.table.pagination,
-              });
-            }, 500);
+              })
+            }, 500)
           },
           onError() {
-            self.table.deleting = false;
+            self.table.deleting = false
           },
           notify: true,
-        });
+        })
       }
     },
 
@@ -330,7 +331,6 @@ export default {
      * CLEAR CLICK
      */
     on_clear_click() {
-      let self = this;
       uix.confirm(
         function () {
           let body = {
@@ -338,42 +338,41 @@ export default {
               name: self.name,
               group: self.group,
             },
-          };
-          self.table.clearing = true;
+          }
+          self.table.clearing = true
           api.call({
-            path: "/cache/clear",
-            method: "post",
+            path: '/cache/clear',
+            method: 'post',
             data: body,
-            onSuccess(data) {
+            onSuccess() {
               setTimeout(function () {
-                self.table.clearing = false;
-                self.table.pagination.page = 1;
-                self.on_refresh_click();
-              }, 500);
+                self.table.clearing = false
+                self.table.pagination.page = 1
+                self.on_refresh_click()
+              }, 500)
             },
             onError() {
-              self.table.clearing = false;
+              self.table.clearing = false
             },
             notify: true,
-          });
+          })
         },
-        "confirm.clear",
-        self.title
-      );
+        'confirm.clear',
+        self.title,
+      )
     },
 
     /*
      * PAGE CHANGED
      */
     on_page_changed() {
-      let self = this;
-      let page = +self.table.pagination.page;
+      let page = +self.table.pagination.page
       if (!isNaN(page) && page > 0) {
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
   },
-};
+}
 </script>

@@ -1,6 +1,9 @@
 <template>
   <q-card>
-    <q-card-section class="q-pa-none header-main">
+    <q-card-section
+      class="q-pa-none header-main"
+      :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+    >
       <q-item class="q-pr-none">
         <q-item-section>
           <q-item-label class="text-white">{{}}</q-item-label>
@@ -14,7 +17,7 @@
             icon="close"
             v-close-popup
           >
-            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.close') }}</q-tooltip>
           </q-btn>
         </q-item-section>
       </q-item>
@@ -32,7 +35,7 @@
           dense
         >
           <template v-slot:top>
-            <span class="text-h6">{{ $t("label.entity") }}</span>
+            <span class="text-h6">{{ $t('label.entity') }}</span>
           </template>
         </q-table>
         <q-table
@@ -47,13 +50,11 @@
           dense
         >
           <template v-slot:top>
-            <span class="text-h6">{{ $t("label.identifier") }}</span>
+            <span class="text-h6">{{ $t('label.identifier') }}</span>
             <span class="q-ml-md"
-              >[ {{ $t("label.type") }}: {{ data.id.type
+              >[ {{ $t('label.type') }}: {{ data.id.type
               }}{{
-                util.isString(data.id.name)
-                  ? ", " + $t("label.field") + ": " + data.id.name
-                  : ""
+                util.isString(data.id.name) ? ', ' + $t('label.field') + ': ' + data.id.name : ''
               }}
               ]</span
             >
@@ -71,7 +72,7 @@
           dense
         >
           <template v-slot:top>
-            <span class="text-h6">{{ $t("label.field") }}</span>
+            <span class="text-h6">{{ $t('label.field') }}</span>
           </template>
         </q-table>
         <q-table
@@ -85,7 +86,7 @@
           dense
         >
           <template v-slot:top>
-            <span class="text-h6">{{ $t("label.transient") }}</span>
+            <span class="text-h6">{{ $t('label.transient') }}</span>
           </template>
         </q-table>
       </div>
@@ -98,60 +99,60 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
+import { ref } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
-  props: ["parameters"],
+  props: ['parameters'],
   setup() {
     return {
+      APP,
       util,
-
       title: ref(null),
       manager: ref(null),
       entity: ref(null),
       data: ref({}),
       loading: ref(false),
-
       columns: ref({}),
       rows: ref({
         entity: [],
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
-    let params = util.isObject(self.parameters) ? self.parameters : {};
-    self.title = params.title;
-    self.columns = params.columns;
-    self.manager = params.manager;
-    self.entity = params.entity;
-    self.get_entity();
+    self = this
+    let params = util.isObject(self.parameters) ? self.parameters : {}
+    self.title = params.title
+    self.columns = params.columns
+    self.manager = params.manager
+    self.entity = params.entity
+    self.get_entity()
   },
 
   methods: {
     get_entity() {
-      let self = this;
-      self.loading = true;
+      self.loading = true
       api.call({
-        path: "/manager/entity",
+        path: '/manager/entity',
         params: {
           manager: self.manager,
           entity: self.entity,
         },
         onFinish() {
-          self.loading = false;
+          self.loading = false
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.data = data;
-            self.rows.entity = [self.data];
+            self.data = data
+            self.rows.entity = [self.data]
           }
         },
-      });
+      })
     },
   },
-};
+}
 </script>

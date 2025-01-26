@@ -49,11 +49,11 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
-import { api } from "src/scripts/api";
-import { storage } from "src/scripts/storage";
+import { ref } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+import { storage } from 'src/scripts/storage'
 
 export default {
   setup() {
@@ -66,115 +66,111 @@ export default {
       is_in_progress: ref(false),
       is_show_password: ref(false),
       is_basic_auth: ref(false),
-    };
+    }
   },
   beforeCreate() {
-    let self = this;
+    let self = this
     api.send({
-      path: "/check",
+      path: '/check',
       onSuccess(response) {
-        let headers = response?.headers ? response.headers : {};
-        if (util.isString(headers["auth-token"])) {
+        let headers = response?.headers ? response.headers : {}
+        if (util.isString(headers['auth-token'])) {
           let auth = {
-            token: atob(headers["auth-token"]),
+            token: atob(headers['auth-token']),
             persistent: true,
             logout: false,
-          };
-          storage.auth(auth);
-          self.$router.push({ path: "/" });
+          }
+          storage.auth(auth)
+          self.$router.push({ path: '/' })
         } else {
-          self.is_show_login = true;
+          self.is_show_login = true
         }
       },
       onError(error) {
-        let response = error?.response ? error.response : {};
+        let response = error?.response ? error.response : {}
         if (401 === response.status) {
-          let headers = response?.headers ? response.headers : {};
-          if (util.isString(headers["www-authenticate"])) {
-            let wa = headers["www-authenticate"];
-            let lt = wa.toLowerCase();
-            let idx = lt.indexOf(" ");
-            let type = "";
+          let headers = response?.headers ? response.headers : {}
+          if (util.isString(headers['www-authenticate'])) {
+            let wa = headers['www-authenticate']
+            let lt = wa.toLowerCase()
+            let idx = lt.indexOf(' ')
+            let type = ''
             if (idx != -1) {
-              type = lt.substring(0, idx);
+              type = lt.substring(0, idx)
             }
-            if ("basic" === type) {
-              self.is_show_login = true;
-              self.is_basic_auth = true;
+            if ('basic' === type) {
+              self.is_show_login = true
+              self.is_basic_auth = true
             } else {
-              uix.notify(
-                self.$t("error.unsupported_authentication_type"),
-                wa,
-                false
-              );
+              uix.notify(self.$t('error.unsupported_authentication_type'), wa, false)
             }
           } else {
-            self.is_show_login = true;
+            self.is_show_login = true
           }
         } else {
-          self.is_show_login = true;
+          self.is_show_login = true
         }
       },
-    });
+    })
   },
   methods: {
     on_login_click() {
-      let self = this;
-      let username = self.username;
+      let self = this
+      let username = self.username
       if (!(username && username.length > 0)) {
-        uix.error("error.required", "label.username");
-        return false;
+        uix.error('error.required', 'label.username')
+        return false
       }
-      let password = self.password;
+      let password = self.password
       if (!(password && password.length > 0)) {
-        uix.error("error.required", "label.password");
-        return false;
+        uix.error('error.required', 'label.password')
+        return false
       }
-      self.is_in_progress = true;
+      self.is_in_progress = true
       if (self.is_basic_auth) {
-        let userpass = username + ":" + password;
+        let userpass = username + ':' + password
         let auth = {
-          token: "Basic " + btoa(userpass),
+          token: 'Basic ' + btoa(userpass),
           persistent: true,
           logout: true,
-        };
-        storage.auth(auth);
+        }
+        storage.auth(auth)
         api.send({
-          path: "/check",
+          path: '/check',
           onFinish() {
-            self.is_in_progress = false;
+            self.is_in_progress = false
           },
           onSuccess() {
-            self.$router.push({ path: "/" });
+            self.$router.push({ path: '/' })
           },
           onError() {
-            uix.error("error.invalid_authentication");
+            uix.error('error.invalid_authentication')
           },
-        });
+        })
       } else {
         api.call({
-          path: "/login",
-          method: "post",
+          path: '/login',
+          method: 'post',
           params: {
             username: username,
             password: password,
           },
           onFinish() {
-            self.is_in_progress = false;
+            self.is_in_progress = false
           },
           onSuccess(data) {
-            if (util.isString(data) && "" !== data) {
+            if (util.isString(data) && '' !== data) {
               storage.auth({
                 token: data,
                 persistent: false,
                 logout: true,
-              });
-              self.$router.push({ path: "/" });
+              })
+              self.$router.push({ path: '/' })
             }
           },
-        });
+        })
       }
     },
   },
-};
+}
 </script>

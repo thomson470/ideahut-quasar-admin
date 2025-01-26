@@ -1,7 +1,11 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
-    <q-card-section class="q-pa-none header-main">
+  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + dialog.style">
+    <q-card-section
+      class="q-pa-none header-main"
+      :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+      v-touch-pan.mouse="dialog.onDrag"
+    >
       <q-item class="q-pr-none">
         <q-item-section>
           <q-item-label class="text-h6 text-white">{{ title }}</q-item-label>
@@ -15,7 +19,7 @@
             icon="close"
             v-close-popup
           >
-            <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+            <q-tooltip>{{ $t('label.close') }}</q-tooltip>
           </q-btn>
         </q-item-section>
       </q-item>
@@ -38,54 +42,59 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import { util } from "src/scripts/util";
-import { grid as fxGrid } from "src/scripts/grid";
+import { ref } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { grid as fxGrid } from 'src/scripts/grid'
+let self
 
 export default {
-  props: ["parameters"],
+  props: ['parameters'],
   setup() {
     return {
+      APP,
       title: ref(null),
       fields: ref([]),
       forms: ref({}),
       loading: ref({}),
-    };
+      dialog: ref(uix.dialog.init(() => self.dialog)),
+    }
   },
 
   created() {
-    let self = this;
-    let params = fxGrid.get.object(self.parameters);
-    let row = fxGrid.get.object(params.row);
-    let definition = fxGrid.get.object(params.definition);
-    self.title = params.title;
-    self.replica = fxGrid.get.number(params.replica, null);
-    self.fields = [];
-    let columns = fxGrid.get.array(definition.table.columns);
-    let value;
-    let isIdShown = false;
+    self = this
+    let params = fxGrid.get.object(self.parameters)
+    let row = fxGrid.get.object(params.row)
+    let definition = fxGrid.get.object(params.definition)
+    self.title = params.title
+    self.replica = fxGrid.get.number(params.replica, null)
+    self.fields = []
+    let columns = fxGrid.get.array(definition.table.columns)
+    let value
+    let isIdShown = false
     for (const column of columns) {
       if (!isIdShown && definition.id.fields.includes(column.field)) {
-        isIdShown = true;
+        isIdShown = true
       }
-      value = util.getFieldValue(column.field, row);
+      value = util.getFieldValue(column.field, row)
       if (util.isFunction(column.format)) {
-        value = column.format(value, row);
+        value = column.format(value, row)
       }
       self.fields.push({
         label: column.label,
         value: value,
-      });
+      })
     }
     if (!isIdShown) {
-      let value = fxGrid.id.toPk(definition.id, row);
+      let value = fxGrid.id.toPk(definition.id, row)
       if (util.isDefined(value) && value !== null) {
         self.fields.splice(0, 0, {
-          label: "ID",
+          label: 'ID',
           value: value,
-        });
+        })
       }
     }
   },
-};
+}
 </script>

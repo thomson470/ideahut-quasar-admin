@@ -26,12 +26,8 @@
         icon="search"
         @click="on_search_dialog_click"
       >
-        <q-badge
-          v-if="Object.keys(table.filters).length"
-          class="led-green"
-          floating
-        ></q-badge>
-        <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+        <q-badge v-if="Object.keys(table.filters).length" class="led-green" floating></q-badge>
+        <q-tooltip>{{ $t('label.search') }}</q-tooltip>
       </q-btn>
       <q-btn
         glossy
@@ -43,7 +39,7 @@
         :loading="table.loading"
         @click="on_refresh_click"
       >
-        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -65,7 +61,7 @@
         icon="visibility"
         @click="on_view_click(scope)"
       >
-        <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.view') }}</q-tooltip>
       </q-btn>
     </template>
   </q-table>
@@ -75,11 +71,11 @@
     v-model="dialog.view.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
     bordered
   >
-    <q-card style="min-width: 50vw; max-width: 90vw;">
-      <q-card-section class="q-pa-xs q-pr-md text-right">
+    <q-card :style="'min-width: 50vw; max-width: 90vw;' + dialog.view.style">
+      <q-card-section class="q-pa-xs q-pr-md text-right" v-touch-pan.mouse="dialog.view.onDrag">
         <q-btn
           round
           glossy
@@ -90,18 +86,10 @@
           :loading="dialog.view.deleting"
           @click="on_delete_group_click"
         >
-          <q-tooltip>{{ $t("label.delete") }}</q-tooltip>
+          <q-tooltip>{{ $t('label.delete') }}</q-tooltip>
         </q-btn>
-        <q-btn
-          round
-          glossy
-          dense
-          size="sm"
-          icon="close"
-          class="q-ml-sm"
-          v-close-popup
-        >
-          <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+        <q-btn round glossy dense size="sm" icon="close" class="q-ml-sm" v-close-popup>
+          <q-tooltip>{{ $t('label.close') }}</q-tooltip>
         </q-btn>
       </q-card-section>
       <q-card-section class="q-pa-xs">
@@ -127,8 +115,7 @@
           dense
         >
           <template v-slot:top>
-            <span class="text-weight-bolder">
-              {{ $t("label.coordinator") }}</span>
+            <span class="text-weight-bolder"> {{ $t('label.coordinator') }}</span>
           </template>
         </q-table>
         <q-table
@@ -144,8 +131,7 @@
           dense
         >
           <template v-slot:top>
-            <span class="text-weight-bolder">
-              {{ $t("label.members") }}</span>
+            <span class="text-weight-bolder"> {{ $t('label.members') }}</span>
           </template>
           <template v-slot:body-selection="scope">
             <q-btn
@@ -158,7 +144,7 @@
               icon="visibility"
               @click="on_member_click(scope)"
             >
-              <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+              <q-tooltip>{{ $t('label.view') }}</q-tooltip>
             </q-btn>
           </template>
         </q-table>
@@ -171,9 +157,13 @@
     v-model="dialog.member.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <KeyValue :parameters="dialog.member.parameters" />
+    <KeyValue
+      :parameters="dialog.member.parameters"
+      :style="dialog.member.style"
+      v-touch-pan.mouse="dialog.member.onDrag"
+    />
   </q-dialog>
 
   <!-- SEARCH DIALOG -->
@@ -181,16 +171,18 @@
     v-model="dialog.search.show"
     transition-show="scale"
     transition-hide="fade"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
     persistent
   >
-    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
-      <q-card-section class="q-pa-none header-main">
+    <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + dialog.search.style">
+      <q-card-section
+        class="q-pa-none header-main"
+        :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+        v-touch-pan.mouse="dialog.search.onDrag"
+      >
         <q-item class="q-pr-none">
           <q-item-section>
-            <q-item-label class="text-h6 text-white">{{
-              $t("label.search")
-            }}</q-item-label>
+            <q-item-label class="text-h6 text-white">{{ $t('label.search') }}</q-item-label>
           </q-item-section>
           <q-item-section side>
             <q-btn
@@ -201,7 +193,7 @@
               icon="close"
               v-close-popup
             >
-              <q-tooltip>{{ $t("label.close") }}</q-tooltip>
+              <q-tooltip>{{ $t('label.close') }}</q-tooltip>
             </q-btn>
           </q-item-section>
         </q-item>
@@ -282,21 +274,22 @@
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
-import { uix } from "src/scripts/uix";
+import { ref, defineAsyncComponent } from 'vue'
+import { APP } from 'src/scripts/static'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
   components: {
-    KeyValue: defineAsyncComponent(() => import("src/pages/KeyValue.vue")),
+    KeyValue: defineAsyncComponent(() => import('src/pages/KeyValue.vue')),
   },
   setup() {
     return {
+      APP,
       util,
-
       handler: ref(null),
-
       table: ref({
         rows: [],
         filters: {},
@@ -305,383 +298,357 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 30,
-          sortBy: "groupId",
+          sortBy: 'groupId',
           descending: false,
           count: true,
         },
       }),
-
       columns: ref({
         coordinator: [],
         members: [],
       }),
-
       dialog: ref({
         view: {
-          show: false,
+          ...uix.dialog.init(() => self.dialog.view),
           rows: null,
           coordinator: null,
           members: null,
           deleting: false,
         },
-        member: {
-          show: false,
-          parameters: null,
-        },
-        search: {
-          show: false,
-        },
+        member: uix.dialog.init(() => self.dialog.member),
+        search: uix.dialog.init(() => self.dialog.search),
       }),
-
       option: ref({
         state: [
-          "",
-          "UNKNOWN",
-          "PREPARING_REBALANCE",
-          "COMPLETING_REBALANCE",
-          "STABLE",
-          "DEAD",
-          "EMPTY",
+          '',
+          'UNKNOWN',
+          'PREPARING_REBALANCE',
+          'COMPLETING_REBALANCE',
+          'STABLE',
+          'DEAD',
+          'EMPTY',
         ],
         aclOperation: [
-          "",
-          "UNKNOWN",
-          "ANY",
-          "ALL",
-          "READ",
-          "WRITE",
-          "CREATE",
-          "DELETE",
-          "ALTER",
-          "DESCRIBE",
-          "CLUSTER_ACTION",
-          "DESCRIBE_CONFIGS",
-          "ALTER_CONFIGS",
-          "IDEMPOTENT_WRITE",
-          "CREATE_TOKENS",
-          "DESCRIBE_TOKENS",
+          '',
+          'UNKNOWN',
+          'ANY',
+          'ALL',
+          'READ',
+          'WRITE',
+          'CREATE',
+          'DELETE',
+          'ALTER',
+          'DESCRIBE',
+          'CLUSTER_ACTION',
+          'DESCRIBE_CONFIGS',
+          'ALTER_CONFIGS',
+          'IDEMPOTENT_WRITE',
+          'CREATE_TOKENS',
+          'DESCRIBE_TOKENS',
         ],
-        boolean: ["", "true", "false"],
+        boolean: ['', 'true', 'false'],
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
-    self.handler = self.$route.query.handler;
+    self = this
+    self.handler = self.$route.query.handler
     self.table.columns = [
       {
-        name: "groupId",
-        label: self.$t("label.group_id"),
-        field: "groupId",
-        align: "left",
+        name: 'groupId',
+        label: self.$t('label.group_id'),
+        field: 'groupId',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "state",
-        label: self.$t("label.state"),
-        field: "state",
-        align: "left",
+        name: 'state',
+        label: self.$t('label.state'),
+        field: 'state',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "isSimpleConsumerGroup",
-        label: self.$t("label.simple_consumer_group"),
-        field: "isSimpleConsumerGroup",
-        align: "left",
+        name: 'isSimpleConsumerGroup',
+        label: self.$t('label.simple_consumer_group'),
+        field: 'isSimpleConsumerGroup',
+        align: 'left',
         sortable: true,
       },
       {
-        name: "partitionAssignor",
-        label: self.$t("label.partition_assignor"),
-        field: "partitionAssignor",
-        align: "left",
+        name: 'partitionAssignor',
+        label: self.$t('label.partition_assignor'),
+        field: 'partitionAssignor',
+        align: 'left',
       },
       {
-        name: "aclOperations",
-        label: self.$t("label.acl_operation"),
-        field: "aclOperations",
-        align: "left",
+        name: 'aclOperations',
+        label: self.$t('label.acl_operation'),
+        field: 'aclOperations',
+        align: 'left',
         format: (val) => {
-          return util.isArray(val) ? val.join(", ") : val;
+          return util.isArray(val) ? val.join(', ') : val
         },
       },
-    ];
+    ]
     self.columns.coordinator = [
       {
-        name: "idInteger",
-        label: self.$t("label.id_integer"),
-        field: "idInteger",
-        align: "left",
+        name: 'idInteger',
+        label: self.$t('label.id_integer'),
+        field: 'idInteger',
+        align: 'left',
       },
       {
-        name: "idString",
-        label: self.$t("label.id_string"),
-        field: "idString",
-        align: "left",
+        name: 'idString',
+        label: self.$t('label.id_string'),
+        field: 'idString',
+        align: 'left',
       },
       {
-        name: "host",
-        label: self.$t("label.host"),
-        field: "host",
-        align: "left",
+        name: 'host',
+        label: self.$t('label.host'),
+        field: 'host',
+        align: 'left',
       },
       {
-        name: "port",
-        label: self.$t("label.port"),
-        field: "port",
-        align: "left",
+        name: 'port',
+        label: self.$t('label.port'),
+        field: 'port',
+        align: 'left',
       },
-    ];
+    ]
     self.columns.members = [
       {
-        name: "memberId",
-        label: self.$t("label.member_id"),
-        field: "memberId",
-        align: "left",
+        name: 'memberId',
+        label: self.$t('label.member_id'),
+        field: 'memberId',
+        align: 'left',
       },
       {
-        name: "clientId",
-        label: self.$t("label.client_id"),
-        field: "clientId",
-        align: "left",
+        name: 'clientId',
+        label: self.$t('label.client_id'),
+        field: 'clientId',
+        align: 'left',
       },
       {
-        name: "host",
-        label: self.$t("label.host"),
-        field: "host",
-        align: "left",
+        name: 'host',
+        label: self.$t('label.host'),
+        field: 'host',
+        align: 'left',
       },
       {
-        name: "partitions",
-        label: self.$t("label.topic_partition"),
-        field: "partitions",
-        align: "left",
-        format: (val) => { 
-          let sval = "";
+        name: 'partitions',
+        label: self.$t('label.topic_partition'),
+        field: 'partitions',
+        align: 'left',
+        format: (val) => {
+          let sval = ''
           if (util.isArray(val)) {
             val.sort((a, b) => {
               if (a.index < b.index) {
-                return -1;
+                return -1
               }
               if (a.index > b.index) {
-                return 1;
+                return 1
               }
-              return 0;
-            });
-            let m = {};
+              return 0
+            })
+            let m = {}
             for (const v of val) {
               if (!util.isArray(m[v.topic])) {
-                m[v.topic] = [];
+                m[v.topic] = []
               }
-              m[v.topic].push(v.index);
+              m[v.topic].push(v.index)
             }
             Object.keys(m).forEach((k) => {
-              sval += "[\"" + k + "\" => " + m[k].join(", ") + "] ";
-            });
+              sval += '["' + k + '" => ' + m[k].join(', ') + '] '
+            })
           }
-          return sval; 
+          return sval
         },
       },
-    ];
-    self.on_refresh_click();
+    ]
+    self.on_refresh_click()
   },
   methods: {
     /*
      * REQUEST
      */
     do_request(props) {
-      let self = this;
-      let { page, rowsPerPage, sortBy, descending } =
-        self.get_pagination(props);
+      let { page, rowsPerPage, sortBy, descending } = self.get_pagination(props)
       let params = {
         name: self.handler,
         index: page,
         size: rowsPerPage,
-        order: (descending ? "-" : "") + sortBy,
-      };
+        order: (descending ? '-' : '') + sortBy,
+      }
       Object.keys(self.table.filters).forEach((key) => {
-        params[key] = self.table.filters[key];
-      });
-      self.table.loading = true;
+        params[key] = self.table.filters[key]
+      })
+      self.table.loading = true
       api.call({
-        path: "/kafka/consumers",
+        path: '/kafka/consumers',
         params: params,
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.table.rows = util.isArray(data.data) ? data.data : [];
-            let pagination = self.table.pagination;
-            pagination.page = data.index;
-            pagination.rowsPerPage = data.size;
+            self.table.rows = util.isArray(data.data) ? data.data : []
+            let pagination = self.table.pagination
+            pagination.page = data.index
+            pagination.rowsPerPage = data.size
             if (util.isNumber(data.records)) {
-              pagination.rowsNumber = data.records;
+              pagination.rowsNumber = data.records
             } else {
-              let rowsNumber = data.index * data.size;
+              let rowsNumber = data.index * data.size
               if (self.table.rows.length !== data.size) {
-                pagination.rowsNumber = rowsNumber;
+                pagination.rowsNumber = rowsNumber
               } else {
-                pagination.rowsNumber = rowsNumber + 1;
+                pagination.rowsNumber = rowsNumber + 1
               }
             }
           }
         },
-      });
+      })
     },
 
     /*
      * GET PAGINATION
      */
     get_pagination(props) {
-      let self = this;
-      let pagination = props?.pagination
-        ? props.pagination
-        : self.table.pagination;
+      let pagination = props?.pagination ? props.pagination : self.table.pagination
       if (pagination) {
-        self.table.pagination = pagination;
-        return pagination;
+        self.table.pagination = pagination
+        return pagination
       }
-      return self.table.pagination;
+      return self.table.pagination
     },
 
     /*
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       if (!self.table.rows?.length) {
         if (self.table.pagination.page > 1) {
-          self.table.pagination.page = 1;
+          self.table.pagination.page = 1
         }
       }
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * VIEW CLICK
      */
     on_view_click(scope) {
-      let self = this;
-      let rows = [];
+      let rows = []
       for (const col of scope.cols) {
         rows.push({
           label: col.label,
           value: util.isFunction(col.format)
             ? col.format(scope.row[col.field], scope.row)
             : scope.row[col.field],
-        });
+        })
       }
-      self.dialog.view = {
-        show: true,
-        rows: rows,
-        coordinator: [scope.row.coordinator],
-        members: util.isArray(scope.row.members) ? scope.row.members : [],
-        groupId: scope.row.groupId,
-      };
+      let d = self.dialog.view
+      d.rows = rows
+      d.coordinator = [scope.row.coordinator]
+      d.members = util.isArray(scope.row.members) ? scope.row.members : []
+      d.groupId = scope.row.groupId
+      uix.dialog.show(d)
     },
 
     /*
      * MEMBER CLICK
      */
     on_member_click(scope) {
-      let self = this;
-      let rows = [];
+      let rows = []
       for (const col of scope.cols) {
         rows.push({
           label: col.label,
-          value: util.isFunction(col.format) ? col.format(scope.row[col.field], scope.row) : scope.row[col.field],
-        });
+          value: util.isFunction(col.format)
+            ? col.format(scope.row[col.field], scope.row)
+            : scope.row[col.field],
+        })
       }
-      self.dialog.member = {
-        show: true,
-        parameters: {
-          search: false,
-          rows: rows,
-        },
-      };
+      uix.dialog.show(self.dialog.member, {
+        search: false,
+        rows: rows,
+      })
     },
 
     /*
      * DELETE GROUP CLICK
      */
     on_delete_group_click() {
-      let self = this;
-      let dlg = self.dialog.view;
-      uix.confirm(
-        function () {
-          dlg.deleting = true;
-          api.call({
-            path: "/kafka/consumer/group",
-            method: "delete",
-            params: {
-              name: self.handler,
-              groupId: dlg.groupId,
-            },
-            onFinish() {
-              dlg.deleting = false;
-            },
-            onSuccess(data) {
-              self.dialog.view = {
-                show: false,
-                rows: null,
-                coordinator: null,
-                members: null,
-                deleting: false,
-              };
-              self.on_refresh_click();
-            },
-          });
-        },
-        "confirm.delete",
-      );
+      let dlg = self.dialog.view
+      uix.confirm(function () {
+        dlg.deleting = true
+        api.call({
+          path: '/kafka/consumer/group',
+          method: 'delete',
+          params: {
+            name: self.handler,
+            groupId: dlg.groupId,
+          },
+          onFinish() {
+            dlg.deleting = false
+          },
+          onSuccess() {
+            let d = self.dialog.view
+            d.rows = null
+            d.coordinator = null
+            d.members = null
+            d.deleting = false
+            uix.dialog.hide(d)
+            self.on_refresh_click()
+          },
+        })
+      }, 'confirm.delete')
     },
 
     /*
      * SEARCH RESET CLICK
      */
     on_search_reset_click() {
-      let self = this;
-      self.table.filters = {};
+      self.table.filters = {}
     },
 
     /*
      * SEARCH FILTER CLICK
      */
     on_search_filter_click() {
-      let self = this;
-      let filters = self.table.filters;
-      if (!(util.isString(filters.groupId) && "" !== filters.groupId)) {
-        delete filters.groupId;
+      let filters = self.table.filters
+      if (!(util.isString(filters.groupId) && '' !== filters.groupId)) {
+        delete filters.groupId
       }
-      if (!(util.isString(filters.consumerState) && "" !== filters.consumerState)) {
-        delete filters.consumerState;
+      if (!(util.isString(filters.consumerState) && '' !== filters.consumerState)) {
+        delete filters.consumerState
       }
-      if (!(util.isString(filters.isSimpleConsumerGroup) && "" !== filters.isSimpleConsumerGroup)) {
-        delete filters.isSimpleConsumerGroup;
+      if (!(util.isString(filters.isSimpleConsumerGroup) && '' !== filters.isSimpleConsumerGroup)) {
+        delete filters.isSimpleConsumerGroup
       }
-      if (!(util.isString(filters.partitionAssignor) && "" !== filters.partitionAssignor)) {
-        delete filters.partitionAssignor;
+      if (!(util.isString(filters.partitionAssignor) && '' !== filters.partitionAssignor)) {
+        delete filters.partitionAssignor
       }
-      if (!(util.isString(filters.aclOperation) && "" !== filters.aclOperation)) {
-        delete filters.aclOperation;
+      if (!(util.isString(filters.aclOperation) && '' !== filters.aclOperation)) {
+        delete filters.aclOperation
       }
       self.do_request({
         pagination: self.table.pagination,
-      });
-      self.dialog.search.show = false;
+      })
+      uix.dialog.hide(self.dialog.search)
     },
 
     /*
      * SEARCH DIALOG CLICK
      */
     on_search_dialog_click() {
-      let self = this;
-      self.dialog.search.show = true;
+      uix.dialog.show(self.dialog.search)
     },
   },
-};
+}
 </script>

@@ -29,7 +29,7 @@
         :loading="table.loading"
         @click="do_request"
       >
-        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -59,7 +59,7 @@
           :loading="table.clearing[scope.row.name]"
           @click="on_clear_click(scope)"
         >
-          <q-tooltip>{{ $t("label.clear") }}</q-tooltip>
+          <q-tooltip>{{ $t('label.clear') }}</q-tooltip>
         </q-btn>
         <q-btn
           glossy
@@ -71,7 +71,7 @@
           icon="list_alt"
           @click="on_keys_click(scope)"
         >
-          <q-tooltip>{{ $t("label.keys") }}</q-tooltip>
+          <q-tooltip>{{ $t('label.keys') }}</q-tooltip>
         </q-btn>
       </div>
     </template>
@@ -80,8 +80,8 @@
       <q-td :props="props">
         <span>
           {{ props.value }}
-          <q-badge 
-            v-if="'label' === props.col.name && true === props.row.isDefault" 
+          <q-badge
+            v-if="'label' === props.col.name && true === props.row.isDefault"
             color="orange"
             rounded
             align="top"
@@ -97,21 +97,22 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <Keys :parameters="dialog.keys.parameters" />
   </q-dialog>
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { uix } from "src/scripts/uix";
-import { api } from "src/scripts/api";
+import { ref, defineAsyncComponent } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
   components: {
-    Keys: defineAsyncComponent(() => import("src/pages/CacheKeys.vue")),
+    Keys: defineAsyncComponent(() => import('src/pages/CacheKeys.vue')),
   },
   setup() {
     return {
@@ -135,122 +136,119 @@ export default {
       }),
 
       dialog: ref({
-        keys: {
-          show: false,
-          parameters: null,
-        },
+        keys: uix.dialog.init(),
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
-    (self.columns = {
+    self = this
+    ;(self.columns = {
       single: [
         {
-          name: "label",
-          label: self.$t("label.name"),
-          field: "label",
-          align: "left",
+          name: 'label',
+          label: self.$t('label.name'),
+          field: 'label',
+          align: 'left',
           sortable: true,
         },
         {
-          name: "limit",
-          label: self.$t("label.limit"),
-          field: "limit",
-          align: "left",
+          name: 'limit',
+          label: self.$t('label.limit'),
+          field: 'limit',
+          align: 'left',
           sortable: true,
         },
         {
-          name: "nullable",
-          label: self.$t("label.nullable"),
-          field: "nullable",
-          align: "left",
+          name: 'nullable',
+          label: self.$t('label.nullable'),
+          field: 'nullable',
+          align: 'left',
           sortable: true,
         },
       ],
       group: [
         {
-          name: "label",
-          label: self.$t("label.group"),
-          field: "label",
-          align: "left",
+          name: 'label',
+          label: self.$t('label.group'),
+          field: 'label',
+          align: 'left',
           sortable: true,
         },
         {
-          name: "limit",
-          label: self.$t("label.limit"),
-          field: "limit",
-          align: "left",
+          name: 'limit',
+          label: self.$t('label.limit'),
+          field: 'limit',
+          align: 'left',
           sortable: true,
         },
         {
-          name: "nullable",
-          label: self.$t("label.nullable"),
-          field: "nullable",
-          align: "left",
+          name: 'nullable',
+          label: self.$t('label.nullable'),
+          field: 'nullable',
+          align: 'left',
           sortable: true,
         },
         {
-          name: "expiry",
-          label: self.$t("label.expiry"),
-          field: "expiry",
-          align: "left",
+          name: 'expiry',
+          label: self.$t('label.expiry'),
+          field: 'expiry',
+          align: 'left',
           sortable: true,
         },
       ],
     }),
-      self.do_init();
+      self.do_init()
   },
   beforeUpdate() {
-    this.do_init();
+    this.do_init()
   },
   methods: {
     /*
      * INIT
      */
     do_init() {
-      let self = this;
-      let type = self.$route.query.type;
-      let handler = self.$route.query.handler;
+      let type = self.$route.query.type
+      let handler = self.$route.query.handler
       if (type === self.type && handler === self.handler) {
-        return;
+        return
       }
-      self.type = type;
-      self.handler = handler;
-      self.do_request();
+      self.type = type
+      self.handler = handler
+      self.do_request()
     },
 
     /*
      * REQUEST
      */
     do_request() {
-      let self = this;
-      self.table.loading = true;
+      self.table.loading = true
       api.call({
-        path: "/cache/info",
+        path: '/cache/info',
         params: {
           type: self.type,
           handler: self.handler,
         },
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(data, info) {
-          info = util.isObject(info) ? info : {};
-          if ("group" === info.type) {
-            data = util.isObject(data) ? data : {};
-            let groups = util.isObject(data.groups) ? data.groups : {};
-            self.table.columns = self.columns.group;
+          info = util.isObject(info) ? info : {}
+          if ('group' === info.type) {
+            data = util.isObject(data) ? data : {}
+            let groups = util.isObject(data.groups) ? data.groups : {}
+            self.table.columns = self.columns.group
             self.table.columns[1].format = (val) => {
-              return 0 === val ? self.$t("label.unlimited") : val;
-            };
+              return 0 === val ? self.$t('label.unlimited') : val
+            }
             self.table.columns[3].format = (val) => {
-              return val?.value && val.value > 0 ? (val.value + "  (" + val.unit + ")") : self.$t("label.never_expire");
-            };
-            self.table.rows = [];
+              return val?.value && val.value > 0
+                ? val.value + '  (' + val.unit + ')'
+                : self.$t('label.never_expire')
+            }
+            self.table.rows = []
             Object.keys(groups).forEach((key) => {
-              let group = groups[key];
+              let group = groups[key]
               self.table.rows.push({
                 name: group.name,
                 label: group.name,
@@ -258,80 +256,75 @@ export default {
                 nullable: group.nullable,
                 expiry: group.expiry,
                 is_group: true,
-              });
-              self.table.clearing[group.name] = false;
-            });
-          } else if ("single" == info.type) {
-            self.table.columns = self.columns.single;
+              })
+              self.table.clearing[group.name] = false
+            })
+          } else if ('single' == info.type) {
+            self.table.columns = self.columns.single
             self.table.columns[1].format = (val) => {
-              return 0 === val ? self.$t("label.unlimited") : val;
-            };
-            self.table.rows = util.isArray(data) ? data : [];
+              return 0 === val ? self.$t('label.unlimited') : val
+            }
+            self.table.rows = util.isArray(data) ? data : []
             for (const row of self.table.rows) {
-              self.table.clearing[row.name] = false;
-              row.is_group = false;
+              self.table.clearing[row.name] = false
+              row.is_group = false
             }
           }
         },
-      });
+      })
     },
 
     /*
      * CLEAR
      */
     on_clear_click(scope) {
-      let self = this;
       uix.confirm(
         function () {
-          let info;
+          let info
           if (scope.row.is_group) {
             info = {
               name: self.handler,
               group: scope.row.name,
-            };
+            }
           } else {
             info = {
               name: scope.row.name,
-            };
+            }
           }
-          self.table.clearing[scope.row.name] = true;
+          self.table.clearing[scope.row.name] = true
           api.call({
-            path: "/cache/clear",
-            method: "post",
+            path: '/cache/clear',
+            method: 'post',
             data: {
               info: info,
             },
-            onSuccess(data) {
+            onSuccess() {
               setTimeout(function () {
-                self.table.clearing[scope.row.name] = false;
-                self.do_request();
-              }, 500);
+                self.table.clearing[scope.row.name] = false
+                self.do_request()
+              }, 500)
             },
             onError() {
-              self.table.clearing[scope.row.name] = false;
+              self.table.clearing[scope.row.name] = false
             },
             notify: true,
-          });
+          })
         },
-        "confirm.clear",
-        scope.row.label
-      );
+        'confirm.clear',
+        scope.row.label,
+      )
     },
 
     /*
      * KEYS CLICK
      */
     on_keys_click(scope) {
-      let self = this;
-      self.dialog.keys = {
-        show: true,
-        parameters: {
-          title: scope.row.label,
-          name: scope.row.is_group ? self.handler : scope.row.name,
-          group: scope.row.is_group ? scope.row.name : null,
-        },
-      };
+      uix.dialog.show(self.dialog.keys, {
+        title: scope.row.label,
+        name: scope.row.is_group ? self.handler : scope.row.name,
+        group: scope.row.is_group ? scope.row.name : null,
+      })
     },
   },
-};
+}
 </script>

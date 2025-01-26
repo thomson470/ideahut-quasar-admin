@@ -30,7 +30,7 @@
         @click="on_search_click"
       >
         <q-badge v-if="!search.empty" class="led-green" floating></q-badge>
-        <q-tooltip>{{ $t("label.search") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.search') }}</q-tooltip>
       </q-btn>
       <q-btn
         glossy
@@ -42,7 +42,7 @@
         :loading="table.loading"
         @click="on_refresh_click"
       >
-        <q-tooltip>{{ $t("label.refresh") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
       </q-btn>
     </template>
 
@@ -70,7 +70,7 @@
         icon="visibility"
         @click="on_view_click(scope)"
       >
-        <q-tooltip>{{ $t("label.view") }}</q-tooltip>
+        <q-tooltip>{{ $t('label.view') }}</q-tooltip>
       </q-btn>
     </template>
     <template v-slot:pagination="scope">
@@ -143,11 +143,13 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <Search
       :parameters="dialog.search.parameters"
       @close="on_close_dialog_search"
+      :style="dialog.search.style"
+      v-touch-pan.mouse="dialog.search.onDrag"
     />
   </q-dialog>
 
@@ -156,22 +158,28 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
-    <View :parameters="dialog.view.parameters" />
+    <View
+      :parameters="dialog.view.parameters"
+      :style="dialog.view.style"
+      v-touch-pan.mouse="dialog.view.onDrag"
+    />
   </q-dialog>
 </template>
 
 <script>
-import { ref, defineAsyncComponent } from "vue";
-import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
+import { ref, defineAsyncComponent } from 'vue'
+import { util } from 'src/scripts/util'
+import { uix } from 'src/scripts/uix'
+import { api } from 'src/scripts/api'
+let self
 
 export default {
   components: {
-    Search: defineAsyncComponent(() => import("src/pages/AuditSearch.vue")),
+    Search: defineAsyncComponent(() => import('src/pages/AuditSearch.vue')),
     // eslint-disable-next-line vue/no-reserved-component-names
-    View: defineAsyncComponent(() => import("src/pages/TableView.vue")),
+    View: defineAsyncComponent(() => import('src/pages/TableView.vue')),
   },
   setup() {
     return {
@@ -180,7 +188,6 @@ export default {
       manager: ref(null),
       type: ref(null),
       info: ref({}),
-
       definition: {
         default: {
           visibles: [],
@@ -191,7 +198,6 @@ export default {
           columns: [],
         },
       },
-
       table: ref({
         rows: [],
         visibles: [],
@@ -199,250 +205,226 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 20,
-          sortBy: "entry",
+          sortBy: 'entry',
           descending: true,
           count: false,
         },
         loading: false,
       }),
-
       search: ref({
         filters: [],
         empty: true,
       }),
-
       dialog: ref({
-        search: {
-          show: false,
-          parameters: null,
-        },
-        view: {
-          show: false,
-          parameters: null,
-        },
+        search: uix.dialog.init(() => self.dialog.search),
+        view: uix.dialog.init(() => self.dialog.view),
       }),
-    };
+    }
   },
 
   created() {
-    let self = this;
+    self = this
     self.definition.default = {
-      visibles: [
-        "id",
-        "action",
-        "replica",
-        "auditor",
-        "info",
-        "type",
-        "content",
-        "entry",
-      ],
+      visibles: ['id', 'action', 'replica', 'auditor', 'info', 'type', 'content', 'entry'],
       columns: [
         {
-          name: "entry",
-          label: self.$t("label.entry"),
-          field: "entry",
-          align: "left",
+          name: 'entry',
+          label: self.$t('label.entry'),
+          field: 'entry',
+          align: 'left',
           timestamp: true,
-          pattern: "YYYY-MM-DD HH:mm:ss",
+          pattern: 'YYYY-MM-DD HH:mm:ss',
           sortable: true,
           format: function (val, row) {
-            return util.format.date(util.getFieldValue("entry", row), {
-              format: "YYYY-MM-DD HH:mm:ss",
-            });
+            return util.format.date(util.getFieldValue('entry', row), {
+              format: 'YYYY-MM-DD HH:mm:ss',
+            })
           },
         },
         {
-          name: "id",
-          label: self.$t("label.id"),
-          field: "id",
-          align: "left",
-          type: "java.lang.String",
+          name: 'id',
+          label: self.$t('label.id'),
+          field: 'id',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
         {
-          name: "action",
-          label: self.$t("label.action"),
-          field: "action",
-          align: "left",
-          type: "java.lang.String",
+          name: 'action',
+          label: self.$t('label.action'),
+          field: 'action',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
         {
-          name: "replica",
-          label: self.$t("label.replica"),
-          field: "replica",
-          align: "left",
-          type: "java.lang.Integer",
+          name: 'replica',
+          label: self.$t('label.replica'),
+          field: 'replica',
+          align: 'left',
+          type: 'java.lang.Integer',
           sortable: true,
         },
         {
-          name: "auditor",
-          label: self.$t("label.auditor"),
-          field: "auditor",
-          align: "left",
-          type: "java.lang.String",
+          name: 'auditor',
+          label: self.$t('label.auditor'),
+          field: 'auditor',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
         {
-          name: "info",
-          label: self.$t("label.info"),
-          field: "info",
-          align: "left",
-          type: "java.lang.String",
+          name: 'info',
+          label: self.$t('label.info'),
+          field: 'info',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
         {
-          name: "type",
-          label: self.$t("label.type"),
-          field: "type",
-          align: "left",
-          type: "java.lang.String",
+          name: 'type',
+          label: self.$t('label.type'),
+          field: 'type',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
         {
-          name: "content",
-          label: self.$t("label.content"),
-          field: "content",
-          align: "left",
-          type: "java.lang.String",
+          name: 'content',
+          label: self.$t('label.content'),
+          field: 'content',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
       ],
-    };
+    }
     self.definition.entity = {
-      visibles: ["action", "replica", "auditor", "entry"],
+      visibles: ['action', 'replica', 'auditor', 'entry'],
       columns: [
         {
-          name: "entry",
-          label: self.$t("label.entry"),
-          field: "entry",
-          align: "left",
+          name: 'entry',
+          label: self.$t('label.entry'),
+          field: 'entry',
+          align: 'left',
           timestamp: true,
-          pattern: "YYYY-MM-DD HH:mm:ss",
+          pattern: 'YYYY-MM-DD HH:mm:ss',
           sortable: true,
           format: function (val, row) {
-            return util.format.date(util.getFieldValue("entry", row), {
-              format: "YYYY-MM-DD HH:mm:ss",
-            });
+            return util.format.date(util.getFieldValue('entry', row), {
+              format: 'YYYY-MM-DD HH:mm:ss',
+            })
           },
         },
         {
-          name: "action",
-          label: self.$t("label.action"),
-          field: "action",
-          align: "left",
-          type: "java.lang.String",
+          name: 'action',
+          label: self.$t('label.action'),
+          field: 'action',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
         {
-          name: "replica",
-          label: self.$t("label.replica"),
-          field: "replica",
-          align: "left",
-          type: "java.lang.Integer",
+          name: 'replica',
+          label: self.$t('label.replica'),
+          field: 'replica',
+          align: 'left',
+          type: 'java.lang.Integer',
           sortable: true,
         },
         {
-          name: "auditor",
-          label: self.$t("label.auditor"),
-          field: "auditor",
-          align: "left",
-          type: "java.lang.String",
+          name: 'auditor',
+          label: self.$t('label.auditor'),
+          field: 'auditor',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
         {
-          name: "info",
-          label: self.$t("label.info"),
-          field: "info",
-          align: "left",
-          type: "java.lang.String",
+          name: 'info',
+          label: self.$t('label.info'),
+          field: 'info',
+          align: 'left',
+          type: 'java.lang.String',
           sortable: true,
         },
       ],
-    };
-    self.do_init();
+    }
+    self.do_init()
   },
   beforeUpdate() {
-    this.do_init();
+    this.do_init()
   },
   methods: {
     /*
      * GET PAGINATION
      */
     get_pagination(props) {
-      let self = this;
-      let pagination = props?.pagination
-        ? props.pagination
-        : self.table.pagination;
+      let pagination = props?.pagination ? props.pagination : self.table.pagination
       if (pagination) {
-        self.table.pagination = pagination;
-        return pagination;
+        self.table.pagination = pagination
+        return pagination
       }
-      return self.table.pagination;
+      return self.table.pagination
     },
 
     /*
      * IS FIELD VISIBLE
      */
     is_field_visible(field) {
-      if ("[B" === field.type) {
-        return false;
+      if ('[B' === field.type) {
+        return false
       } else if (true === field.lob) {
-        return false;
-      } else if ("java.lang.String" === field.type) {
-        return field.length <= 255;
+        return false
+      } else if ('java.lang.String' === field.type) {
+        return field.length <= 255
       }
-      return true;
+      return true
     },
 
     /*
      * CREATE SEARCH FILTERS
      */
     create_search_filters() {
-      let self = this;
-      let columns = self.table.columns;
-      let visibles = self.table.visibles;
+      let columns = self.table.columns
+      let visibles = self.table.visibles
       self.search = {
         filters: [],
         empty: true,
-      };
+      }
       for (const column of columns) {
         if (visibles.includes(column.name)) {
-          let is_push = true;
+          let is_push = true
           let filter = {
             name: column.name,
             label: column.label,
             timestamp: column.timestamp,
             pattern: column.pattern,
-          };
+          }
           if (true === column.timestamp) {
-            filter.type = "datetime";
-            filter.condition = "BETWEEN";
+            filter.type = 'datetime'
+            filter.condition = 'BETWEEN'
             if (util.isString(column.format)) {
-              filter.pattern = col;
+              filter.pattern = column.format
             }
-          } else if ("java.lang.String" === column.type) {
-            filter.type = column.length > 100 ? "words" : "text";
-            filter.condition = "ANY_LIKE";
-          } else if ("java.lang.Character" === column.type) {
-            filter.type = "text";
-            filter.condition = "EQUAL";
-          } else if ("java.time.LocalDateTime" === column.type) {
-            filter.type = "datetime";
-            filter.pattern = column.format;
-            filter.condition = "BETWEEN";
-          } else if (
-            "java.lang.Integer" === column.type ||
-            "java.lang.Long" === column.type
-          ) {
-            filter.type = "number";
-            filter.condition = "EQUAL";
+          } else if ('java.lang.String' === column.type) {
+            filter.type = column.length > 100 ? 'words' : 'text'
+            filter.condition = 'ANY_LIKE'
+          } else if ('java.lang.Character' === column.type) {
+            filter.type = 'text'
+            filter.condition = 'EQUAL'
+          } else if ('java.time.LocalDateTime' === column.type) {
+            filter.type = 'datetime'
+            filter.pattern = column.format
+            filter.condition = 'BETWEEN'
+          } else if ('java.lang.Integer' === column.type || 'java.lang.Long' === column.type) {
+            filter.type = 'number'
+            filter.condition = 'EQUAL'
           } else {
-            is_push = false;
+            is_push = false
           }
           if (is_push) {
-            self.search.filters.push(filter);
+            self.search.filters.push(filter)
           }
         }
       }
@@ -452,26 +434,21 @@ export default {
      * INIT
      */
     do_init() {
-      let self = this;
-      let handler = self.$route.query.handler;
-      let manager = self.$route.query.manager;
-      let type = self.$route.query.type;
-      if (
-        handler === self.handler &&
-        manager === self.manager &&
-        type === self.type
-      ) {
-        return;
+      let handler = self.$route.query.handler
+      let manager = self.$route.query.manager
+      let type = self.$route.query.type
+      if (handler === self.handler && manager === self.manager && type === self.type) {
+        return
       }
-      let dateFormat = "YYYY-MM-DD HH:mm:ss";
-      self.handler = handler;
-      self.manager = manager;
-      self.type = type;
-      if ("_" !== self.type) {
-        self.table.columns = [...self.definition.entity.columns];
-        self.table.visibles = [...self.definition.entity.visibles];
+      let dateFormat = 'YYYY-MM-DD HH:mm:ss'
+      self.handler = handler
+      self.manager = manager
+      self.type = type
+      if ('_' !== self.type) {
+        self.table.columns = [...self.definition.entity.columns]
+        self.table.visibles = [...self.definition.entity.visibles]
         api.call({
-          path: "/audit/info",
+          path: '/audit/info',
           params: {
             handler: self.handler,
             type: self.type,
@@ -479,102 +456,83 @@ export default {
           },
           onSuccess(data) {
             if (util.isObject(data)) {
-              self.info = data;
+              self.info = data
               for (const field of self.info.fields) {
                 if (self.is_field_visible(field)) {
-                  self.table.visibles.push("content." + field.name);
+                  self.table.visibles.push('content.' + field.name)
                 }
-                let is_push = true;
+                let is_push = true
                 let column = {
-                  name: "content." + field.name,
+                  name: 'content.' + field.name,
                   label: field.label,
-                  field: "content",
-                  align: "left",
+                  field: 'content',
+                  align: 'left',
                   type: field.type,
                   sortable: true,
                   format: function (data) {
-                    let value = util.isObject(data)
-                      ? util.getFieldValue(field.name, data)
-                      : data;
-                    value = util.isObject(value)
-                      ? JSON.stringify(value)
-                      : value;
-                    return value;
+                    let value = util.isObject(data) ? util.getFieldValue(field.name, data) : data
+                    value = util.isObject(value) ? JSON.stringify(value) : value
+                    return value
                   },
-                };
-                if (util.isString(field.format)) {
-                  column.pattern = field.format;
                 }
-                if (
-                  true === self.info.isSoftDelete &&
-                  "deletedOn" === field.name
-                ) {
-                  column.timestamp = true;
-                  column.pattern = util.isString(field.format)
-                    ? field.format
-                    : dateFormat;
+                if (util.isString(field.format)) {
+                  column.pattern = field.format
+                }
+                if (true === self.info.isSoftDelete && 'deletedOn' === field.name) {
+                  column.timestamp = true
+                  column.pattern = util.isString(field.format) ? field.format : dateFormat
                   column.format = function (val) {
                     try {
-                      return util.format.date(
-                        util.getFieldValue("deletedOn", val),
-                        { format: dateFormat }
-                      );
-                    } catch (e) {
-                      return val;
+                      return util.format.date(util.getFieldValue('deletedOn', val), {
+                        format: dateFormat,
+                      })
+                    } catch {
+                      return val
                     }
-                  };
+                  }
                 } else if (true === self.info.isAuditEntity) {
-                  if ("createdOn" === field.name) {
-                    column.timestamp = true;
-                    column.pattern = util.isString(field.format)
-                      ? field.format
-                      : dateFormat;
+                  if ('createdOn' === field.name) {
+                    column.timestamp = true
+                    column.pattern = util.isString(field.format) ? field.format : dateFormat
                     column.format = function (val) {
                       try {
-                        return util.format.date(
-                          util.getFieldValue("createdOn", val),
-                          { format: dateFormat }
-                        );
-                      } catch (e) {
-                        return val;
+                        return util.format.date(util.getFieldValue('createdOn', val), {
+                          format: dateFormat,
+                        })
+                      } catch {
+                        return val
                       }
-                    };
-                  } else if ("updatedOn" === field.name) {
-                    column.timestamp = true;
-                    column.pattern = util.isString(field.format)
-                      ? field.format
-                      : dateFormat;
+                    }
+                  } else if ('updatedOn' === field.name) {
+                    column.timestamp = true
+                    column.pattern = util.isString(field.format) ? field.format : dateFormat
                     column.format = function (val) {
                       try {
-                        return util.format.date(
-                          util.getFieldValue("updatedOn", val),
-                          { format: dateFormat }
-                        );
-                      } catch (e) {
-                        return val;
+                        return util.format.date(util.getFieldValue('updatedOn', val), {
+                          format: dateFormat,
+                        })
+                      } catch {
+                        return val
                       }
-                    };
-                  } else if (
-                    "createdBy" === field.name ||
-                    "updatedBy" === field.name
-                  ) {
-                    is_push = false;
+                    }
+                  } else if ('createdBy' === field.name || 'updatedBy' === field.name) {
+                    is_push = false
                   }
                 }
                 if (is_push) {
-                  self.table.columns.push(column);
+                  self.table.columns.push(column)
                 }
               }
-              self.create_search_filters();
-              self.do_request();
+              self.create_search_filters()
+              self.do_request()
             }
           },
-        });
+        })
       } else {
-        self.table.columns = [...self.definition.default.columns];
-        self.table.visibles = [...self.definition.default.visibles];
-        self.create_search_filters();
-        self.do_request();
+        self.table.columns = [...self.definition.default.columns]
+        self.table.visibles = [...self.definition.default.visibles]
+        self.create_search_filters()
+        self.do_request()
       }
     },
 
@@ -582,57 +540,55 @@ export default {
      * REQUEST
      */
     do_request(props) {
-      let self = this;
-      let { page, rowsPerPage, sortBy, descending } =
-        self.get_pagination(props);
-      let filters = [];
-      let search = self.search;
+      let { page, rowsPerPage, sortBy, descending } = self.get_pagination(props)
+      let filters = []
+      let search = self.search
       if (!search.empty) {
-        let v1, v2;
+        let v1, v2
         for (const filter of search.filters) {
-          v1 = util.isDefined(filter.value) ? filter.value : "";
-          if ("" === v1) {
-            continue;
+          v1 = util.isDefined(filter.value) ? filter.value : ''
+          if ('' === v1) {
+            continue
           }
-          if ("BETWEEN" === filter.condition) {
-            v2 = util.isDefined(filter.value2) ? filter.value2 : "";
-            if ("" !== v2) {
-              if ("datetime" === filter.type && true === filter.timestamp) {
-                v1 = util.parse.epoch(v1, { format: filter.pattern || null });
-                v2 = util.parse.epoch(v2, { format: filter.pattern || null });
+          if ('BETWEEN' === filter.condition) {
+            v2 = util.isDefined(filter.value2) ? filter.value2 : ''
+            if ('' !== v2) {
+              if ('datetime' === filter.type && true === filter.timestamp) {
+                v1 = util.parse.epoch(v1, { format: filter.pattern || null })
+                v2 = util.parse.epoch(v2, { format: filter.pattern || null })
               }
               filters.push({
                 field: filter.name,
                 condition: filter.condition,
                 values: [v1, v2],
-              });
+              })
             }
           } else {
-            if ("datetime" === filter.type && true === filter.timestamp) {
-              v1 = util.parse.epoch(v1, { format: filter.pattern || null });
+            if ('datetime' === filter.type && true === filter.timestamp) {
+              v1 = util.parse.epoch(v1, { format: filter.pattern || null })
             }
-            let or = filter.or;
+            let or = filter.or
             if (util.isString[or]) {
-              or = [or];
+              or = [or]
             }
-            or = util.isArray(or) ? or : [];
+            or = util.isArray(or) ? or : []
             if (or.length) {
-              let qor = { logical: "and", filters: [] };
+              let qor = { logical: 'and', filters: [] }
               for (let j = 0; j < or.length; j++) {
                 qor.filters.push({
                   field: or[j],
-                  logical: j === 0 ? "and" : "or",
+                  logical: j === 0 ? 'and' : 'or',
                   condition: filter.condition,
                   value: v1,
-                });
+                })
               }
-              filters.push(qor);
+              filters.push(qor)
             } else {
               filters.push({
                 field: filter.name,
                 condition: filter.condition,
                 value: v1,
-              });
+              })
             }
           }
         }
@@ -645,80 +601,75 @@ export default {
         },
         filters: filters,
         manager: self.manager,
-      };
-      if ("_" !== self.type) {
-        body.entity = self.type;
+      }
+      if ('_' !== self.type) {
+        body.entity = self.type
       }
       if (sortBy) {
-        body.orders = [(descending ? "-" : "") + sortBy];
+        body.orders = [(descending ? '-' : '') + sortBy]
       }
-      self.table.loading = true;
+      self.table.loading = true
       api.call({
-        path: "/audit/list",
-        method: "post",
+        path: '/audit/list',
+        method: 'post',
         params: {
           handler: self.handler,
         },
         data: body,
         onFinish() {
-          self.table.loading = false;
+          self.table.loading = false
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.table.rows = util.isArray(data.data) ? data.data : [];
-            let pagination = self.table.pagination;
-            pagination.page = data.index;
-            pagination.rowsPerPage = data.size;
+            self.table.rows = util.isArray(data.data) ? data.data : []
+            let pagination = self.table.pagination
+            pagination.page = data.index
+            pagination.rowsPerPage = data.size
             if (util.isNumber(data.records)) {
-              pagination.rowsNumber = data.records;
+              pagination.rowsNumber = data.records
             } else {
-              let rowsNumber = data.index * data.size;
+              let rowsNumber = data.index * data.size
               if (self.table.rows.length !== data.size) {
-                pagination.rowsNumber = rowsNumber;
+                pagination.rowsNumber = rowsNumber
               } else {
-                pagination.rowsNumber = rowsNumber + 1;
+                pagination.rowsNumber = rowsNumber + 1
               }
             }
           }
         },
-      });
+      })
     },
 
     /*
      * SEARCH CLICK
      */
     on_search_click() {
-      let self = this;
-      self.dialog.search = {
-        show: true,
-        parameters: {
-          filters: self.search.filters,
-        },
-      };
+      uix.dialog.show(self.dialog.search, {
+        filters: self.search.filters,
+      })
     },
 
     /*
      * CLOSE SEARCH DIALOG
      */
     on_close_dialog_search(filters) {
-      let self = this;
       if (util.isArray(filters)) {
-        let search = self.search;
-        search.filters = filters;
-        search.empty = true;
+        let search = self.search
+        search.filters = filters
+        search.empty = true
         for (const filter of search.filters) {
-          let v1 = util.isDefined(filter.value) ? filter.value : "";
-          let v2 = util.isDefined(filter.value2) ? filter.value2 : "";
-          if ("" !== v1 || "" !== v2) {
-            search.empty = false;
-            break;
+          let v1 = util.isDefined(filter.value) ? filter.value : ''
+          let v2 = util.isDefined(filter.value2) ? filter.value2 : ''
+          if ('' !== v1 || '' !== v2) {
+            search.empty = false
+            break
           }
         }
-        self.dialog.search = { show: false, parameters: null };
-        self.table.pagination.page = 1;
+        uix.dialog.hide(self.dialog.search)
+        self.table.pagination.page = 1
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
 
@@ -726,43 +677,37 @@ export default {
      * REFRESH CLICK
      */
     on_refresh_click() {
-      let self = this;
       if (!self.table.rows?.length) {
         if (self.table.pagination.page > 1) {
-          self.table.pagination.page = 1;
+          self.table.pagination.page = 1
         }
       }
       self.do_request({
         pagination: self.table.pagination,
-      });
+      })
     },
 
     /*
      * VIEW CLICK
      */
     on_view_click(scope) {
-      let self = this;
-      self.dialog.view = {
-        show: true,
-        parameters: {
-          scope: scope,
-          columns: self.table.columns,
-        },
-      };
+      uix.dialog.show(self.dialog.view, {
+        scope: scope,
+        columns: self.table.columns,
+      })
     },
 
     /*
      * PAGE CHANGED
      */
     on_page_changed() {
-      let self = this;
-      let page = +self.table.pagination.page;
+      let page = +self.table.pagination.page
       if (!isNaN(page) && page > 0) {
         self.do_request({
           pagination: self.table.pagination,
-        });
+        })
       }
     },
   },
-};
+}
 </script>
