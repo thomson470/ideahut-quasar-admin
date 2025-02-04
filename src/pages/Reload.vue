@@ -40,6 +40,7 @@ import { ref } from 'vue'
 import { util } from 'src/scripts/util'
 import { uix } from 'src/scripts/uix'
 import { api } from 'src/scripts/api'
+let self
 
 export default {
   setup() {
@@ -50,7 +51,7 @@ export default {
   },
 
   created() {
-    let self = this
+    self = this
     api.call({
       path: '/reload',
       onSuccess(datas) {

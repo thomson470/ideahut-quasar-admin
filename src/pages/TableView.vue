@@ -43,6 +43,7 @@
 import { ref } from 'vue'
 import { APP } from 'src/scripts/static'
 import { util } from 'src/scripts/util'
+let self
 
 export default {
   props: ['parameters'],
@@ -56,7 +57,7 @@ export default {
   },
 
   created() {
-    let self = this
+    self = this
     let params = util.isObject(self.parameters) ? self.parameters : {}
     self.scope = util.isObject(params.scope) ? params.scope : {}
     let columns = util.isArray(params.columns) ? params.columns : self.scope.cols

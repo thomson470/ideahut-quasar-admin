@@ -182,7 +182,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <Search
       :parameters="dialog.search.parameters"

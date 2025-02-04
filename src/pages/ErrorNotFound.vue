@@ -12,6 +12,7 @@
 <script>
 import { ref, defineComponent } from 'vue'
 import { util } from 'src/scripts/util'
+let self
 
 export default defineComponent({
   name: 'ErrorNotFound',
@@ -21,7 +22,7 @@ export default defineComponent({
     }
   },
   created() {
-    let self = this
+    self = this
     self.is_index = window.location.pathname === util.webPath() + '/index.html'
   },
 })

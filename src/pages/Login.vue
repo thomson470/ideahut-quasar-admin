@@ -54,6 +54,7 @@ import { util } from 'src/scripts/util'
 import { uix } from 'src/scripts/uix'
 import { api } from 'src/scripts/api'
 import { storage } from 'src/scripts/storage'
+let self
 
 export default {
   setup() {
@@ -69,7 +70,7 @@ export default {
     }
   },
   beforeCreate() {
-    let self = this
+    self = this
     api.send({
       path: '/check',
       onSuccess(response) {
@@ -115,7 +116,6 @@ export default {
   },
   methods: {
     on_login_click() {
-      let self = this
       let username = self.username
       if (!(username && username.length > 0)) {
         uix.error('error.required', 'label.username')

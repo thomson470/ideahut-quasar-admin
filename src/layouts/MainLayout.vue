@@ -2,7 +2,10 @@
   <q-layout view="hHh lpR fFf" class="background-layout">
     <q-header
       class="header-main"
-      :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+      :style="
+        (APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : '') +
+        (APP?.color?.title ? 'color: ' + APP.color.title + ' !important;' : '')
+      "
     >
       <q-toolbar>
         <q-btn
@@ -201,6 +204,7 @@ import { util } from 'src/scripts/util'
 import { api } from 'src/scripts/api'
 import { uix } from 'src/scripts/uix'
 import { storage } from 'src/scripts/storage'
+let self
 
 export default {
   setup() {
@@ -218,7 +222,7 @@ export default {
     }
   },
   created() {
-    let self = this
+    self = this
     let auth = storage.auth()
     self.is_dark_mode = uix.dark.active()
     self.is_logged_in = util.isString(auth.token) && '' !== auth.token && true === auth.logout
@@ -274,7 +278,6 @@ export default {
      * TOGGLE MENU
      */
     on_toggle_menu: function () {
-      let self = this
       self.is_show_menu = !self.is_show_menu
       let menu = storage.menu()
       menu.show = self.is_show_menu
@@ -285,7 +288,6 @@ export default {
      * HEADER MENU
      */
     on_header_menu_click() {
-      let self = this
       self.active_menu = { id: {} }
       let cmenu = storage.menu()
       delete cmenu.active
@@ -297,7 +299,6 @@ export default {
      * MENU CLICK
      */
     on_menu_click(menu) {
-      let self = this
       if (util.isString(menu.link) && '' !== menu.link) {
         if (menu.noPushRoute) {
           self.active_menu = { id: {} }
@@ -322,7 +323,6 @@ export default {
      * LOGOUT
      */
     on_logout_click() {
-      let self = this
       uix.confirm(function () {
         self.is_logout_progress = true
         let auth = storage.auth()

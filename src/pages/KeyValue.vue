@@ -97,6 +97,7 @@
 <script>
 import { ref } from 'vue'
 import { util } from 'src/scripts/util'
+let self
 
 export default {
   props: ['parameters'],
@@ -109,13 +110,12 @@ export default {
     }
   },
   created() {
-    let self = this
+    self = this
     self.rows = util.isArray(self.parameters.rows) ? self.parameters.rows : []
     self.onRefresh()
   },
   methods: {
     onRefresh() {
-      let self = this
       if (util.isFunction(self.parameters.onRefresh)) {
         let parameters = util.copy(self.parameters)
         self.parameters.onRefresh({

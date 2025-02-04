@@ -7,11 +7,12 @@ import { defineComponent } from 'vue'
 import { util } from 'src/scripts/util'
 import { api } from 'src/scripts/api'
 import { storage } from 'src/scripts/storage'
+let self
 
 export default defineComponent({
   name: 'App',
   created() {
-    let self = this
+    self = this
     let menu = storage.menu()
     if (window.location.pathname === util.webPath() + '/index.html') {
       let qp = Object.fromEntries([...new URLSearchParams(window.location.href.split('?')[1])])

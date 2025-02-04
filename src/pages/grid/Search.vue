@@ -427,6 +427,7 @@ import { ref } from 'vue'
 import { APP } from 'src/scripts/static'
 import { util } from 'src/scripts/util'
 import { uix } from 'src/scripts/uix'
+let self
 
 export default {
   props: ['parameters'],
@@ -435,7 +436,6 @@ export default {
     return {
       APP,
       uix,
-
       filters: ref([]),
       template: ref({}),
       enums: ref({}),
@@ -444,7 +444,7 @@ export default {
   },
 
   created() {
-    let self = this
+    self = this
     let params = self.parameters || {}
     self.filters = util.isArray(params.filters) ? params.filters : []
     self.template = util.isObject(params.template) ? params.template : {}
@@ -467,7 +467,6 @@ export default {
      * RESET CLICK
      */
     on_reset_click() {
-      let self = this
       for (const element of self.filters) {
         delete element.value
         delete element.value2
@@ -478,7 +477,6 @@ export default {
      * FILTER CLICK
      */
     on_filter_click() {
-      let self = this
       for (const element of self.filters) {
         if (util.isDefined(element.value) && element.value === null) {
           delete element.value

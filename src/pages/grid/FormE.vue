@@ -224,7 +224,7 @@
     persistent
     transition-show="slide-down"
     transition-hide="none"
-    backdrop-filter="blur(2px)"
+    backdrop-filter="blur(1px)"
   >
     <Pick :parameters="dialog.pick.parameters" @close="on_close_dialog_pick" />
   </q-dialog>
