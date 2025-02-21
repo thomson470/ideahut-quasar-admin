@@ -50,7 +50,11 @@
           emit-value
           map-options
           filled
-        />
+        >
+          <template v-slot:selected-item="scope">
+            {{ scope.opt?.label || options[field.option][scope.opt]?.label }}
+          </template>
+        </q-select>
         <q-select
           v-else-if="'enum' === field.type"
           v-model="field.value"
@@ -62,7 +66,11 @@
           emit-value
           map-options
           filled
-        />
+        >
+          <template v-slot:selected-item="scope">
+            {{ scope.opt?.label || enums[field.enum][scope.opt]?.label }}
+          </template>
+        </q-select>
         <q-input
           v-else-if="'datetime' === field.type || 'date' === field.type || 'time' === field.type"
           type="text"

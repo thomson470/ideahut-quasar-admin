@@ -165,6 +165,7 @@ export default {
                 persistent: false,
                 logout: true,
               })
+              storage.menu(null)
               self.$router.push({ path: '/' })
             }
           },

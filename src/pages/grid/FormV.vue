@@ -89,14 +89,14 @@ export default {
         value = field.format(value, data)
       } else if ('enum' === field.type) {
         try {
-          sval = template.enums[field.enum].find((x) => x.value === value).label
+          sval = template.enums[field.enum].find((x) => (""+x.value) === (""+value)).label
         } catch {
           sval = value
         }
         value = sval
       } else if ('option' === field.type) {
         try {
-          sval = template.options[field.option].find((x) => x.value === value).label
+          sval = template.options[field.option].find((x) => (""+x.value) === (""+value)).label
         } catch {
           sval = value
         }

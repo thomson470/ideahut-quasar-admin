@@ -21,6 +21,17 @@
             glossy
             dense
             size="sm"
+            icon="display_settings"
+            class="q-mr-sm"
+            @click="on_keyvalue_show($t('label.properties'), sysprops, true)"
+          >
+            <q-tooltip>{{ $t('label.properties') }}</q-tooltip>
+          </q-btn>
+          <q-btn
+            round
+            glossy
+            dense
+            size="sm"
             icon="lightbulb"
             @click="on_keyvalue_show($t('label.application'), application)"
           >
@@ -313,6 +324,7 @@ export default {
     return {
       APP,
       util,
+      sysprops: ref([]),
       application: ref([]),
       version: ref([]),
       bean: ref({
@@ -377,6 +389,7 @@ export default {
       },
     ]
     self.get_info()
+    self.get_sysprops()
     self.get_beans()
   },
   methods: {
@@ -471,6 +484,37 @@ export default {
           if (util.isArray(data.beans)) {
             self.bean.rows = data.beans
             self.bean.pagination.rowsNumber = self.bean.rows.length
+          }
+        },
+      })
+    },
+
+    /*
+     * GET SYS PROPS
+     */
+    get_sysprops() {
+      api.call({
+        path: '/sysprops',
+        onSuccess(data) {
+          if (util.isObject(data)) {
+            self.sysprops = []
+            Object.keys(data).forEach((key) => {
+              self.sysprops.push({
+                label: key,
+                value: data[key],
+              })
+            })
+            self.sysprops.sort((a, b) => {
+              const la = a.label.toUpperCase()
+              const lb = b.label.toUpperCase()
+              if (la < lb) {
+                return -1
+              }
+              if (la > lb) {
+                return 1
+              }
+              return 0
+            })
           }
         },
       })
@@ -587,10 +631,10 @@ export default {
     /*
      * KEY VALUE
      */
-    on_keyvalue_show(title, rows) {
+    on_keyvalue_show(title, rows, search) {
       uix.dialog.show(self.dialog.keyvalue, {
         title: title,
-        search: false,
+        search: true === search,
         rows: rows,
       })
     },
