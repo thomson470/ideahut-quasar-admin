@@ -445,15 +445,7 @@ export default {
         format: (val) => {
           let sval = ''
           if (util.isArray(val)) {
-            val.sort((a, b) => {
-              if (a.index < b.index) {
-                return -1
-              }
-              if (a.index > b.index) {
-                return 1
-              }
-              return 0
-            })
+            util.sort.array(val, 'label')
             let m = {}
             for (const v of val) {
               if (!util.isArray(m[v.topic])) {

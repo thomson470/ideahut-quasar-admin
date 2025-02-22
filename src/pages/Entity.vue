@@ -903,25 +903,6 @@ export default {
   },
   methods: {
     /*
-     * SORT
-     */
-    do_sort(array) {
-      if (util.isArray(array)) {
-        array.sort((a, b) => {
-          const la = a.label.toUpperCase()
-          const lb = b.label.toUpperCase()
-          if (la < lb) {
-            return -1
-          }
-          if (la > lb) {
-            return 1
-          }
-          return 0
-        })
-      }
-    },
-
-    /*
      * GET ENTITY PAGINATION
      */
     get_entity_pagination(props) {
@@ -967,7 +948,7 @@ export default {
                   value: data.setting[key],
                 })
               })
-              self.do_sort(self.setting.rows)
+              util.sort.array(self.setting.rows, 'label');
             }
             self.metadata.rows = []
             if (util.isObject(data.metadata)) {
@@ -977,7 +958,7 @@ export default {
                   value: data.metadata[key],
                 })
               })
-              self.do_sort(self.metadata.rows)
+              util.sort.array(self.metadata.rows, 'label')
             }
           }
         },

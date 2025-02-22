@@ -504,17 +504,7 @@ export default {
                 value: data[key],
               })
             })
-            self.sysprops.sort((a, b) => {
-              const la = a.label.toUpperCase()
-              const lb = b.label.toUpperCase()
-              if (la < lb) {
-                return -1
-              }
-              if (la > lb) {
-                return 1
-              }
-              return 0
-            })
+            util.sort.array(self.sysprops, 'label')
           }
         },
       })

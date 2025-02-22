@@ -2,7 +2,7 @@ import moment from 'moment'
 import { APP } from 'src/scripts/static'
 
 const DATE = {
-  LZ: function (x) {
+  LZ: (x) => {
     return (x < 0 || x > 9 ? '' : '0') + x
   },
   MONTHS: [
@@ -63,14 +63,14 @@ const util = {
   /*
    * WEB PATH
    */
-  webPath: function () {
+  webPath() {
     return APP.web
   },
 
   /*
    * LOG
    */
-  log: function (...args) {
+  log(...args) {
     if (true === APP.debug) {
       console.log(...args)
     }
@@ -124,7 +124,7 @@ const util = {
   /*
    * COPY
    */
-  copy: function (value) {
+  copy(value) {
     return JSON.parse(JSON.stringify(value))
   },
 
@@ -133,7 +133,7 @@ const util = {
    */
   format: {
     /* MONEY */
-    money: function (number, thousand, decimal, places, symbol) {
+    money(number, thousand, decimal, places, symbol) {
       places = !isNaN((places = Math.abs(places))) ? places : 2
       symbol = symbol !== undefined ? symbol : ''
       thousand = thousand || '.'
@@ -155,7 +155,7 @@ const util = {
       )
     },
     /* DATE */
-    date: function (value, options) {
+    date(value, options) {
       options = util.isObject(options) ? options : {}
       let date
       if (util.isObject(value) && util.isFunction(value.getSeconds)) {
@@ -259,7 +259,7 @@ const util = {
       }
       return res
     },
-    number: function (value, precision = 2) {
+    number(value, precision = 2) {
       const found = NUMBER_THRESHOLD.find((x) => Math.abs(value) >= x.threshold)
       if (found) {
         const formatted =
@@ -275,7 +275,7 @@ const util = {
    * PARSE
    */
   parse: {
-    date: function (value, options) {
+    date(value, options) {
       options = util.isObject(options) ? options : {}
       let date
       if (util.isObject(value) && util.isFunction(value.getSeconds)) {
@@ -296,7 +296,7 @@ const util = {
       }
       return date
     },
-    epoch: function (value, options) {
+    epoch(value, options) {
       let date = util.parse.date(value, options)
       return date ? date.getTime() : null
     },
@@ -336,7 +336,7 @@ const util = {
   /*
    * UUID
    */
-  uuid: function () {
+  uuid() {
     let dt = new Date().getTime()
     let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       let r = (dt + Math.random() * 16) % 16 | 0
@@ -349,7 +349,7 @@ const util = {
   /*
    * CONVERTER
    */
-  stringToBuffer: function (string) {
+  stringToBuffer(string) {
     if (/[\u0080-\uffff]/.test(string)) {
       throw new Error('invalid string')
     }
@@ -359,10 +359,10 @@ const util = {
     }
     return array.buffer
   },
-  objectToBuffer: function (object) {
+  objectToBuffer(object) {
     return util.stringToBuffer(JSON.stringify(object))
   },
-  bufferToString: function (buffer) {
+  bufferToString(buffer) {
     let array = new Uint8Array(buffer)
     let string = String.fromCharCode(array)
     if (/[\u0080-\uffff]/.test(string)) {
@@ -370,10 +370,10 @@ const util = {
     }
     return string
   },
-  bufferToObject: function (buffer) {
+  bufferToObject(buffer) {
     return JSON.parse(util.bufferToString(buffer))
   },
-  blobToBase64: function (blob) {
+  blobToBase64(blob) {
     return new Promise((resolve) => {
       let reader = new FileReader()
       reader.onload = function () {
@@ -388,14 +388,14 @@ const util = {
    * IMAGE
    */
   image: {
-    blob: function (url) {
+    blob(url) {
       return new Promise((resolve) => {
         let response = fetch(url)
         let blob = response.blob()
         resolve(blob)
       })
     },
-    base64: async function (url) {
+    base64: async (url) => {
       let blob = await util.image.blob(url)
       let base64 = await util.blobToBase64(blob)
       return base64
@@ -405,7 +405,7 @@ const util = {
   /*
    * GET FIELD VALUE
    */
-  getFieldValue: function (field, row) {
+  getFieldValue(field, row) {
     field = field || ''
     let ffs = field.split('.')
     let val = row[ffs[0]]
@@ -420,6 +420,27 @@ const util = {
       }
     }
     return val
+  },
+
+  /*
+   * SORT
+   */
+  sort: {
+    array(array, field, opts = {ascending: true}) {
+      if (util.isArray(array) && util.isString(field)) {
+        array.sort((a, b) => {
+          const la = true === opts.sensitive ? a[field].toUpperCase() : a[field];
+          let lb = true === opts.sensitive ? b[field].toUpperCase() : b[field];;
+          if (la < lb) {
+            return true === opts.ascending ? -1 : 1
+          }
+          if (la > lb) {
+            return true === opts.ascending ? 1 : -1
+          }
+          return 0
+        })
+      }
+    }
   },
 }
 export { util }
