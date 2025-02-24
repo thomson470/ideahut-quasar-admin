@@ -354,6 +354,7 @@ export default {
         template: self.template,
         field: field,
         pick: pick,
+        relations: self.relations,
         replica: self.replica,
       })
     },

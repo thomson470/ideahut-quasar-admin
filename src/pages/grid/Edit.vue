@@ -494,10 +494,15 @@ export default {
         uix.error('error.required', 'label.pick')
         return
       }
+      let relations = util.isArray(pick.relations) ? pick.relations : []
+      for (const relation of relations) {
+        relation.value = util.getFieldValue(relation.source, self.row)
+      }
       uix.dialog.show(self.dialog.pick, {
         template: self.template,
         field: field,
         pick: pick,
+        relations: relations,
         replica: self.replica,
       })
     },
