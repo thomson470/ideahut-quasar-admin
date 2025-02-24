@@ -365,6 +365,13 @@ export default {
       let relations = util.isArray(pick.relations) ? pick.relations : []
       for (const relation of relations) {
         relation.value = util.getFieldValue(relation.source, self.parentRow)
+        if (!util.isDefined(relation.value)) {
+          let f = self.fields.find(o => o.name === relation.source);
+          util.runIf(util.isObject(f), () => {
+            relation.value = util.isFunction(f.toValue) ? f.toValue(f.value) : f.value
+            relation.value = util.isObject(relation.value) ? relation.value[relation.source] : relation.value
+          });
+        }
       }
       uix.dialog.show(self.dialog.pick, {
         template: self.template,
