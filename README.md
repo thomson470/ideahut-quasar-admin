@@ -36,3 +36,7 @@ quasar build
 ### Customize the configuration
 
 See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js).
+
+##
+
+### [Index](https://github.com/thomson470/Ideahut-Template)
