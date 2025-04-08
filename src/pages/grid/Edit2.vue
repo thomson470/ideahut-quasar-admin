@@ -216,7 +216,7 @@
       </div>
       <div class="col-4 q-pr-xs text-center">
         <q-btn
-          v-if="is_edit && false !== definition.copy"
+          v-if="is_edit && false !== definition.copy && fxGrid.permission.add(template)"
           :label="$t('label.copy')"
           color="purple"
           no-caps
@@ -268,6 +268,7 @@ export default {
     return {
       APP,
       uix,
+      fxGrid,
       id: ref(null),
       is_edit: ref(false),
       saving: ref(false),
