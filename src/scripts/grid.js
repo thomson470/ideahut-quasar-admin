@@ -349,7 +349,7 @@ const grid = {
               v1 = util.parse.epoch(v1, { format: filter.pattern || null })
             }
             let or = filter.or
-            if (util.isString[or]) {
+            if (util.isString(or)) {
               or = [or]
             }
             or = util.isArray(or) ? or : []

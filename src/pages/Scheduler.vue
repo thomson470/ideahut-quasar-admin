@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="q-mt-none q-pa-sm q-mb-lg">
-    <q-card class="q-pa-none q-mb-xl" bordered>
+    <q-card class="q-pa-none q-mb-lg" bordered>
       <q-card-section class="row q-pa-none">
         <div
           class="col-md-3 col-xs-12 text-center flex flex-center"
@@ -22,19 +22,47 @@
           </q-btn>
         </div>
         <div class="col-md-9 col-xs-12">
-          <div class="text-right">
-            <q-btn
-              round
-              glossy
-              dense
-              size="sm"
-              icon="refresh"
-              class="q-ma-xs"
-              :loading="loading.metadata"
-              @click="get_metadata"
-            >
-              <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
-            </q-btn>
+          <div class="row">
+            <div class="col-6 text-right">
+              <q-btn
+                round
+                glossy
+                dense
+                size="sm"
+                icon="layers_clear_24"
+                color="teal-9"
+                class="q-ma-xs"
+                @click="on_reset_running_click"
+              >
+                <q-tooltip>{{ $t('label.reset_running') }}</q-tooltip>
+              </q-btn>
+              <q-btn
+                round
+                glossy
+                dense
+                size="sm"
+                icon="developer_board_off_24"
+                color="indigo-9"
+                class="q-ma-xs q-ml-sm"
+                @click="on_reset_locking_click"
+              >
+                <q-tooltip>{{ $t('label.reset_locking') }}</q-tooltip>
+              </q-btn>
+            </div>
+            <div class="col-6 text-right">
+              <q-btn
+                round
+                glossy
+                dense
+                size="sm"
+                icon="refresh"
+                class="q-ma-xs"
+                :loading="loading.metadata"
+                @click="get_metadata"
+              >
+                <q-tooltip>{{ $t('label.refresh') }}</q-tooltip>
+              </q-btn>
+            </div>
           </div>
           <q-table
             v-if="metadata?.length"
@@ -194,7 +222,6 @@
         />
       </q-badge>
     </q-card>
-    <q-btn flat size="xs" @click="on_reset_click" />
   </div>
 
   <q-dialog
@@ -254,23 +281,15 @@ export default {
     self.visibles = [
       'name',
       'cronExpression',
-      'type.classname',
-      'isRunOnStartup',
+      'isRunning',
+      'isLocking',
       'status.state',
       'status.priority',
-      'zoneOffsetSeconds',
       'status.startTime',
       'status.previousFireTime',
       'status.nextFireTime',
     ]
     self.columns = [
-      {
-        name: 'triggerId',
-        label: self.$t('label.id'),
-        field: 'triggerId',
-        align: 'left',
-        sortable: true,
-      },
       {
         name: 'name',
         label: self.$t('label.name'),
@@ -286,15 +305,30 @@ export default {
         sortable: true,
       },
       {
-        name: 'type.classname',
-        label: self.$t('label.class'),
+        name: 'isRunning',
+        label: self.$t('label.running'),
         field: 'type',
-        align: 'left',
-        format: function (val) {
-          if (val) {
-            return val.classname
+        align: 'center',
+        format: (val) => {
+          let isSingleRun = val?.isSingleRun
+          let isRunning = val?.isRunning
+          if ('Y' === isSingleRun && 'Y' == isRunning) {
+            return self.$t('label.yes')
           } else {
-            return val.name
+            return self.$t('label.no')
+          }
+        },
+      },
+      {
+        name: 'isLocking',
+        label: self.$t('label.locking'),
+        field: 'isLocking',
+        align: 'center',
+        format: function (val) {
+          if ('Y' === val) {
+            return self.$t('label.yes')
+          } else {
+            return self.$t('label.no')
           }
         },
       },
@@ -314,17 +348,15 @@ export default {
         },
       },
       {
-        name: 'isSaveResult',
-        label: self.$t('label.save'),
-        field: 'isSaveResult',
-        align: 'center',
+        name: 'type.classname',
+        label: self.$t('label.class'),
+        field: 'type',
+        align: 'left',
         format: function (val) {
-          if ('Y' === val) {
-            return self.$t('label.yes')
-          } else if ('N' === val) {
-            return self.$t('label.no')
+          if (val) {
+            return val.classname
           } else {
-            return ''
+            return val.name
           }
         },
       },
@@ -345,13 +377,6 @@ export default {
         format: function (val) {
           return val && util.isNumber(val.priority) ? val.priority : ''
         },
-      },
-      {
-        name: 'zoneOffsetSeconds',
-        label: self.$t('label.zone_offset_seconds'),
-        field: 'zoneOffsetSeconds',
-        align: 'left',
-        sortable: true,
       },
       {
         name: 'status.startTime',
@@ -389,6 +414,12 @@ export default {
               })
             : ''
         },
+      },
+      {
+        name: 'trigger',
+        label: self.$t('label.trigger'),
+        field: 'trigger',
+        align: 'left',
       },
       {
         name: 'type',
@@ -720,6 +751,11 @@ export default {
      * VIEW CLICK
      */
     on_view_click(scope) {
+      delete scope.row.trigger
+      let trigger = JSON.parse(JSON.stringify(scope.row))
+      delete trigger.type
+      delete trigger.status
+      scope.row.trigger = trigger
       uix.dialog.show(self.dialog.view, {
         scope: scope,
         columns: self.columns,
@@ -727,20 +763,38 @@ export default {
     },
 
     /*
-     * RESET CLICK
+     * RESET RUNNING CLICK
      */
-    on_reset_click() {
+    on_reset_running_click() {
       uix.confirm(
         function () {
           api.call({
-            path: '/scheduler/reset',
+            path: '/scheduler/reset/running',
             method: 'post',
             params: {
               handler: self.handler,
             },
           })
         },
-        self.$t('label.reset') + ' ?',
+        self.$t('label.reset_running') + ' ?',
+      )
+    },
+
+    /*
+     * RESET LOCKING CLICK
+     */
+    on_reset_locking_click() {
+      uix.confirm(
+        function () {
+          api.call({
+            path: '/scheduler/reset/locking',
+            method: 'post',
+            params: {
+              handler: self.handler,
+            },
+          })
+        },
+        self.$t('label.reset_locking') + ' ?',
       )
     },
   },
