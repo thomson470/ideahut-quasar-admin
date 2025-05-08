@@ -260,6 +260,7 @@ const grid = {
    * VALIDATION
    */
   validation: {
+    label: (field) => (util.isString(field.hint) && '' !== field.hint ? field.hint : field.label),
     field: function (field) {
       let validations = field.validations
       if (util.isString(validations)) {
@@ -268,44 +269,45 @@ const grid = {
       if (!util.isArray(validations) || !validations.length) {
         return true
       }
-      let value = util.isDefined(field.value) ? field.value + '' : ''
+      let label = grid.validation.label
+      let value = util.isDefined(field.value) && field.value != null ? field.value + '' : ''
       let type
       for (const validation of validations) {
         type = validation.trim().toLowerCase()
         if ('required' === type) {
           if (!value.trim().length) {
-            uix.error('error.required', field.label)
+            uix.error('error.required', label(field))
             return false
           }
         } else if ('number' === type) {
           let number = +value
           if (isNaN(number)) {
-            uix.error('error.fill_with_numbers', field.label)
+            uix.error('error.fill_with_numbers', label(field))
             return false
           }
         } else if ('email' === type) {
           value = value.trim()
           if (!util.isEmail(value)) {
-            uix.error('error.fill_with_email', field.label)
+            uix.error('error.fill_with_email', label(field))
             return false
           }
           field.value = value
         } else if (type.startsWith('length:')) {
           let length = +type.substring(7).trim()
           if (!isNaN(length) && value.length !== length) {
-            uix.error('error.fill_with_length', field.label, length)
+            uix.error('error.fill_with_length', label(field), length)
             return false
           }
         } else if (type.startsWith('maxlength:')) {
           let maxlength = +type.substring(10).trim()
           if (!isNaN(maxlength) && value.length > maxlength) {
-            uix.error('error.fill_with_maxlength', field.label, maxlength)
+            uix.error('error.fill_with_maxlength', label(field), maxlength)
             return false
           }
         } else if (type.startsWith('minlength:')) {
           let minlength = +type.substring(10).trim()
           if (!isNaN(minlength) && value.length < minlength) {
-            uix.error('error.fill_with_minlength', field.label, minlength)
+            uix.error('error.fill_with_minlength', label(field), minlength)
             return false
           }
         }
