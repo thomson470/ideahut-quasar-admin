@@ -339,6 +339,7 @@ export default {
       parent: ref(null),
       name: ref(null),
       replica: ref(null),
+      replica_changed: ref(false),
       dialog: ref({
         search: uix.dialog.init(() => self.dialog.search),
         view: uix.dialog.init(),
@@ -437,7 +438,7 @@ export default {
                 addGrid(id, template)
                 self.template = window.__grid__[id]
                 self.replica = fxGrid.get.firstArray(self.template.replicas)
-                delete self.replica_changed
+                self.replica_changed = false
                 self.permission = self.get_permission()
                 self.do_load_data()
               } catch (e) {
@@ -454,7 +455,7 @@ export default {
       } else {
         self.template = window.__grid__[id]
         self.replica = fxGrid.get.firstArray(self.template.replicas)
-        delete self.replica_changed
+        self.replica_changed = false
         self.permission = self.get_permission()
         try {
           self.do_load_data()
@@ -493,7 +494,7 @@ export default {
       let table = fxGrid.get.object(template.table)
       let page = fxGrid.get.object(table.page)
       let order = fxGrid.get.object(table.order)
-      if (!self.replica_changed) {
+      if (true !== self.replica_changed) {
         self.search = {
           empty: true,
           filters: fxGrid.copy(fxGrid.get.array(table.filters)),
