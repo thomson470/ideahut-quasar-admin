@@ -63,7 +63,7 @@
         borderless
         class="text-h6"
         dense
-        @update:model-value="do_load_data"
+        @update:model-value="on_replica_changed"
       >
         <template v-slot:prepend>
           <q-icon name="storage" class="q-mr-sm" />
@@ -437,6 +437,7 @@ export default {
                 addGrid(id, template)
                 self.template = window.__grid__[id]
                 self.replica = fxGrid.get.firstArray(self.template.replicas)
+                delete self.replica_changed
                 self.permission = self.get_permission()
                 self.do_load_data()
               } catch (e) {
@@ -453,6 +454,7 @@ export default {
       } else {
         self.template = window.__grid__[id]
         self.replica = fxGrid.get.firstArray(self.template.replicas)
+        delete self.replica_changed
         self.permission = self.get_permission()
         try {
           self.do_load_data()
@@ -491,9 +493,11 @@ export default {
       let table = fxGrid.get.object(template.table)
       let page = fxGrid.get.object(table.page)
       let order = fxGrid.get.object(table.order)
-      self.search = {
-        empty: true,
-        filters: fxGrid.copy(fxGrid.get.array(table.filters)),
+      if (!self.replica_changed) {
+        self.search = {
+          empty: true,
+          filters: fxGrid.copy(fxGrid.get.array(table.filters)),
+        }
       }
       self.table.pagination = {
         page: 1,
@@ -656,6 +660,14 @@ export default {
           pagination: self.table.pagination,
         })
       }
+    },
+
+    /*
+     * REPLICA CHANGED
+     */
+    on_replica_changed() {
+      self.replica_changed = true
+      self.do_load_data()
     },
   },
 }
