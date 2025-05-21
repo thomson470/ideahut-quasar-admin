@@ -1,9 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;')">
+  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + dialog.main.style">
     <q-card-section
       class="q-pa-none header-main"
       :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
+      v-touch-pan.mouse="dialog.main.onDrag"
     >
       <q-item class="q-pr-none">
         <q-item-section>
@@ -284,6 +285,7 @@ export default {
       options: ref({}),
       loading: ref({}),
       dialog: ref({
+        main: uix.dialog.init(() => self.dialog.main),
         pick: uix.dialog.init(),
       }),
     }
