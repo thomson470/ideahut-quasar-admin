@@ -171,13 +171,13 @@
 
     <q-page-container>
       <q-page>
-        <q-item v-if="active_menu?.title" class="q-pa-sm q-pl-md q-pb-md text-h5">
+        <q-item v-if="active_menu?.title" class="q-pa-sm q-pl-md q-pb-md text-h6">
           <q-item-section v-if="active_menu.icon" avatar style="min-width: 0px !important">
             <q-icon :name="active_menu.icon" />
           </q-item-section>
           <q-item-section>
             <div>
-              {{ active_menu.title }}
+              <span v-html="menu_title(active_menu)"></span>
               <q-badge
                 v-if="true === active_menu.badge"
                 color="orange"
@@ -353,6 +353,25 @@ export default {
       uix.dark.toggle()
       this.is_dark_mode = uix.dark.active()
     },
+
+    /*
+     * MENU TITLE
+     */
+    menu_title(menu) {
+      let title = ""
+      if (true === APP?.menuTitle?.parentMenu) {
+        let seperator = APP?.menuTitle?.separator || " &gt;&gt; "
+        if (menu?.parent?.parent?.title) {
+          title += menu.parent.parent.title + seperator
+        }
+        if (menu?.parent?.title) {
+           title += menu.parent.title + seperator
+        }
+      }
+      title += menu.title
+      return title
+    },
+
   },
 }
 </script>
