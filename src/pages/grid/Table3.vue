@@ -12,7 +12,7 @@
       <q-item class="q-pr-none">
         <q-item-section>
           <q-item-label class="text-h6 text-white">{{
-            template.title + ' - ' + definition.title
+            definition.title
           }}</q-item-label>
         </q-item-section>
         <q-item-section side>
@@ -295,7 +295,7 @@
     transition-hide="none"
     backdrop-filter="blur(1px)"
   >
-    <View2 :parameters="dialog.view.parameters" />
+    <View3 :parameters="dialog.view.parameters" />
   </q-dialog>
 
   <q-dialog
@@ -305,7 +305,7 @@
     transition-hide="none"
     backdrop-filter="blur(1px)"
   >
-    <Edit2 :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
+    <Edit3 :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
   </q-dialog>
 </template>
 
@@ -322,8 +322,8 @@ export default {
   emits: ['close'],
   components: {
     Search: defineAsyncComponent(() => import('src/pages/grid/Search.vue')),
-    View2: defineAsyncComponent(() => import('src/pages/grid/View2.vue')),
-    Edit2: defineAsyncComponent(() => import('src/pages/grid/Edit2.vue')),
+    View3: defineAsyncComponent(() => import('src/pages/grid/View3.vue')),
+    Edit3: defineAsyncComponent(() => import('src/pages/grid/Edit3.vue')),
   },
 
   setup() {
@@ -520,7 +520,6 @@ export default {
         template: self.template,
         replica: self.replica,
         definition: self.definition,
-        onlyView: self.onlyView,
       })
     },
 

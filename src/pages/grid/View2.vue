@@ -1,10 +1,10 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + dialog.style">
+  <q-card :style="'width: ' + ($q.screen.lt.md ? '100%;' : '50%;') + dialog.main.style">
     <q-card-section
-      class="q-pa-none header-main"
+      class="header-main"
       :style="APP?.color?.header ? 'background: ' + APP.color.header + ' !important;' : ''"
-      v-touch-pan.mouse="dialog.onDrag"
+      v-touch-pan.mouse="dialog.main.onDrag"
     >
       <q-item class="q-pr-none">
         <q-item-section>
@@ -24,7 +24,7 @@
         </q-item-section>
       </q-item>
     </q-card-section>
-    <q-card-section style="max-height: 75vh" class="q-pa-xs q-mt-xs scroll">
+    <q-card-section style="max-height: 75vh" class="q-pa-xs q-mt-none scroll">
       <q-input
         type="text"
         v-for="(field, index) in fields"
@@ -37,28 +37,114 @@
         class="q-mb-xs"
         style="max-height: 200px; overflow: scroll"
       />
+      <div v-if="onlyView">
+        <div v-if="definition.childrenFirst">
+          <div v-if="tables.length" class="q-mb-xs" style="width: 100%">
+            <q-btn
+              v-for="(table, index) in tables"
+              :key="index"
+              :label="table.title"
+              class="full-width q-mt-xs q-mb-xs text-weight-bold"
+              no-caps
+              glossy
+              @click="on_table_click(table)"
+            />
+          </div>
+          <div v-if="forms.length" class="q-mb-xs" style="width: 100%">
+            <q-btn
+              v-for="(form, index) in forms"
+              :key="index"
+              :label="form.title"
+              class="full-width q-mt-xs q-mb-xs text-weight-bold"
+              no-caps
+              glossy
+              :loading="loading['form_' + index]"
+              @click="on_form_click(form, index)"
+            />
+          </div>
+        </div>
+        <div v-else>
+          <div v-if="forms.length" class="q-mb-xs" style="width: 100%">
+            <q-btn
+              v-for="(form, index) in forms"
+              :key="index"
+              :label="form.title"
+              class="full-width q-mt-xs q-mb-xs text-weight-bold"
+              no-caps
+              glossy
+              :loading="loading['form_' + index]"
+              @click="on_form_click(form, index)"
+            />
+          </div>
+          <div v-if="tables.length" class="q-mb-xs" style="width: 100%">
+            <q-btn
+              v-for="(table, index) in tables"
+              :key="index"
+              :label="table.title"
+              class="full-width q-mt-xs q-mb-xs text-weight-bold"
+              no-caps
+              glossy
+              @click="on_table_click(table)"
+            />
+          </div>
+        </div>
+      </div>
     </q-card-section>
   </q-card>
+
+  <q-dialog
+    v-model="dialog.form.show"
+    persistent
+    transition-show="slide-down"
+    transition-hide="none"
+    backdrop-filter="blur(1px)"
+  >
+    <FormV :parameters="dialog.form.parameters" />
+  </q-dialog>
+
+  <q-dialog
+    v-model="dialog.table.show"
+    transition-show="slide-down"
+    transition-hide="none"
+    backdrop-filter="blur(1px)"
+    full-height
+  >
+    <Table3 :parameters="dialog.table.parameters" @close="on_close_dialog_table" />
+  </q-dialog>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, defineAsyncComponent } from 'vue'
 import { APP } from 'src/scripts/static'
 import { util } from 'src/scripts/util'
+import { api } from 'src/scripts/api'
 import { uix } from 'src/scripts/uix'
 import { grid as fxGrid } from 'src/scripts/grid'
 let self
 
 export default {
   props: ['parameters'],
+  components: {
+    FormV: defineAsyncComponent(() => import('src/pages/grid/FormV.vue')),
+    Table3: defineAsyncComponent(() => import('src/pages/grid/Table3.vue')),
+  },
   setup() {
     return {
       APP,
+      util,
       title: ref(null),
       fields: ref([]),
-      forms: ref({}),
+      template: ref(null),
+      forms: ref([]),
+      tables: ref([]),
       loading: ref({}),
-      dialog: ref(uix.dialog.init(() => self.dialog)),
+      replica: ref(null),
+      onlyView: ref(false),
+      dialog: ref({
+        main: uix.dialog.init(() => self.dialog.main),
+        form: uix.dialog.init(),
+        table: uix.dialog.init(),
+      }),
     }
   },
 
@@ -67,22 +153,23 @@ export default {
     let params = fxGrid.get.object(self.parameters)
     let row = fxGrid.get.object(params.row)
     let definition = fxGrid.get.object(params.definition)
-    self.title = params.title
+    self.title = util.isString(params.title) ? params.title : definition.title
     self.replica = fxGrid.get.number(params.replica, null)
+    self.onlyView = true == params.onlyView
     self.fields = []
-    let columns = fxGrid.get.array(definition.table.columns)
+    let cols = fxGrid.get.array(definition.table.columns)
     let value
     let isIdShown = false
-    for (const column of columns) {
-      if (!isIdShown && definition.id.fields.includes(column.field)) {
+    for (const element of cols) {
+      if (!isIdShown && definition.id.fields.includes(element.field)) {
         isIdShown = true
       }
-      value = util.getFieldValue(column.field, row)
-      if (util.isFunction(column.format)) {
-        value = column.format(value, row)
+      value = util.getFieldValue(element.field, row)
+      if (util.isFunction(element.format)) {
+        value = element.format(value, row)
       }
       self.fields.push({
-        label: column.label,
+        label: element.label,
         value: value,
       })
     }
@@ -95,6 +182,91 @@ export default {
         })
       }
     }
+    self.forms = fxGrid.get.array(definition.forms)
+    self.tables = fxGrid.get.array(definition.children)
+    self.definition = definition
+  },
+
+  methods: {
+    /*
+     * FORM CLICK
+     */
+    on_form_click(form, index) {
+      let params = fxGrid.get.object(self.parameters)
+      let definition = fxGrid.get.object(params.definition)
+      let row = fxGrid.get.object(params.row)
+      let relations = fxGrid.get.array(form.relations)
+      if (!relations.length) {
+        uix.error('error.required', 'label.relation')
+        return
+      }
+      let filters = []
+      for (const relation of relations) {
+        filters.push({
+          field: relation.target,
+          condition: 'EQUAL',
+          value: util.getFieldValue(relation.source, row),
+        })
+      }
+      let body = fxGrid.copy(form.crud)
+      body.filters = util.isArray(body.filters) ? body.filters : []
+      body.filters = body.filters.concat(filters)
+      if (util.isNumber(self.replica)) {
+        body.replica = self.replica
+      }
+      self.loading['form_' + index] = true
+      api.call({
+        path: '/crud/single',
+        method: 'post',
+        data: body,
+        onFinish() {
+          self.loading['form_' + index] = false
+        },
+        onSuccess(data) {
+          data = fxGrid.get.object(data)
+          fxGrid.inject.pkAndGridId(form.id, data, definition._grid_id_)
+          uix.dialog.show(self.dialog.form, {
+            template: definition,
+            form: form,
+            data: data,
+            replica: self.replica,
+          })
+        },
+      })
+    },
+
+    /*
+     * TABLE CLICK
+     */
+    on_table_click(table) {
+      let params = fxGrid.get.object(self.parameters)
+      let template = fxGrid.get.object(params.template)
+      let row = fxGrid.get.object(params.row)
+      let relations = fxGrid.copy(fxGrid.get.array(table.relations))
+      if (!relations.length) {
+        uix.error('error.required', 'label.relation')
+        return
+      }
+      for (const relation of relations) {
+        relation.value = util.getFieldValue(relation.source, row)
+      }
+      table._grid_id_ = template._grid_id_
+      uix.dialog.show(self.dialog.table, {
+        template: template,
+        definition: table,
+        parentRow: row,
+        relations: relations,
+        onlyView: params.onlyView,
+        replica: self.replica,
+      })
+    },
+
+    /*
+     * CLOSE TABLE DIALOG
+     */
+    on_close_dialog_table() {
+      uix.dialog.hide(self.dialog.table)
+    },
   },
 }
 </script>

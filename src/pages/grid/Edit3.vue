@@ -202,17 +202,6 @@
           filled
         />
       </div>
-      <div v-if="is_edit && definition.children?.length" class="q-mb-xs" style="width: 100%">
-        <q-btn
-          v-for="(table, index) in definition.children"
-          :key="index"
-          :label="table.title"
-          class="full-width q-mt-xs q-mb-xs text-weight-bold"
-          no-caps
-          glossy
-          @click="on_table_click(table)"
-        />
-      </div>
     </q-card-section>
     <q-separator />
     <q-card-actions class="row">
@@ -259,16 +248,6 @@
   >
     <Pick :parameters="dialog.pick.parameters" @close="on_close_dialog_pick" />
   </q-dialog>
-
-  <q-dialog
-    v-model="dialog.table.show"
-    transition-show="slide-down"
-    transition-hide="none"
-    backdrop-filter="blur(1px)"
-    full-height
-  >
-    <Table3 :parameters="dialog.table.parameters" @close="on_close_dialog_table" />
-  </q-dialog>
 </template>
 
 <script>
@@ -285,7 +264,6 @@ export default {
   emits: ['close'],
   components: {
     Pick: defineAsyncComponent(() => import('src/pages/grid/Pick.vue')),
-    Table3: defineAsyncComponent(() => import('src/pages/grid/Table3.vue')),
   },
   setup() {
     return {
@@ -309,7 +287,6 @@ export default {
       dialog: ref({
         main: uix.dialog.init(() => self.dialog.main),
         pick: uix.dialog.init(),
-        table: uix.dialog.init(),
       }),
     }
   },
@@ -337,7 +314,7 @@ export default {
       })
     }
     self.row = fxGrid.get.object(params.row)
-    let fields = fxGrid.get.array(self.definition.fields)
+    let fields = fxGrid.get.array(self.definition?.table?.fields)
     if (fields.length) {
       if (util.isObject(params.row)) {
         // edit
@@ -379,39 +356,6 @@ export default {
   },
 
   methods: {
-    /*
-     * TABLE CLICK
-     */
-    on_table_click(table) {
-      let params = fxGrid.get.object(self.parameters)
-      let template = fxGrid.get.object(params.template)
-      let row = fxGrid.get.object(params.row)
-      let relations = fxGrid.copy(fxGrid.get.array(table.relations))
-      if (!relations.length) {
-        uix.error('error.required', 'label.relation')
-        return
-      }
-      for (const relation of relations) {
-        relation.value = util.getFieldValue(relation.source, row)
-      }
-      table._grid_id_ = template._grid_id_
-      uix.dialog.show(self.dialog.table, {
-        template: template,
-        definition: table,
-        parentRow: row,
-        relations: relations,
-        onlyView: false,
-        replica: self.replica,
-      })
-    },
-
-    /*
-     * CLOSE TABLE DIALOG
-     */
-    on_close_dialog_table() {
-      uix.dialog.hide(self.dialog.table)
-    },
-
     /*
      * PICK CLICK
      */

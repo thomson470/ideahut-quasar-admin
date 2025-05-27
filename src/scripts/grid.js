@@ -86,6 +86,7 @@ const grid = {
     children: function (children) {
       if (util.isArray(children)) {
         for (const child of children) {
+          grid.prepare.children(child.children)
           let fields = grid.get.array(child.fields)
           grid.prepare.toFunction(fields)
           child.fields = fields
