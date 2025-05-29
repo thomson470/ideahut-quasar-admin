@@ -517,7 +517,7 @@ export default {
         params: {
           handler: self.handler,
           size: 1000,
-          order: "name"
+          order: 'name',
         },
         onSuccess(page) {
           if (util.isArray(page?.data)) {

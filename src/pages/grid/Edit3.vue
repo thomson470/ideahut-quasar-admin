@@ -314,7 +314,7 @@ export default {
       })
     }
     self.row = fxGrid.get.object(params.row)
-    let fields = fxGrid.get.array(self.definition?.table?.fields)
+    let fields = fxGrid.get.array(self.definition?.fields)
     if (fields.length) {
       if (util.isObject(params.row)) {
         // edit
@@ -324,12 +324,15 @@ export default {
         for (const element of fields) {
           let field = fxGrid.clone.field(element)
           field.value = util.getFieldValue(field.name, params.row)
+          if (!util.isDefined(field.value) && util.isFunction(field.rowToValue)) {
+            field.value = field.rowToValue(params.row)
+          }
           if ('datetime' === field.type && 'epoch' === field.converter) {
             field.value = util.format.date(field.value, {
               format: field.pattern || null,
             })
           } else if ('pick' === field.type) {
-            if (util.isDefined(field.value)) {
+            if (util.isDefined(field.value) && field.value !== null) {
               field.text = util.isFunction(field.format)
                 ? field.format(field.value, params.row)
                 : field.value + ''

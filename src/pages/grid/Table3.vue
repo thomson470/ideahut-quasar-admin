@@ -11,9 +11,7 @@
     >
       <q-item class="q-pr-none">
         <q-item-section>
-          <q-item-label class="text-h6 text-white">{{
-            definition.title
-          }}</q-item-label>
+          <q-item-label class="text-h6 text-white">{{ definition.title }}</q-item-label>
         </q-item-section>
         <q-item-section side>
           <q-btn

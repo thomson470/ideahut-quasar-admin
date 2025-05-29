@@ -358,20 +358,19 @@ export default {
      * MENU TITLE
      */
     menu_title(menu) {
-      let title = ""
+      let title = ''
       if (true === APP?.menuTitle?.parentMenu) {
-        let seperator = APP?.menuTitle?.separator || " &gt;&gt; "
+        let seperator = APP?.menuTitle?.separator || ' &gt;&gt; '
         if (menu?.parent?.parent?.title) {
           title += menu.parent.parent.title + seperator
         }
         if (menu?.parent?.title) {
-           title += menu.parent.title + seperator
+          title += menu.parent.title + seperator
         }
       }
       title += menu.title
       return title
     },
-
   },
 }
 </script>
