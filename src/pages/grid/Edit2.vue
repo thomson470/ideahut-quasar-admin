@@ -30,7 +30,7 @@
             glossy
             icon="close"
             :disable="saving"
-            v-close-popup
+            @click="$emit('close')"
           >
             <q-tooltip>{{ $t("label.close") }}</q-tooltip>
           </q-btn>
@@ -389,7 +389,7 @@ export default {
       });
     }
     self.row = fxGrid.get.object(params.row);
-    let fields = fxGrid.get.array(self.definition.fields);
+    let fields = fxGrid.get.array(self.definition?.fields);
     if (fields.length) {
       if (util.isObject(params.row)) {
         // edit

@@ -16,7 +16,7 @@
       <q-item class="q-pr-none">
         <q-item-section>
           <q-item-label class="text-h6 text-white">{{
-            definition.title
+            template.title + " - " + definition.title
           }}</q-item-label>
         </q-item-section>
         <q-item-section side>
@@ -311,7 +311,7 @@
     transition-hide="none"
     backdrop-filter="blur(1px)"
   >
-    <View2 :parameters="dialog.view.parameters" />
+    <View1 :parameters="dialog.view.parameters" />
   </q-dialog>
 
   <q-dialog
@@ -321,7 +321,7 @@
     transition-hide="none"
     backdrop-filter="blur(1px)"
   >
-    <Edit2 :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
+    <Edit1 :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
   </q-dialog>
 </template>
 
@@ -338,8 +338,8 @@ export default {
   emits: ["close"],
   components: {
     Search: defineAsyncComponent(() => import("src/pages/grid/Search.vue")),
-    View2: defineAsyncComponent(() => import("src/pages/grid/View2.vue")),
-    Edit2: defineAsyncComponent(() => import("src/pages/grid/Edit2.vue")),
+    View1: defineAsyncComponent(() => import("src/pages/grid/View1.vue")),
+    Edit1: defineAsyncComponent(() => import("src/pages/grid/Edit1.vue")),
   },
 
   setup() {

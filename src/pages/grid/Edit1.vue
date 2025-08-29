@@ -6,7 +6,7 @@
     "
   >
     <q-card-section
-      class="header-main"
+      class="q-pa-none header-main"
       :style="
         APP?.color?.header
           ? 'background: ' + APP.color.header + ' !important;'
@@ -17,7 +17,9 @@
       <q-item class="q-pr-none">
         <q-item-section>
           <q-item-label class="text-h6 text-white">{{
-            is_edit ? $t("label.edit") : $t("label.new")
+            definition.title +
+            " - " +
+            (is_edit ? $t("label.edit") : $t("label.new"))
           }}</q-item-label>
         </q-item-section>
         <q-item-section side>
@@ -35,7 +37,7 @@
         </q-item-section>
       </q-item>
     </q-card-section>
-    <q-card-section style="max-height: 65vh" class="q-pa-xs q-mt-none scroll">
+    <q-card-section style="max-height: 65vh" class="q-pa-xs q-mt-xs scroll">
       <div
         v-for="(field, index) in fields"
         :key="index"
@@ -241,71 +243,20 @@
           filled
         />
       </div>
-      <div v-if="template.childrenFirst">
-        <div
-          v-if="is_edit && template.children?.length"
-          class="q-mb-xs"
-          style="width: 100%"
-        >
-          <q-btn
-            v-for="(table, index) in template.children"
-            :key="index"
-            :label="table.title"
-            class="full-width q-mt-xs q-mb-xs text-weight-bold"
-            no-caps
-            glossy
-            @click="on_table_click(table)"
-          />
-        </div>
-        <div
-          v-if="is_edit && template.forms?.length"
-          class="q-mb-xs"
-          style="width: 100%"
-        >
-          <q-btn
-            v-for="(form, index) in template.forms"
-            :key="index"
-            :label="form.title"
-            class="full-width q-mt-xs q-mb-xs text-weight-bold"
-            no-caps
-            glossy
-            :loading="loading['form_' + index]"
-            @click="on_form_click(form, index)"
-          />
-        </div>
-      </div>
-      <div v-else>
-        <div
-          v-if="is_edit && template.forms?.length"
-          class="q-mb-xs"
-          style="width: 100%"
-        >
-          <q-btn
-            v-for="(form, index) in template.forms"
-            :key="index"
-            :label="form.title"
-            class="full-width q-mt-xs q-mb-xs text-weight-bold"
-            no-caps
-            glossy
-            :loading="loading['form_' + index]"
-            @click="on_form_click(form, index)"
-          />
-        </div>
-        <div
-          v-if="is_edit && template.children?.length"
-          class="q-mb-xs"
-          style="width: 100%"
-        >
-          <q-btn
-            v-for="(table, index) in template.children"
-            :key="index"
-            :label="table.title"
-            class="full-width q-mt-xs q-mb-xs text-weight-bold"
-            no-caps
-            glossy
-            @click="on_table_click(table)"
-          />
-        </div>
+      <div
+        v-if="is_edit && definition.children?.length"
+        class="q-mb-xs"
+        style="width: 100%"
+      >
+        <q-btn
+          v-for="(table, index) in definition.children"
+          :key="index"
+          :label="table.title"
+          class="full-width q-mt-xs q-mb-xs text-weight-bold"
+          no-caps
+          glossy
+          @click="on_table_click(table)"
+        />
       </div>
     </q-card-section>
     <q-separator />
@@ -324,7 +275,7 @@
         <q-btn
           v-if="
             is_edit &&
-            false !== template.copy &&
+            false !== definition.copy &&
             fxGrid.permission.add(template)
           "
           :label="$t('label.copy')"
@@ -352,7 +303,7 @@
     v-model="dialog.pick.show"
     persistent
     transition-show="slide-down"
-    transition-hide="none"
+    transition-hide="slide-down"
     backdrop-filter="blur(1px)"
   >
     <Pick :parameters="dialog.pick.parameters" @close="on_close_dialog_pick" />
@@ -365,19 +316,10 @@
     backdrop-filter="blur(1px)"
     full-height
   >
-    <Table1
+    <Table2
       :parameters="dialog.table.parameters"
       @close="on_close_dialog_table"
     />
-  </q-dialog>
-  <q-dialog
-    v-model="dialog.form.show"
-    persistent
-    transition-show="slide-down"
-    transition-hide="none"
-    backdrop-filter="blur(1px)"
-  >
-    <FormE :parameters="dialog.form.parameters" @close="on_close_dialog_form" />
   </q-dialog>
 </template>
 
@@ -395,8 +337,7 @@ export default {
   emits: ["close"],
   components: {
     Pick: defineAsyncComponent(() => import("src/pages/grid/Pick.vue")),
-    Table1: defineAsyncComponent(() => import("src/pages/grid/Table1.vue")),
-    FormE: defineAsyncComponent(() => import("src/pages/grid/FormE.vue")),
+    Table2: defineAsyncComponent(() => import("src/pages/grid/Table2.vue")),
   },
   setup() {
     return {
@@ -409,16 +350,16 @@ export default {
       index: ref(null),
       fields: ref(null),
       template: ref({ options: {} }),
+      definition: ref({}),
+      parentRow: ref(null),
       row: ref(null),
       replica: ref(null),
-
+      relations: ref([]),
       enums: ref({}),
       options: ref({}),
       loading: ref({}),
-
       dialog: ref({
         main: uix.dialog.init(() => self.dialog.main),
-        form: uix.dialog.init(),
         pick: uix.dialog.init(),
         table: uix.dialog.init(),
       }),
@@ -432,6 +373,9 @@ export default {
     let params = fxGrid.get.object(self.parameters);
     self.replica = fxGrid.get.number(params.replica, null);
     self.template = fxGrid.get.object(params.template);
+    self.definition = fxGrid.get.object(params.definition);
+    self.parentRow = fxGrid.get.object(params.parentRow);
+    self.relations = fxGrid.get.array(params.relations);
     self.enums = {};
     if (util.isObject(self.template.enums)) {
       Object.keys(self.template.enums).forEach((key) => {
@@ -445,12 +389,12 @@ export default {
       });
     }
     self.row = fxGrid.get.object(params.row);
-    let fields = fxGrid.get.array(self.template.fields);
+    let fields = fxGrid.get.array(self.definition?.fields);
     if (fields.length) {
       if (util.isObject(params.row)) {
         // edit
         self.index = params.index;
-        self.id = fxGrid.id.fromPk(self.template.id, params.row._pk_);
+        self.id = fxGrid.id.fromPk(self.definition.id, params.row._pk_);
         self.is_edit = util.isDefined(self.id);
         for (const element of fields) {
           let field = fxGrid.clone.field(element);
@@ -496,60 +440,36 @@ export default {
 
   methods: {
     /*
-     * FORM CLICK
+     * TABLE CLICK
      */
-    on_form_click(form, index) {
+    on_table_click(table) {
       let params = fxGrid.get.object(self.parameters);
+      let template = fxGrid.get.object(params.template);
       let row = fxGrid.get.object(params.row);
-      let relations = fxGrid.get.array(form.relations);
+      let relations = fxGrid.copy(fxGrid.get.array(table.relations));
       if (!relations.length) {
         uix.error("error.required", "label.relation");
         return;
       }
-      let filters = [];
       for (const relation of relations) {
         relation.value = util.getFieldValue(relation.source, row);
-        filters.push({
-          field: relation.target,
-          condition: "EQUAL",
-          value: relation.value,
-        });
       }
-      let body = fxGrid.copy(form.crud);
-      body.filters = util.isArray(body.filters) ? body.filters : [];
-      body.filters = body.filters.concat(filters);
-      if (util.isNumber(self.replica)) {
-        body.replica = self.replica;
-      }
-      self.loading["form_" + index] = true;
-      api.call({
-        path: "/crud/single",
-        method: "post",
-        data: body,
-        onFinish() {
-          self.loading["form_" + index] = false;
-        },
-        onSuccess(data) {
-          data = fxGrid.get.object(data);
-          fxGrid.inject.pkAndGridId(form.id, data, self.template._grid_id_);
-          uix.dialog.show(self.dialog.form, {
-            form: form,
-            template: self.template,
-            row: row,
-            data: data,
-            replica: self.replica,
-            relations: relations,
-            is_edit: util.isDefined(data._pk_),
-          });
-        },
+      table._grid_id_ = template._grid_id_;
+      uix.dialog.show(self.dialog.table, {
+        template: template,
+        definition: table,
+        parentRow: row,
+        relations: relations,
+        onlyView: false,
+        replica: self.replica,
       });
     },
 
     /*
-     * CLOSE FORM DIALOG
+     * CLOSE TABLE DIALOG
      */
-    on_close_dialog_form() {
-      uix.dialog.hide(self.dialog.form);
+    on_close_dialog_table() {
+      uix.dialog.hide(self.dialog.table);
     },
 
     /*
@@ -563,7 +483,7 @@ export default {
       }
       let relations = util.isArray(pick.relations) ? pick.relations : [];
       for (const relation of relations) {
-        relation.value = util.getFieldValue(relation.source, self.row);
+        relation.value = util.getFieldValue(relation.source, self.parentRow);
         if (!util.isDefined(relation.value)) {
           let f = self.fields.find((o) => o.name === relation.source);
           util.runIf(util.isObject(f), () => {
@@ -609,39 +529,6 @@ export default {
     },
 
     /*
-     * TABLE CLICK
-     */
-    on_table_click(table) {
-      let params = fxGrid.get.object(self.parameters);
-      let template = fxGrid.get.object(params.template);
-      let row = fxGrid.get.object(params.row);
-      let relations = fxGrid.copy(fxGrid.get.array(table.relations));
-      if (!relations.length) {
-        uix.error("error.required", "label.relation");
-        return;
-      }
-      for (const relation of relations) {
-        relation.value = util.getFieldValue(relation.source, row);
-      }
-      table._grid_id_ = template._grid_id_;
-      uix.dialog.show(self.dialog.table, {
-        template: template,
-        definition: table,
-        parentRow: row,
-        relations: relations,
-        onlyView: false,
-        replica: self.replica,
-      });
-    },
-
-    /*
-     * CLOSE TABLE DIALOG
-     */
-    on_close_dialog_table() {
-      uix.dialog.hide(self.dialog.table);
-    },
-
-    /*
      * CLONE CLICK
      */
     on_clone_click() {
@@ -666,14 +553,15 @@ export default {
       fxGrid.action.save({
         id: self.id,
         fields: self.fields,
-        definition: self.template,
+        definition: self.definition,
         replica: self.replica,
         is_edit: self.is_edit,
         saving: self.saving,
+        relations: self.relations,
         onSuccess: function (data) {
           if (true === self.is_edit) {
             self.saving = true;
-            let body = fxGrid.copy(self.template.crud);
+            let body = fxGrid.copy(self.definition.crud);
             body.id = fxGrid.copy(self.id);
             body.replica = self.replica;
             api.call({

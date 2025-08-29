@@ -453,5 +453,40 @@ const util = {
       }
     },
   },
+
+  /*
+   * GRID
+   */
+  grid: {
+    field(val, name) {
+      try { 
+        return val[name]; 
+      } catch { 
+        return val; 
+      } 
+    },
+    option(val, row, name) {
+      try {
+        let g = window["__grid__"];
+        return g[row._grid_id_].options[name].find((x) => x.value === val)
+          .label;
+      } catch {
+        return val;
+      }
+    },
+    date(val, row, format) {
+      try {
+        let u = window["__util__"];
+        let g = window["__grid__"];
+        return u.format.date(val, {
+          format: format || "YYYY-MM-DD HH:mm:ss",
+          months: g[row._grid_id_].additionals.MONTHS,
+          days: g[row._grid_id_].additionals.DAYS,
+        });
+      } catch {
+        return val;
+      }
+    },
+  },
 };
 export { util };

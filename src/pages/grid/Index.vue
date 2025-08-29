@@ -634,7 +634,7 @@ export default {
      * CLOSE EDIT DIALOG
      */
     on_close_dialog_edit(result) {
-      let row = result.row;
+      let row = result?.row;
       if (row) {
         if (result.is_edit) {
           if (util.isDefined(row._pk_)) {

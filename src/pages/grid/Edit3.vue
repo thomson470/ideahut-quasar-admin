@@ -30,7 +30,7 @@
             glossy
             icon="close"
             :disable="saving"
-            v-close-popup
+            @click="$emit('close')"
           >
             <q-tooltip>{{ $t("label.close") }}</q-tooltip>
           </q-btn>

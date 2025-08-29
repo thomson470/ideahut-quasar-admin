@@ -294,10 +294,9 @@ export default {
     self.visibles = [
       "name",
       "cronExpression",
-      "isRunning",
+      "type.isRunning",
       "isLocking",
-      "status.state",
-      "status.priority",
+      "lastRunTime",
       "status.startTime",
       "status.previousFireTime",
       "status.nextFireTime",
@@ -318,30 +317,15 @@ export default {
         sortable: true,
       },
       {
-        name: "isRunning",
-        label: self.$t("label.running"),
+        name: "type.classname",
+        label: self.$t("label.class"),
         field: "type",
-        align: "center",
-        format: (val) => {
-          let isSingleRun = val?.isSingleRun;
-          let isRunning = val?.isRunning;
-          if ("Y" === isSingleRun && "Y" == isRunning) {
-            return self.$t("label.yes");
-          } else {
-            return self.$t("label.no");
-          }
-        },
-      },
-      {
-        name: "isLocking",
-        label: self.$t("label.locking"),
-        field: "isLocking",
-        align: "center",
+        align: "left",
         format: function (val) {
-          if ("Y" === val) {
-            return self.$t("label.yes");
+          if (val) {
+            return val.classname;
           } else {
-            return self.$t("label.no");
+            return val.name;
           }
         },
       },
@@ -361,34 +345,45 @@ export default {
         },
       },
       {
-        name: "type.classname",
-        label: self.$t("label.class"),
+        name: "type.isRunning",
+        label: self.$t("label.running"),
         field: "type",
-        align: "left",
-        format: function (val) {
-          if (val) {
-            return val.classname;
+        align: "center",
+        sortable: true,
+        format: (val) => {
+          let isSingleRun = val?.isSingleRun;
+          let isRunning = val?.isRunning;
+          if ("Y" === isSingleRun && "Y" == isRunning) {
+            return self.$t("label.yes");
           } else {
-            return val.name;
+            return self.$t("label.no");
           }
         },
       },
       {
-        name: "status.state",
-        label: self.$t("label.state"),
-        field: "status",
+        name: "isLocking",
+        label: self.$t("label.locking"),
+        field: "isLocking",
         align: "center",
+        sortable: true,
         format: function (val) {
-          return val ? val.state : "";
+          if ("Y" === val) {
+            return self.$t("label.yes");
+          } else {
+            return self.$t("label.no");
+          }
         },
       },
       {
-        name: "status.priority",
-        label: self.$t("label.priority"),
-        field: "status",
+        name: "lastRunTime",
+        label: self.$t("label.last_run_time"),
+        field: "lastRunTime",
         align: "center",
+        sortable: true,
         format: function (val) {
-          return val && util.isNumber(val.priority) ? val.priority : "";
+          return val && util.isNumber(val)
+            ? util.format.date(val, { format: "yyyy-MM-dd HH:mm:ss" })
+            : "";
         },
       },
       {
@@ -426,6 +421,24 @@ export default {
                 format: "yyyy-MM-dd HH:mm:ss",
               })
             : "";
+        },
+      },
+      {
+        name: "status.state",
+        label: self.$t("label.state"),
+        field: "status",
+        align: "center",
+        format: function (val) {
+          return val ? val.state : "";
+        },
+      },
+      {
+        name: "status.priority",
+        label: self.$t("label.priority"),
+        field: "status",
+        align: "center",
+        format: function (val) {
+          return val && util.isNumber(val.priority) ? val.priority : "";
         },
       },
       {

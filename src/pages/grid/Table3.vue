@@ -311,7 +311,7 @@
     transition-hide="none"
     backdrop-filter="blur(1px)"
   >
-    <View3 :parameters="dialog.view.parameters" />
+    <View2 :parameters="dialog.view.parameters" />
   </q-dialog>
 
   <q-dialog
@@ -321,7 +321,7 @@
     transition-hide="none"
     backdrop-filter="blur(1px)"
   >
-    <Edit3 :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
+    <Edit2 :parameters="dialog.edit.parameters" @close="on_close_dialog_edit" />
   </q-dialog>
 </template>
 
@@ -338,8 +338,8 @@ export default {
   emits: ["close"],
   components: {
     Search: defineAsyncComponent(() => import("src/pages/grid/Search.vue")),
-    View3: defineAsyncComponent(() => import("src/pages/grid/View3.vue")),
-    Edit3: defineAsyncComponent(() => import("src/pages/grid/Edit3.vue")),
+    View2: defineAsyncComponent(() => import("src/pages/grid/View2.vue")),
+    Edit2: defineAsyncComponent(() => import("src/pages/grid/Edit2.vue")),
   },
 
   setup() {
@@ -575,7 +575,7 @@ export default {
      * CLOSE EDIT DIALOG
      */
     on_close_dialog_edit(result) {
-      let row = result.row;
+      let row = result?.row;
       if (row) {
         if (result.is_edit) {
           if (util.isDefined(row._pk_)) {

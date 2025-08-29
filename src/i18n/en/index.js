@@ -102,6 +102,7 @@ export default {
     key_deserializer: "Key Deserializer",
     key_serializer: "Key Serializer",
     key_type: "Key Type",
+    last_run_time: "Last Run Time",
     last_sequence: "Last Sequence",
     last_timestamp: "Last Timestamp",
     lazy: "Lazy",

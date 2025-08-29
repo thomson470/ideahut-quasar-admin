@@ -115,7 +115,7 @@
     backdrop-filter="blur(1px)"
     full-height
   >
-    <Table2
+    <Table1
       :parameters="dialog.table.parameters"
       @close="on_close_dialog_table"
     />
@@ -135,7 +135,7 @@ export default {
   props: ["parameters"],
   components: {
     FormV: defineAsyncComponent(() => import("src/pages/grid/FormV.vue")),
-    Table2: defineAsyncComponent(() => import("src/pages/grid/Table2.vue")),
+    Table1: defineAsyncComponent(() => import("src/pages/grid/Table1.vue")),
   },
   setup() {
     return {
