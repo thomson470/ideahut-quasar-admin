@@ -498,7 +498,6 @@ const crud = {
       if (!ids.length) {
         return;
       }
-      input.deleting = false;
       uix.confirm(function () {
         let body = crud.copy(input.definition.crud);
         let path = "/crud/delete";
@@ -512,18 +511,22 @@ const crud = {
         if (util.isNumber(replica) && replica > -1) {
           body.replica = replica;
         }
-        input.deleting = true;
+        util.runIf(util.isFunction(input.onProgress), () =>
+          input.onProgress(true),
+        );
         api.call({
           path: path,
           method: "post",
           data: body,
           onFinish() {
-            input.deleting = false;
+            util.runIf(util.isFunction(input.onProgress), () =>
+              input.onProgress(false),
+            );
           },
           onSuccess(data) {
-            if (util.isFunction(input.onSuccess)) {
-              input.onSuccess(data);
-            }
+            util.runIf(util.isFunction(input.onSuccess), () =>
+              input.onSuccess(data),
+            );
           },
         });
       }, "confirm.delete");
@@ -594,19 +597,6 @@ const crud = {
                 ? tmpValue[split[i]]
                 : {};
         }
-        /*
-          if (split.length === 1) {
-              newValue[split[0]] = tval;
-          } else {
-              if (!util.isObject(newValue[split[0]])) {
-                  newValue[split[0]] = {};
-              }
-              let tmpValue = newValue[split[0]];
-              for (let i = 1; i < split.length; i++) {
-                  tmpValue = (tmpValue[split[i]] = (i == split.length - 1 ? tval : (util.isObject(tmpValue[split[i]]) ? tmpValue[split[i]] : {})))
-              }
-          }
-        */
       });
       let definition = input.definition;
       let body = crud.copy(definition.crud);
@@ -622,54 +612,55 @@ const crud = {
       } else {
         path = "/crud/create";
       }
-      input.saving = true;
+      util.runIf(util.isFunction(input.onProgress), () =>
+        input.onProgress(true),
+      );
       api.call({
         path: path,
         method: "post",
         data: body,
         onFinish() {
-          input.saving = false;
+          util.runIf(util.isFunction(input.onProgress), () =>
+            input.onProgress(false),
+          );
         },
         onSuccess(data) {
           data = crud.get.object(data);
           crud.inject.pkAndGridId(definition.id, data, definition._grid_id_);
-          if (util.isFunction(input.onSuccess)) {
-            input.onSuccess(data);
+          body = crud.copy(definition.crud);
+          let refresh =
+            true === input.is_edit &&
+            (body?.joins?.length || body?.loads?.length);
+          if (refresh) {
+            body.id = crud.copy(input.id);
+            body.replica = input.replica;
+            util.runIf(util.isFunction(input.onProgress), () =>
+              input.onProgress(true),
+            );
+            api.call({
+              path: "/crud/single",
+              method: "post",
+              data: body,
+              onFinish() {
+                util.runIf(util.isFunction(input.onProgress), () =>
+                  input.onProgress(false),
+                );
+              },
+              onSuccess(object) {
+                crud.inject.pkAndGridId(
+                  definition.id,
+                  object,
+                  definition._grid_id_,
+                );
+                util.runIf(util.isFunction(input.onSuccess), () =>
+                  input.onSuccess(object),
+                );
+              },
+            });
           } else {
-            body = crud.copy(definition.crud);
-            let refresh =
-              true === input.is_edit &&
-              (body?.joins?.length || body?.loads?.length);
-            if (refresh) {
-              input.saving = true;
-              body.id = crud.copy(input.id);
-              body.replica = input.replica;
-              api.call({
-                path: "/crud/single",
-                method: "post",
-                data: body,
-                onFinish() {
-                  input.saving = false;
-                },
-                onSuccess(object) {
-                  if (util.isObject(object)) {
-                    object._grid_id_ = input.row._grid_id_;
-                    object._pk_ = input.row._pk_;
-                  }
-                  input.emit("close", {
-                    row: object,
-                    is_edit: input.is_edit,
-                    index: input.index,
-                  });
-                },
-              });
-            } else {
-              input.emit("close", {
-                row: data,
-                is_edit: input.is_edit,
-                index: input.index,
-              });
-            }
+            util.runIf(util.isFunction(input.onSuccess), () =>
+              input.onSuccess(data),
+            );
           }
         },
       });

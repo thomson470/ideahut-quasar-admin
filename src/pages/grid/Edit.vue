@@ -287,6 +287,7 @@
             class="full-width q-mt-xs q-mb-xs text-weight-bold"
             no-caps
             glossy
+            :disable="saving"
             :loading="loading['form_' + index]"
             @click="on_form_click(form, index)"
           />
@@ -303,6 +304,7 @@
             class="full-width q-mt-xs q-mb-xs text-weight-bold"
             no-caps
             glossy
+            :disable="saving"
             @click="on_table_click(table)"
           />
         </div>
@@ -663,10 +665,15 @@ export default {
         definition: self.template,
         replica: self.replica,
         is_edit: self.is_edit,
-        saving: self.saving,
-        index: self.index,
         row: self.row,
-        emit: self.$emit,
+        onSuccess: function (data) {
+          self.$emit("close", {
+            row: data,
+            is_edit: self.is_edit,
+            index: self.index,
+          });
+        },
+        onProgress: (saving) => (self.saving = saving),
       });
     },
   },

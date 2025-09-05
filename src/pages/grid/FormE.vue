@@ -461,7 +461,7 @@ export default {
         replica: self.replica,
         relations: self.relations,
         is_edit: self.is_edit,
-        saving: self.saving,
+        onProgress: (saving) => (self.saving = saving),
         onSuccess: function (data) {
           self.$emit("close", {
             row: data,

@@ -478,13 +478,13 @@ export default {
         row: scope.row,
         definition: self.definition,
         table: self.table,
-        deleting: self.deleting,
         replica: self.replica,
         onSuccess: function () {
           self.do_request({
             pagination: self.table.pagination,
           });
         },
+        onProgress: (deleting) => (self.table.deleting = deleting),
       });
     },
 

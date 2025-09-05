@@ -488,11 +488,16 @@ export default {
         definition: self.definition,
         replica: self.replica,
         is_edit: self.is_edit,
-        saving: self.saving,
         relations: self.relations,
-        index: self.index,
         row: self.row,
-        emit: self.$emit,
+        onSuccess: function (data) {
+          self.$emit("close", {
+            row: data,
+            is_edit: self.is_edit,
+            index: self.index,
+          });
+        },
+        onProgress: (saving) => (self.saving = saving),
       });
     },
   },
