@@ -393,8 +393,14 @@ export default {
     self.definition = crud.get.object(params.definition);
     self.parentRow = crud.get.object(params.parentRow);
     self.relations = crud.get.array(params.relations);
-    self.replica = crud.get.number(params.replica, null);
-    self.onlyView = true === params.onlyView;
+    self.replica = crud.callIf(
+      crud.isString(self.definition?.crud?.replica),
+      () => crud.getFieldValue(self.definition.crud.replica, self.parentRow),
+      () => crud.get.number(params.replica, null),
+    );
+    self.onlyView = crud.isDefined(self.definition.onlyView)
+      ? true === self.definition.onlyView
+      : true === params.onlyView;
     self.permission = { actions: crud.copy(self.template.actions) };
     let excludes = self.definition?.action?.exclude
       ? self.definition.action.exclude
@@ -445,6 +451,7 @@ export default {
      */
     do_request(props) {
       crud.action.page({
+        parentRow: self.parentRow,
         props: props,
         table: self.table,
         search: self.search,

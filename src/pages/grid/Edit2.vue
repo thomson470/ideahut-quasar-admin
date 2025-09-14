@@ -456,7 +456,9 @@ export default {
         definition: table,
         parentRow: row,
         relations: relations,
-        onlyView: false,
+        onlyView: crud.isDefined(table.onlyView)
+          ? true === table.onlyView
+          : false,
         replica: self.replica,
       });
     },
@@ -554,6 +556,7 @@ export default {
         is_edit: self.is_edit,
         relations: self.relations,
         row: self.row,
+        parentRow: self.parentRow,
         onSuccess: function (data) {
           self.$emit("close", {
             row: data,

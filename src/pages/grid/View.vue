@@ -258,7 +258,9 @@ export default {
         definition: table,
         parentRow: row,
         relations: relations,
-        onlyView: true,
+        onlyView: crud.isDefined(table.onlyView)
+          ? false !== table.onlyView
+          : true,
         replica: self.replica,
       });
     },

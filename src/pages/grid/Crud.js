@@ -398,12 +398,25 @@ const crud = {
       let definition = input.definition;
       let replica = input.replica;
       let body = crud.copy(definition.crud);
-      if (util.isNumber(replica) && replica > -1) {
-        body.replica = replica;
-        if (util.isArray(body.joins)) {
-          for (const join of body.joins) {
-            if (true === join.enableReplica) {
-              join.replica = body.replica;
+      body.replica = util.callIf(
+        util.isNumber(replica) && replica > -1,
+        () => replica,
+      );
+      if (util.isArray(body.joins)) {
+        for (const join of body.joins) {
+          if (true === join.enableReplica) {
+            join.replica = util.isString(join.replica)
+              ? util.getFieldValue(join.replica, input.parentRow)
+              : body.replica;
+          }
+          if (util.isArray(join?.relations)) {
+            for (const relation of join.relations) {
+              if (util.isString(relation.value)) {
+                let rval = util.getFieldValue(relation.value, input.parentRow);
+                if (rval) {
+                  relation.value = rval;
+                }
+              }
             }
           }
         }
@@ -612,6 +625,7 @@ const crud = {
       } else {
         path = "/crud/create";
       }
+      delete body.joins;
       util.runIf(util.isFunction(input.onProgress), () =>
         input.onProgress(true),
       );
@@ -634,6 +648,29 @@ const crud = {
           if (refresh) {
             body.id = crud.copy(input.id);
             body.replica = input.replica;
+            if (util.isArray(body.joins)) {
+              for (const join of body.joins) {
+                if (true === join.enableReplica) {
+                  join.replica = util.isString(join.replica)
+                    ? util.getFieldValue(join.replica, input.parentRow)
+                    : body.replica;
+                }
+                if (util.isArray(join?.relations)) {
+                  for (const relation of join.relations) {
+                    if (util.isString(relation.value)) {
+                      let rval = util.getFieldValue(
+                        relation.value,
+                        input.parentRow,
+                      );
+                      if (rval) {
+                        relation.value = rval;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
             util.runIf(util.isFunction(input.onProgress), () =>
               input.onProgress(true),
             );
@@ -706,6 +743,8 @@ const crud = {
   /*
    * UTIL
    */
+  callIf: util.callIf,
+  runIf: util.runIf,
   isFunction: util.isFunction,
   isObject: util.isObject,
   isDefined: util.isDefined,

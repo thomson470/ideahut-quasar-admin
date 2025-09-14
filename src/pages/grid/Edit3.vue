@@ -490,6 +490,7 @@ export default {
         is_edit: self.is_edit,
         relations: self.relations,
         row: self.row,
+        parentRow: self.parentRow,
         onSuccess: function (data) {
           self.$emit("close", {
             row: data,

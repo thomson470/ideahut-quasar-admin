@@ -262,7 +262,9 @@ export default {
         definition: table,
         parentRow: row,
         relations: relations,
-        onlyView: params.onlyView,
+        onlyView: crud.isDefined(table.onlyView)
+          ? false !== table.onlyView
+          : params.onlyView,
         replica: self.replica,
       });
     },
