@@ -355,7 +355,9 @@ export default {
         order: (descending ? "-" : "") + sortBy,
       };
       Object.keys(self.table.filters).forEach((key) => {
-        params[key] = self.table.filters[key];
+        if (self.table.filters[key]) {
+          params[key] = encodeURIComponent(self.table.filters[key]);
+        }
       });
       self.table.loading = true;
       api.call({

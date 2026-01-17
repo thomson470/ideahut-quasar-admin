@@ -4,7 +4,7 @@
     <div class="col-md-6 col-xs-12 q-pa-xs q-mb-sm">
       <q-table
         v-if="application?.length"
-        class="table-sticky-header no-column"
+        class="table-sticky-header no-column property"
         style="max-height: 27vh"
         :title="$t('label.application')"
         :rows="application"
@@ -17,15 +17,16 @@
       >
         <template v-slot:top-right>
           <q-btn
+            v-if="sysprops"
             round
             glossy
             dense
             size="sm"
             icon="display_settings"
             class="q-mr-sm"
-            @click="on_keyvalue_show($t('label.properties'), sysprops, true)"
+            @click="on_keyvalue_show($t('label.system'), sysprops, true)"
           >
-            <q-tooltip>{{ $t("label.properties") }}</q-tooltip>
+            <q-tooltip>{{ $t("label.system") }}</q-tooltip>
           </q-btn>
           <q-btn
             round
@@ -56,6 +57,18 @@
       >
         <template v-slot:top-right>
           <q-btn
+            v-if="envprops"
+            round
+            glossy
+            dense
+            size="sm"
+            icon="display_settings"
+            class="q-mr-sm"
+            @click="on_keyvalue_show($t('label.environment'), envprops, true)"
+          >
+            <q-tooltip>{{ $t("label.environment") }}</q-tooltip>
+          </q-btn>
+          <q-btn
             round
             glossy
             dense
@@ -74,6 +87,7 @@
         :title="$t('label.bean')"
         :rows="bean.rows"
         :columns="bean.columns"
+        :visible-columns="bean.visibles"
         :loading="bean.loading"
         :selection="'single'"
         :dense="$q.screen.lt.md"
@@ -147,6 +161,7 @@
                   class="q-pa-xs q-mt-none scroll"
                 >
                   <q-input
+                    v-if="bean.visibles.includes('beanName')"
                     type="text"
                     :label="$t('label.bean_name')"
                     class="q-mb-xs"
@@ -157,6 +172,7 @@
                     autogrow
                   />
                   <q-input
+                    v-if="bean.visibles.includes('isProxy')"
                     type="text"
                     :label="$t('label.proxy')"
                     class="q-mb-xs"
@@ -167,6 +183,7 @@
                     autogrow
                   />
                   <q-input
+                    v-if="bean.visibles.includes('isReloadable')"
                     type="text"
                     :label="$t('label.reloadable')"
                     class="q-mb-xs"
@@ -177,6 +194,7 @@
                     autogrow
                   />
                   <q-input
+                    v-if="bean.visibles.includes('isReconfigure')"
                     type="text"
                     :label="$t('label.reconfigure')"
                     class="q-mb-xs"
@@ -187,10 +205,55 @@
                     autogrow
                   />
                   <q-input
+                    v-if="bean.visibles.includes('className')"
                     type="text"
                     :label="$t('label.class_name')"
                     class="q-mb-xs"
                     v-model="bean.popup.className"
+                    readonly
+                    filled
+                    dense
+                    autogrow
+                  />
+                  <q-input
+                    v-if="bean.visibles.includes('scope')"
+                    type="text"
+                    :label="$t('label.scope')"
+                    class="q-mb-xs"
+                    v-model="bean.popup.scope"
+                    readonly
+                    filled
+                    dense
+                    autogrow
+                  />
+                  <q-input
+                    v-if="bean.visibles.includes('qualifiers')"
+                    type="text"
+                    :label="$t('label.qualifiers')"
+                    class="q-mb-xs"
+                    v-model="bean.popup.qualifiers"
+                    readonly
+                    filled
+                    dense
+                    autogrow
+                  />
+                  <q-input
+                    v-if="bean.visibles.includes('types')"
+                    type="text"
+                    :label="$t('label.types')"
+                    class="q-mb-xs"
+                    v-model="bean.popup.types"
+                    readonly
+                    filled
+                    dense
+                    autogrow
+                  />
+                  <q-input
+                    v-if="bean.visibles.includes('stereotypes')"
+                    type="text"
+                    :label="$t('label.stereotypes')"
+                    class="q-mb-xs"
+                    v-model="bean.popup.stereotypes"
                     readonly
                     filled
                     dense
@@ -247,7 +310,11 @@
         </q-item>
       </q-card-section>
       <q-card-section style="max-height: 70vh" class="q-pa-xs q-mt-xs scroll">
-        <q-form @submit="on_bean_filter_click" @reset="on_bean_reset_click">
+        <q-form
+          v-if="bean.visibles.includes('beanName')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
           <q-input
             v-model="bean.filters.beanName"
             type="text"
@@ -256,7 +323,11 @@
             class="q-mb-xs"
           />
         </q-form>
-        <q-form @submit="on_bean_filter_click" @reset="on_bean_reset_click">
+        <q-form
+          v-if="bean.visibles.includes('className')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
           <q-input
             v-model="bean.filters.className"
             type="text"
@@ -265,7 +336,60 @@
             class="q-mb-xs"
           />
         </q-form>
+        <q-form
+          v-if="bean.visibles.includes('scope')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
+          <q-input
+            v-model="bean.filters.scope"
+            type="text"
+            :label="$t('label.scope')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form
+          v-if="bean.visibles.includes('qualifiers')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
+          <q-input
+            v-model="bean.filters.qualifiers"
+            type="text"
+            :label="$t('label.qualifiers')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form
+          v-if="bean.visibles.includes('types')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
+          <q-input
+            v-model="bean.filters.types"
+            type="text"
+            :label="$t('label.types')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form
+          v-if="bean.visibles.includes('stereotypes')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
+          <q-input
+            v-model="bean.filters.stereotypes"
+            type="text"
+            :label="$t('label.stereotypes')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
         <q-select
+          v-if="bean.visibles.includes('isProxy')"
           v-model="bean.filters.isProxy"
           :label="$t('label.proxy')"
           :options="option.boolean"
@@ -273,6 +397,7 @@
           class="q-mb-xs"
         />
         <q-select
+          v-if="bean.visibles.includes('isReloadable')"
           v-model="bean.filters.isReloadable"
           :label="$t('label.reloadable')"
           :options="option.boolean"
@@ -280,6 +405,7 @@
           class="q-mb-xs"
         />
         <q-select
+          v-if="bean.visibles.includes('isReconfigure')"
           v-model="bean.filters.isReconfigure"
           :label="$t('label.reconfigure')"
           :options="option.boolean"
@@ -342,12 +468,14 @@ export default {
       APP,
       util,
       sysprops: ref([]),
+      envprops: ref([]),
       application: ref([]),
       version: ref([]),
       bean: ref({
         rows: [],
         filters: {},
         columns: [],
+        visibles: [],
         loading: false,
         pagination: {
           page: 1,
@@ -404,9 +532,46 @@ export default {
         align: "left",
         sortable: true,
       },
+      {
+        name: "scope",
+        label: self.$t("label.scope"),
+        field: "scope",
+        align: "left",
+        sortable: true,
+      },
+      {
+        name: "qualifiers",
+        label: self.$t("label.qualifiers"),
+        field: "qualifiers",
+        align: "left",
+        sortable: true,
+        format: function (val) {
+          return val ? val.join(", ") : "";
+        },
+      },
+      {
+        name: "types",
+        label: self.$t("label.types"),
+        field: "types",
+        align: "left",
+        sortable: true,
+        format: function (val) {
+          return val ? val.join(", ") : "";
+        },
+      },
+      {
+        name: "stereotypes",
+        label: self.$t("label.stereotypes"),
+        field: "stereotypes",
+        align: "left",
+        sortable: true,
+        format: function (val) {
+          return val ? val.join(", ") : "";
+        },
+      },
     ];
     self.get_info();
-    self.get_sysprops();
+    self.get_vars();
     self.get_beans();
   },
   methods: {
@@ -451,9 +616,9 @@ export default {
                 value: app.beanCount,
               },
               {
-                label: self.$t("label.startup_date"),
-                value: util.isNumber(app.startupDate)
-                  ? util.format.date(app.startupDate, {
+                label: self.$t("label.startup_time"),
+                value: util.isNumber(app.startupTime)
+                  ? util.format.date(app.startupTime, {
                       format: "YYYY-MM-DD HH:mm:ss",
                     })
                   : "",
@@ -462,41 +627,15 @@ export default {
           }
           if (util.isObject(data.version)) {
             let version = data.version;
-            self.version = [
-              {
-                label: "Ideahut",
-                value: version.ideahut,
-              },
-              {
-                label: "Java",
-                value: version.java,
-              },
-              {
-                label: "Spring Framework",
-                value: version.springFramework,
-              },
-              {
-                label: "Spring Boot",
-                value: version.springBoot,
-              },
-              {
-                label: "Hibernate",
-                value: version.hibernate,
-              },
-              {
-                label: "Jedis",
-                value: version.jedis,
-              },
-              {
-                label: "Quartz",
-                value: version.quartz,
-              },
-              {
-                label: "Kafka",
-                value: version.kafka,
-              },
-            ];
+            self.version = [];
+            Object.keys(version).forEach((key) => {
+              self.version.push({
+                label: version[key].label,
+                value: version[key].value,
+              });
+            });
           }
+
           self.version = self.version.filter((o) => {
             return util.isString(o.value);
           });
@@ -509,21 +648,33 @@ export default {
     },
 
     /*
-     * GET SYS PROPS
+     * GET VARS
      */
-    get_sysprops() {
+    get_vars() {
       api.call({
-        path: "/sysprops",
+        path: "/vars",
         onSuccess(data) {
           if (util.isObject(data)) {
             self.sysprops = [];
-            Object.keys(data).forEach((key) => {
-              self.sysprops.push({
-                label: key,
-                value: data[key],
+            if (util.isObject(data.system)) {
+              Object.keys(data.system).forEach((key) => {
+                self.sysprops.push({
+                  label: key,
+                  value: data.system[key],
+                });
               });
-            });
-            util.sort.array(self.sysprops, "label");
+              util.sort.array(self.sysprops, "label");
+            }
+            self.envprops = [];
+            if (util.isObject(data.environment)) {
+              Object.keys(data.environment).forEach((key) => {
+                self.envprops.push({
+                  label: key,
+                  value: data.environment[key],
+                });
+              });
+              util.sort.array(self.envprops, "label");
+            }
           }
         },
       });
@@ -550,7 +701,7 @@ export default {
         onFinish() {
           self.bean.loading = false;
         },
-        onSuccess(data) {
+        onSuccess(data, info) {
           if (util.isObject(data)) {
             self.bean.rows = util.isArray(data.data) ? data.data : [];
             for (const row of self.bean.rows) {
@@ -570,6 +721,14 @@ export default {
               } else {
                 pagination.rowsNumber = rowsNumber + 1;
               }
+            }
+          }
+          if (util.isArray(info.visibles)) {
+            self.bean.visibles = info.visibles;
+          } else {
+            self.bean.visibles = [];
+            for (const c of self.bean.columns) {
+              self.bean.visibles.push(c.name);
             }
           }
         },
