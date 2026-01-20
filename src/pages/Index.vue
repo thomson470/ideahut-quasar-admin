@@ -598,6 +598,10 @@ export default {
                 value: app.inNativeImage,
               },
               {
+                label: self.$t("label.virtual_thread"),
+                value: app.virtualThread,
+              },
+              {
                 label: self.$t("label.display_name"),
                 value: app.displayName,
               },

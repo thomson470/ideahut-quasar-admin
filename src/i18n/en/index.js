@@ -203,6 +203,7 @@ export default {
     value_type: "Value Type",
     version: "Version",
     view: "View",
+    virtual_thread: "Virtual Thread",
     yes: "Yes",
     zone_offset_seconds: " Zone Offset (Seconds)",
   },
