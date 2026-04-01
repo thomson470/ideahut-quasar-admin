@@ -67,6 +67,10 @@ const routes = [
         component: () => import("pages/KafkaContainer.vue"),
       },
       {
+        path: "/kafka/topic",
+        component: () => import("pages/KafkaTopic.vue"),
+      },
+      {
         path: "/kafka/producer",
         component: () => import("pages/KafkaProducer.vue"),
       },

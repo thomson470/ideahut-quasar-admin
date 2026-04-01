@@ -223,15 +223,6 @@
             class="q-mb-xs"
           />
         </q-form>
-        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
-          <q-input
-            v-model="table.filters.annotation"
-            type="text"
-            :label="$t('label.annotation')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
       </q-card-section>
       <q-separator />
       <q-card-actions class="row">
@@ -333,7 +324,7 @@ export default {
         name: "method",
         label: self.$t("label.method"),
         field: "methods",
-        align: "left",
+        align: "center",
         sortable: true,
         format: function (val) {
           return val.join(", ");
@@ -343,14 +334,14 @@ export default {
         name: "isPublic",
         label: self.$t("label.public"),
         field: "isPublic",
-        align: "left",
+        align: "center",
         sortable: true,
       },
       {
         name: "isExclude",
         label: self.$t("label.exclude"),
         field: "isExclude",
-        align: "left",
+        align: "center",
         sortable: true,
       },
       {

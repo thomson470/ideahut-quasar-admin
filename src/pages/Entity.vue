@@ -8,7 +8,7 @@
       "
     >
       <q-table
-        class="table-sticky-header no-column"
+        class="table-sticky-header no-column property"
         style="max-height: 27vh"
         :title="$t('label.setting')"
         :rows="setting.rows"
@@ -39,7 +39,7 @@
       class="col-md-6 col-xs-12 q-pa-xs q-mb-sm"
     >
       <q-table
-        class="table-sticky-header no-column"
+        class="table-sticky-header no-column property"
         style="max-height: 27vh"
         :title="$t('label.metadata')"
         :rows="metadata.rows"

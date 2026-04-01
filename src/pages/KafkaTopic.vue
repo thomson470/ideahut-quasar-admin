@@ -67,6 +67,17 @@
       >
         <q-tooltip>{{ $t("label.view") }}</q-tooltip>
       </q-btn>
+      <q-btn
+        glossy
+        round
+        dense
+        size="sm"
+        class="q-ma-none q-mr-xs"
+        color="negative"
+        icon="delete"
+        :loading="table.deleting[scope.row.id]"
+        @click="on_delete_click(scope)"
+      />
     </template>
   </q-table>
 
@@ -81,20 +92,6 @@
       :parameters="dialog.view.parameters"
       :style="dialog.view.style"
       v-touch-pan.mouse="dialog.view.onDrag"
-    />
-  </q-dialog>
-
-  <!-- PROPERTIES DIALOG -->
-  <q-dialog
-    v-model="dialog.properties.show"
-    transition-show="scale"
-    transition-hide="fade"
-    backdrop-filter="blur(1px)"
-  >
-    <KeyValue
-      :parameters="dialog.properties.parameters"
-      :style="dialog.properties.style"
-      v-touch-pan.mouse="dialog.properties.onDrag"
     />
   </q-dialog>
 
@@ -143,56 +140,22 @@
       <q-card-section style="max-height: 70vh" class="q-pa-xs q-mt-xs scroll">
         <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
           <q-input
+            v-model="table.filters.topicId"
+            type="text"
+            :label="$t('label.id')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
+          <q-input
             v-model="table.filters.topicName"
             type="text"
-            :label="$t('label.topic')"
+            :label="$t('label.name')"
             filled
             class="q-mb-xs"
           />
         </q-form>
-        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
-          <q-input
-            v-model="table.filters.keyType"
-            type="text"
-            :label="$t('label.key_type')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
-          <q-input
-            v-model="table.filters.keySerializer"
-            type="text"
-            :label="$t('label.key_serializer')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
-          <q-input
-            v-model="table.filters.valueType"
-            type="text"
-            :label="$t('label.value_type')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-form @submit="on_search_filter_click" @reset="on_search_reset_click">
-          <q-input
-            v-model="table.filters.valueSerializer"
-            type="text"
-            :label="$t('label.value_serializer')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-select
-          v-model="table.filters.isReply"
-          :label="$t('label.reply')"
-          :options="option.boolean"
-          filled
-          class="q-mb-xs"
-        />
       </q-card-section>
       <q-separator />
       <q-card-actions class="row">
@@ -223,8 +186,8 @@
 import { ref, defineAsyncComponent } from "vue";
 import { APP } from "src/scripts/static";
 import { util } from "src/scripts/util";
-import { api } from "src/scripts/api";
 import { uix } from "src/scripts/uix";
+import { api } from "src/scripts/api";
 let self;
 
 export default {
@@ -241,21 +204,18 @@ export default {
         filters: {},
         columns: [],
         loading: false,
+        deleting: {},
         pagination: {
           page: 1,
           rowsPerPage: 30,
-          sortBy: "topic",
+          sortBy: "name",
           descending: false,
           count: true,
         },
       }),
       dialog: ref({
         view: uix.dialog.init(() => self.dialog.view),
-        properties: uix.dialog.init(() => self.dialog.properties),
         search: uix.dialog.init(() => self.dialog.search),
-      }),
-      option: ref({
-        boolean: ["", "true", "false"],
       }),
     };
   },
@@ -265,59 +225,24 @@ export default {
     self.handler = self.$route.query.handler;
     self.table.columns = [
       {
-        name: "topic",
-        label: self.$t("label.topic"),
-        field: "topic",
+        name: "id",
+        label: self.$t("label.id"),
+        field: "id",
         align: "left",
         sortable: true,
       },
       {
-        name: "isReply",
-        label: self.$t("label.reply"),
-        field: "isReply",
+        name: "name",
+        label: self.$t("label.name"),
+        field: "name",
         align: "left",
         sortable: true,
       },
       {
-        name: "keyType",
-        label: self.$t("label.key_type"),
-        field: "keyType",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "keySerializer",
-        label: self.$t("label.key_serializer"),
-        field: "keySerializer",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "valueType",
-        label: self.$t("label.value_type"),
-        field: "valueType",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "valueSerializer",
-        label: self.$t("label.value_serializer"),
-        field: "valueSerializer",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "replyType",
-        label: self.$t("label.reply_type"),
-        field: "replyType",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "replyDeserializer",
-        label: self.$t("label.reply_deserializer"),
-        field: "replyDeserializer",
-        align: "left",
+        name: "internal",
+        label: self.$t("label.internal"),
+        field: "internal",
+        align: "center",
         sortable: true,
       },
     ];
@@ -337,13 +262,11 @@ export default {
         order: (descending ? "-" : "") + sortBy,
       };
       Object.keys(self.table.filters).forEach((key) => {
-        if (self.table.filters[key]) {
-          params[key] = encodeURIComponent(self.table.filters[key]);
-        }
+        params[key] = self.table.filters[key];
       });
       self.table.loading = true;
       api.call({
-        path: "/kafka/senders",
+        path: "/kafka/topics",
         params: params,
         onFinish() {
           self.table.loading = false;
@@ -410,102 +333,35 @@ export default {
             : scope.row[col.field],
         });
       }
-      let actions = [];
-      if (true === scope.row.isReply) {
-        actions.push({
-          icon: scope.row.isRunning ? "stop" : "play_arrow",
-          label: self.$t(scope.row.isRunning ? "label.stop" : "label.start"),
-          color: scope.row.isRunning ? "pink-10" : "purple-10",
-          click: () => self.on_start_stop_click(scope),
-        });
-      }
-      actions.push({
-        icon: "lightbulb",
-        color: "teal-10",
-        label: self.$t("label.properties"),
-        click: () => self.on_properties_click(scope),
-      });
       uix.dialog.show(self.dialog.view, {
         search: false,
         rows: rows,
-        color: {
-          close: "red",
-        },
-        actions: actions,
       });
     },
 
     /*
-     * PROPERTIES CLICK
+     * DELETE CLICK
      */
-    on_properties_click(scope) {
-      uix.dialog.show(self.dialog.properties, {
-        title: self.$t("label.properties"),
-        name: self.handler,
-        topic: scope.row.topic,
-        senderId: scope.row.senderId,
-        rows: [],
-        onRefresh: self.get_properties,
-      });
-    },
-    get_properties(i) {
-      let p = util.isObject(i) ? i : {};
-      util.apply(p.onStart);
-      api.call({
-        path: "/kafka/sender/properties",
-        params: {
-          name: p.parameters.name,
-          senderId: p.parameters.senderId,
-        },
-        onFinish() {
-          util.apply(p.onFinish);
-        },
-        onSuccess(data) {
-          if (util.isObject(data)) {
-            let rows = [];
-            Object.keys(data).forEach((key) => {
-              rows.push({
-                label: key,
-                value: data[key],
-              });
-            });
-            util.sort.array(rows, "label");
-            util.apply(p.onData, rows);
-          }
-        },
-        notify: true,
-      });
-    },
-
-    /*
-     * START / STOP CLICK
-     */
-    on_start_stop_click(scope) {
-      let row = scope.row;
-      let btn = self.dialog.view.parameters.actions[0];
-      uix.confirm(
-        function () {
-          btn.loading = true;
+    on_delete_click(scope) {
+      if (!Object.keys(self.table.deleting).length) {
+        uix.confirm(function () {
+          self.table.deleting[scope.row.id] = true;
           api.call({
-            path: "/kafka/sender/" + (row.isRunning ? "stop" : "start"),
-            method: "post",
+            path: "/kafka/topic",
+            method: "delete",
             params: {
               name: self.handler,
-              senderId: row.senderId,
+              topic: scope.row.name,
             },
             onFinish() {
-              btn.loading = false;
+              delete self.table.deleting[scope.row.id];
             },
             onSuccess() {
-              row.isRunning = !row.isRunning;
-              btn.icon = row.isRunning ? "stop" : "play_arrow";
-              btn.label = self.$t(row.isRunning ? "label.stop" : "label.start");
-              btn.color = row.isRunning ? "pink-10" : "purple-10";
+              self.on_refresh_click();
             },
           });
-        },
-        "confirm." + (row.isRunning ? "stop" : "start"),
-      );
+        }, "confirm.delete");
+      }
     },
 
     /*
@@ -520,30 +376,11 @@ export default {
      */
     on_search_filter_click() {
       let filters = self.table.filters;
+      if (!(util.isString(filters.topicId) && "" !== filters.topicId)) {
+        delete filters.topicId;
+      }
       if (!(util.isString(filters.topicName) && "" !== filters.topicName)) {
         delete filters.topicName;
-      }
-      if (!(util.isString(filters.isReply) && "" !== filters.isReply)) {
-        delete filters.isReply;
-      }
-      if (!(util.isString(filters.keyType) && "" !== filters.keyType)) {
-        delete filters.keyType;
-      }
-      if (
-        !(util.isString(filters.keySerializer) && "" !== filters.keySerializer)
-      ) {
-        delete filters.keySerializer;
-      }
-      if (!(util.isString(filters.valueType) && "" !== filters.valueType)) {
-        delete filters.valueType;
-      }
-      if (
-        !(
-          util.isString(filters.valueSerializer) &&
-          "" !== filters.valueSerializer
-        )
-      ) {
-        delete filters.valueSerializer;
       }
       self.do_request({
         pagination: self.table.pagination,

@@ -4,6 +4,7 @@
     class="table-sticky-header q-ma-sm"
     :rows="table.rows"
     :columns="columns"
+    :visible-columns="visibles"
     :row-key="'name'"
     :loading="table.loading"
     :selection="'single'"
@@ -156,6 +157,7 @@ export default {
       util,
 
       columns: [],
+      visibles: [],
       table: ref({
         rows: [],
         columns: [],
@@ -163,6 +165,8 @@ export default {
         pagination: {
           page: 1,
           rowsPerPage: 10,
+          sortBy: "label",
+          descending: false,
         },
       }),
       view: ref({
@@ -208,16 +212,16 @@ export default {
         sortable: true,
       },
       {
-        name: "poolSize",
-        label: self.$t("label.pool_size"),
-        field: "poolSize",
+        name: "queueCapacity",
+        label: self.$t("label.queue_capacity"),
+        field: "queueCapacity",
         align: "right",
         sortable: true,
       },
       {
-        name: "queueCapacity",
-        label: self.$t("label.queue_capacity"),
-        field: "queueCapacity",
+        name: "poolSize",
+        label: self.$t("label.pool_size"),
+        field: "poolSize",
         align: "right",
         sortable: true,
       },
@@ -263,8 +267,16 @@ export default {
         onFinish() {
           self.table.loading = false;
         },
-        onSuccess(data) {
+        onSuccess(data, info) {
           self.table.rows = util.isArray(data) ? data : [];
+          if (util.isArray(info.visibles)) {
+            self.visibles = info.visibles;
+          } else {
+            self.visibles = [];
+            for (const c of self.columns) {
+              self.visibles.push(c.name);
+            }
+          }
         },
       });
     },
@@ -292,48 +304,15 @@ export default {
         },
         onSuccess(data) {
           if (util.isObject(data)) {
-            self.view.rows = [
-              {
-                label: self.$t("label.name"),
-                value: data.label,
-              },
-              {
-                label: self.$t("label.thread_name_prefix"),
-                value: data.threadNamePrefix,
-              },
-              {
-                label: self.$t("label.active_count"),
-                value: data.activeCount,
-              },
-              {
-                label: self.$t("label.queue_size"),
-                value: data.queueSize,
-              },
-              {
-                label: self.$t("label.pool_size"),
-                value: data.poolSize,
-              },
-              {
-                label: self.$t("label.queue_capacity"),
-                value: data.queueCapacity,
-              },
-              {
-                label: self.$t("label.max_pool_size"),
-                value: data.maxPoolSize,
-              },
-              {
-                label: self.$t("label.core_pool_size"),
-                value: data.corePoolSize,
-              },
-              {
-                label: self.$t("label.keep_alive_seconds"),
-                value: data.keepAliveSeconds,
-              },
-              {
-                label: self.$t("label.thread_priority"),
-                value: data.threadPriority,
-              },
-            ];
+            self.view.rows = [];
+            for (const col of self.columns) {
+              if (self.visibles.includes(col.name)) {
+                self.view.rows.push({
+                  label: col.label,
+                  value: data[col.field],
+                });
+              }
+            }
           } else {
             self.view.rows = [];
           }

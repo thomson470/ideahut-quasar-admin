@@ -160,105 +160,19 @@
                   style="max-height: 600px"
                   class="q-pa-xs q-mt-none scroll"
                 >
-                  <q-input
-                    v-if="bean.visibles.includes('beanName')"
-                    type="text"
-                    :label="$t('label.bean_name')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.beanName"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('isProxy')"
-                    type="text"
-                    :label="$t('label.proxy')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.isProxy"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('isReloadable')"
-                    type="text"
-                    :label="$t('label.reloadable')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.isReloadable"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('isReconfigure')"
-                    type="text"
-                    :label="$t('label.reconfigure')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.isReconfigure"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('className')"
-                    type="text"
-                    :label="$t('label.class_name')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.className"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('scope')"
-                    type="text"
-                    :label="$t('label.scope')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.scope"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('qualifiers')"
-                    type="text"
-                    :label="$t('label.qualifiers')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.qualifiers"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('types')"
-                    type="text"
-                    :label="$t('label.types')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.types"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
-                  <q-input
-                    v-if="bean.visibles.includes('stereotypes')"
-                    type="text"
-                    :label="$t('label.stereotypes')"
-                    class="q-mb-xs"
-                    v-model="bean.popup.stereotypes"
-                    readonly
-                    filled
-                    dense
-                    autogrow
-                  />
+                  <div v-for="(column, index) in bean.columns" :key="index">
+                    <q-input
+                      v-if="bean.visibles.includes(column.name)"
+                      type="text"
+                      :label="column.label"
+                      class="q-mb-xs"
+                      v-model="bean.popup[column.field]"
+                      readonly
+                      filled
+                      dense
+                      autogrow
+                    />
+                  </div>
                 </q-card-section>
               </q-card>
             </q-popup-proxy>
@@ -311,6 +225,19 @@
       </q-card-section>
       <q-card-section style="max-height: 70vh" class="q-pa-xs q-mt-xs scroll">
         <q-form
+          v-if="bean.visibles.includes('beanId')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
+          <q-input
+            v-model="bean.filters.beanId"
+            type="text"
+            :label="$t('label.id')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form
           v-if="bean.visibles.includes('beanName')"
           @submit="on_bean_filter_click"
           @reset="on_bean_reset_click"
@@ -318,7 +245,20 @@
           <q-input
             v-model="bean.filters.beanName"
             type="text"
-            :label="$t('label.bean_name')"
+            :label="$t('label.name')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form
+          v-if="bean.visibles.includes('beanClass')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
+          <q-input
+            v-model="bean.filters.beanClass"
+            type="text"
+            :label="$t('label.class')"
             filled
             class="q-mb-xs"
           />
@@ -331,7 +271,20 @@
           <q-input
             v-model="bean.filters.className"
             type="text"
-            :label="$t('label.class_name')"
+            :label="$t('label.type')"
+            filled
+            class="q-mb-xs"
+          />
+        </q-form>
+        <q-form
+          v-if="bean.visibles.includes('beanKind')"
+          @submit="on_bean_filter_click"
+          @reset="on_bean_reset_click"
+        >
+          <q-input
+            v-model="bean.filters.beanKind"
+            type="text"
+            :label="$t('label.kind')"
             filled
             class="q-mb-xs"
           />
@@ -349,45 +302,14 @@
             class="q-mb-xs"
           />
         </q-form>
-        <q-form
-          v-if="bean.visibles.includes('qualifiers')"
-          @submit="on_bean_filter_click"
-          @reset="on_bean_reset_click"
-        >
-          <q-input
-            v-model="bean.filters.qualifiers"
-            type="text"
-            :label="$t('label.qualifiers')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-form
-          v-if="bean.visibles.includes('types')"
-          @submit="on_bean_filter_click"
-          @reset="on_bean_reset_click"
-        >
-          <q-input
-            v-model="bean.filters.types"
-            type="text"
-            :label="$t('label.types')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
-        <q-form
-          v-if="bean.visibles.includes('stereotypes')"
-          @submit="on_bean_filter_click"
-          @reset="on_bean_reset_click"
-        >
-          <q-input
-            v-model="bean.filters.stereotypes"
-            type="text"
-            :label="$t('label.stereotypes')"
-            filled
-            class="q-mb-xs"
-          />
-        </q-form>
+        <q-select
+          v-if="bean.visibles.includes('beanDefault')"
+          v-model="bean.filters.beanDefault"
+          :label="$t('label.default')"
+          :options="option.boolean"
+          filled
+          class="q-mb-xs"
+        />
         <q-select
           v-if="bean.visibles.includes('isProxy')"
           v-model="bean.filters.isProxy"
@@ -498,76 +420,74 @@ export default {
     self = this;
     self.bean.columns = [
       {
+        name: "beanId",
+        label: self.$t("label.id"),
+        field: "beanId",
+        align: "left",
+        sortable: true,
+      },
+      {
         name: "beanName",
-        label: self.$t("label.bean_name"),
+        label: self.$t("label.name"),
         field: "beanName",
         align: "left",
         sortable: true,
       },
       {
-        name: "isProxy",
-        label: self.$t("label.proxy"),
-        field: "isProxy",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "isReloadable",
-        label: self.$t("label.reloadable"),
-        field: "isReloadable",
-        align: "left",
-        sortable: true,
-      },
-      {
-        name: "isReconfigure",
-        label: self.$t("label.reconfigure"),
-        field: "isReconfigure",
+        name: "beanClass",
+        label: self.$t("label.class"),
+        field: "beanClass",
         align: "left",
         sortable: true,
       },
       {
         name: "className",
-        label: self.$t("label.class_name"),
+        label: self.$t("label.type"),
         field: "className",
         align: "left",
+        sortable: true,
+      },
+      {
+        name: "beanKind",
+        label: self.$t("label.kind"),
+        field: "beanKind",
+        align: "center",
         sortable: true,
       },
       {
         name: "scope",
         label: self.$t("label.scope"),
         field: "scope",
-        align: "left",
+        align: "center",
         sortable: true,
       },
       {
-        name: "qualifiers",
-        label: self.$t("label.qualifiers"),
-        field: "qualifiers",
-        align: "left",
+        name: "beanDefault",
+        label: self.$t("label.default"),
+        field: "beanDefault",
+        align: "center",
         sortable: true,
-        format: function (val) {
-          return val ? val.join(", ") : "";
-        },
       },
       {
-        name: "types",
-        label: self.$t("label.types"),
-        field: "types",
-        align: "left",
+        name: "isProxy",
+        label: self.$t("label.proxy"),
+        field: "isProxy",
+        align: "center",
         sortable: true,
-        format: function (val) {
-          return val ? val.join(", ") : "";
-        },
       },
       {
-        name: "stereotypes",
-        label: self.$t("label.stereotypes"),
-        field: "stereotypes",
-        align: "left",
+        name: "isReloadable",
+        label: self.$t("label.reloadable"),
+        field: "isReloadable",
+        align: "center",
         sortable: true,
-        format: function (val) {
-          return val ? val.join(", ") : "";
-        },
+      },
+      {
+        name: "isReconfigure",
+        label: self.$t("label.reconfigure"),
+        field: "isReconfigure",
+        align: "center",
+        sortable: true,
       },
     ];
     self.get_info();
@@ -602,6 +522,10 @@ export default {
                 value: app.virtualThread,
               },
               {
+                label: self.$t("label.application_name"),
+                value: app.applicationName,
+              },
+              {
                 label: self.$t("label.display_name"),
                 value: app.displayName,
               },
@@ -628,6 +552,9 @@ export default {
                   : "",
               },
             ];
+            self.application = self.application.filter(
+              (o) => util.isDefined(o.value) && "" !== o.value,
+            );
           }
           if (util.isObject(data.version)) {
             let version = data.version;

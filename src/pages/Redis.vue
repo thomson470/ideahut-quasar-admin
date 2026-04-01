@@ -4,6 +4,7 @@
     class="table-sticky-header q-ma-sm"
     :rows="table.rows"
     :columns="columns"
+    :visible-columns="visibles"
     :row-key="'name'"
     :loading="table.loading"
     :selection="'single'"
@@ -211,6 +212,7 @@ export default {
       bean: ref(null),
       is_group: ref(false),
       columns: [],
+      visibles: [],
       table: ref({
         rows: [],
         columns: [],
@@ -318,12 +320,20 @@ export default {
         onFinish() {
           self.table.loading = false;
         },
-        onSuccess(data) {
+        onSuccess(data, info) {
           if (util.isArray(data)) {
             self.table.rows = data;
             for (const row of self.table.rows) {
               self.table.flushing.all[row.name] = false;
               self.table.flushing.db[row.name] = false;
+            }
+          }
+          if (util.isArray(info?.visibles)) {
+            self.visibles = info.visibles;
+          } else {
+            self.visibles = [];
+            for (const c of self.columns) {
+              self.visibles.push(c.name);
             }
           }
         },

@@ -290,7 +290,7 @@ export default {
       onSuccess(menus) {
         let smenu = storage.menu();
         let sactive;
-        let snext = util.isString(smenu.next) ? smenu.next : "";
+        let snext = util.isString(smenu.next) ? smenu.next : undefined;
         menus = util.isArray(menus) ? menus : [];
         self.menus = [
           {

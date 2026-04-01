@@ -296,12 +296,6 @@ export default {
         sortable: true,
       },
       {
-        name: "phase",
-        label: self.$t("label.phase"),
-        field: "phase",
-        align: "left",
-      },
-      {
         name: "keyType",
         label: self.$t("label.key_type"),
         field: "keyType",
